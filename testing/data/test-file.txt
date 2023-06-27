@@ -1,0 +1,2 @@
+This is a text file and therefore should be skipped for snippet matching.
+But in order to force snippet matching, the file needs to be of sufficient size (i.e. larger than 256 bytes).
