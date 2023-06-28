@@ -22,17 +22,154 @@
  */
 package com.scanoss;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import com.scanoss.exceptions.ScannerException;
+import com.scanoss.exceptions.WinnowingException;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@Slf4j
-public class Scanner extends ScanossBase {
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
 
+/**
+ * SCANOSS Scanner Class
+ * <p/>
+ * <p>
+ *     This class provides helpers to Fingerprint (WFP) or Scan a given folder or file.
+ * </p>
+ */
+@Getter
+@Builder
+@Slf4j
+public class Scanner {
+
+    @Builder.Default
+    private Boolean skipSnippets = Boolean.FALSE; // Skip snippet generations
+    @Builder.Default
+    private Boolean allExtensions = Boolean.FALSE; // Fingerprint all file extensions
+    @Builder.Default
+    private Boolean obfuscate = Boolean.FALSE; // Obfuscate file path
+    @Builder.Default
+    private Boolean hpsm = Boolean.FALSE; // Enable High Precision Snippet Matching data collection
+    @Builder.Default
+    private Boolean hiddenFilesFolders = Boolean.FALSE; // Enable Scanning of hidden files/folders
+//    @Builder.Default
+    private Winnowing winnowing;// = Winnowing.builder().build();
+
+    @SuppressWarnings("unused")
+    private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
+                    Boolean hiddenFilesFolders, Winnowing winnowing
+    ) {
+        this.skipSnippets = skipSnippets;
+        this.allExtensions = allExtensions;
+        this.obfuscate = obfuscate;
+        this.hpsm = hpsm;
+        this.hiddenFilesFolders = hiddenFilesFolders;
+        if (winnowing == null) {
+            this.winnowing = Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build();
+        } else {
+            this.winnowing = winnowing;
+        }
+    }
+
+    public String wfpFile(@NonNull String filename) throws ScannerException, WinnowingException {
+        if (filename.isEmpty()) {
+            throw new ScannerException("No filename specified. Cannot fingerprint");
+        }
+        File file = new File(filename);
+        if (!file.exists() || ! file.isFile()) {
+            throw new ScannerException(String.format("File does not exist or is not a file: %s", filename));
+        }
+        return this.winnowing.wfpForFile(filename, filename);
+    }
+
+    private Boolean filterFolder(String name) {
+
+        if (! this.hiddenFilesFolders && name.startsWith(".") && ! name.equals(".")) {
+            log.trace("Skipping hidden folder: {}", name);
+            return true;
+        }
+        for (String ending : ScanossConstants.FILTERED_DIRS) {
+            if (name.endsWith(ending)) {
+                log.trace("Skipping folder due to ending: {} - {}", name, ending);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Determine if a file should be processed or not
+     * @param name filename to review
+     * @return <code>true</code> if the file should be skipped, <code>false</code> otherwise
+     */
+    private Boolean filterFile(String name) {
+        // Skip hidden files unless explicitly asked to read them
+        if (! this.hiddenFilesFolders && name.startsWith(".")) {
+            log.trace("Skipping hidden file: {}", name);
+            return true;
+        }
+        // Process all file extensions if requested
+        if (this.allExtensions) {
+            log.trace("Processing all file extensions: {}", name );
+            return false;
+        }
+        // Skip some specific files
+        if (ScanossConstants.FILTERED_FILES.contains(name)) {
+            log.trace("Skipping specific file: {}", name);
+            return true;
+        }
+        // Skip specific file endings/extensions
+        for (String ending : ScanossConstants.FILTERED_EXTENSIONS ) {
+            if (name.endsWith(ending)) {
+                log.trace("Skipping file due to ending: {} - {}", name, ending);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<String> wfpFolder(@NonNull String directory) throws ScannerException, WinnowingException {
+        if (directory.isEmpty()) {
+            throw new ScannerException("No folder/directory specified. Cannot fingerprint");
+        }
+        File dir = new File(directory);
+        if (!dir.exists() || ! dir.isDirectory()) {
+            throw new ScannerException(String.format("Folder/directory does not exist or is not a folder: %s", directory));
+        }
+        Set<String> fileList = new HashSet<>();
+        try {
+            Files.walkFileTree(Paths.get(directory), new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) {
+                    String nameLower = file.getFileName().toString().toLowerCase();
+                    if (attrs.isDirectory() && filterFolder(nameLower)) {
+                        return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    String nameLower = file.getFileName().toString().toLowerCase();
+                    if (attrs.isRegularFile() && !filterFile(nameLower)) {
+                        fileList.add(file.toString());  // Found a file to fingerprint
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (SecurityException | InvalidPathException | IOException e) {
+            throw new ScannerException(String.format("Problem encountered fingerprinting %s", directory), e);
+        }
+        log.debug("Found {} files to fingerprint...", fileList.size());
+        List<String> wfps = new ArrayList<>(fileList.size());
+        for(String file : fileList) {
+            String wfp = this.winnowing.wfpForFile(file, file);
+            if (wfp != null && ! wfp.isEmpty()) {
+                wfps.add(wfp);
+            }
+        }
+        return wfps;
+    }
 }

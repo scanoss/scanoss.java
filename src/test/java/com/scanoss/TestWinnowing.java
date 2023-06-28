@@ -23,7 +23,9 @@
 package com.scanoss;
 
 
+import com.scanoss.exceptions.WinnowingException;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +39,9 @@ import static org.junit.Assert.*;
 @Slf4j
 public class TestWinnowing {
 
+    // Pattern to test for generated snippet IDs in a WFP
     private static final Pattern snippetPat = Pattern.compile("^\\d+=\\w+.*$", Pattern.MULTILINE);
+
     @Before
     public void Setup() throws IOException {
         log.info("Starting Winnowing test cases...");
@@ -57,6 +61,20 @@ public class TestWinnowing {
             }
         }
     }
+
+    @After
+    public void Teardown() {
+        log.info("Finishing Winnowing test cases...");
+        for(String filename: Arrays.asList("tmp/cannot-read.java", "tmp/cannot-read.extension")) {
+            File file = new File(filename);
+            if (file.exists()) {
+                if (! file.delete()) {
+                    log.warn("Failed to remove temporary file: {}", filename);
+                }
+            }
+        }
+    }
+
     @Test
     public void TestWinnowingPositive() {
         String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
@@ -120,7 +138,7 @@ public class TestWinnowing {
         String wfp = winnowing.wfpForFile(file, file);
         log.info("WFP for Json: {}", wfp );
         assertNotNull("Expected a result from WFP", wfp);
-        assertEquals("file=581b3b2e21de86bed87a5da34dbf29d2,228794,testing/data/non-source.json", wfp.trim());
+        assertEquals("file=b771ebc47d7a5f7a8615c97ea2bb75d8,229076,testing/data/non-source.json", wfp.trim());
 
         file = "testing/data/test-file.txt";
         wfp = winnowing.wfpForFile(file, file);
@@ -182,20 +200,32 @@ public class TestWinnowing {
         String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
         log.info( "<-- Starting {}", methodName );
         Winnowing winnowing = Winnowing.builder().build();
+        try {
+            winnowing.wfpForFile("", "");
+            fail("Should've generated an exception");
+        } catch (WinnowingException e ) {
+            log.info("Got expected error: {}", e.getLocalizedMessage());
+        }
+        try {
+            winnowing.wfpForFile("testing/data/does-not-exist.java", "does-not-exist.java");
+            fail("Should've generated an exception");
+        } catch (WinnowingException e ) {
+            log.info("Got expected error: {}", e.getLocalizedMessage());
+        }
+        try {
+            winnowing.wfpForFile("tmp/cannot-read.java", "tmp/cannot-read.java");
+            fail("Should've generated an exception");
+        } catch (WinnowingException e ) {
+            log.info("Got expected error: {}", e.getLocalizedMessage());
+        }
+        try {
+            winnowing.wfpForFile("tmp/cannot-read.extension", "tmp/cannot-read.extension");
+            fail("Should've generated an exception");
+        } catch (WinnowingException e ) {
+            log.info("Got expected error: {}", e.getLocalizedMessage());
+        }
 
-        String wfp = winnowing.wfpForFile("", "");
-        assertNull("Should've generated a null error", wfp);
-
-        wfp = winnowing.wfpForFile("testing/data/does-not-exist.java", "does-not-exist.java");
-        assertNull("Should've generated a null error", wfp);
-
-        wfp = winnowing.wfpForFile("tmp/cannot-read.java", "tmp/cannot-read.java");
-        assertNull("Should've generated a null error", wfp);
-
-        wfp = winnowing.wfpForFile("tmp/cannot-read.extension", "tmp/cannot-read.extension");
-        assertNull("Should've generated a null error", wfp);
-
-        wfp = winnowing.wfpForFile("testing/data/empty.java", "testing/data/empty.java");
+        String wfp = winnowing.wfpForFile("testing/data/empty.java", "testing/data/empty.java");
         assertNotNull("Empty file should generate a WFP", wfp);
 
         log.info( "Finished {} -->", methodName );

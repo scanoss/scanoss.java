@@ -22,6 +22,7 @@
  */
 package com.scanoss;
 
+import com.scanoss.exceptions.WinnowingException;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -62,50 +63,21 @@ public class Winnowing extends ScanossBase {
      * @param path name/path to record in the WFP
      * @return WFP or <code>null</code>
      */
-    public String wfpForFile(@NonNull String filePath, String path) {
+    public String wfpForFile(@NonNull String filePath, String path) throws WinnowingException {
         if (filePath.isEmpty()) {
-            log.error("File Path needs to be specified to generate WFP.");
-            return null;
+            throw new WinnowingException("File Path needs to be specified to generate WFP");
         }
         File file = new File(filePath);
         if (!file.exists() || !file.isFile()) {
-            log.warn("{} does not exist, or is not a file", filePath);
-            return null;
+            throw new WinnowingException(String.format("%s does not exist, or is not a file", filePath));
         }
         Boolean isBinary = this.isBinaryFile(file);
         try {
             byte[] contents = Files.readAllBytes(file.toPath());
             return wfpForContents(path, isBinary, contents);
         } catch (IOException e) {
-            log.error("Failed to load file contents for: {} - {}", filePath, e.getLocalizedMessage());
+            throw new WinnowingException(String.format("Failed to load file contents for: %s", filePath), e);
         }
-        return null;
-    }
-
-    private Boolean skipSnippets(@NonNull String filename, @NonNull char[] contents) {
-        // Force snippet collection on all files, regardless of ending or size
-        if (this.allExtensions) {
-            log.trace("Generating snippets for all extensions: {}", filename);
-            return false;
-        }
-        if (!filename.isEmpty()) {
-            String lowerFilename = filename.toLowerCase();
-            for (String ending : ScanossConstants.SKIP_SNIPPET_EXT) {
-                if (lowerFilename.endsWith(ending)) {
-                    log.trace("Skipping snippets due to file ending: {} - {}", filename, ending);
-                    return true;
-                }
-            }
-        }
-        if (contents.length <= ScanossConstants.MIN_FILE_SIZE) {
-            log.trace("Skipping snippets as the file is too small: {} - {}", filename, contents.length);
-            return true;
-        }
-        if (contents[0] == '{' || contents[0] == '<') {
-            log.trace("Skipping snippets as the file appears to be JSON/XML/HTML: {}", filename);
-            return true;
-        }
-        return false;
     }
 
 
@@ -164,6 +136,32 @@ public class Winnowing extends ScanossBase {
             wfpBuilder.append(outputBuilder).append("\n");
         }
         return wfpBuilder.toString();
+    }
+
+    private Boolean skipSnippets(@NonNull String filename, @NonNull char[] contents) {
+        // Force snippet collection on all files, regardless of ending or size
+        if (this.allExtensions) {
+            log.trace("Generating snippets for all extensions: {}", filename);
+            return false;
+        }
+        if (!filename.isEmpty()) {
+            String lowerFilename = filename.toLowerCase();
+            for (String ending : ScanossConstants.SKIP_SNIPPET_EXT) {
+                if (lowerFilename.endsWith(ending)) {
+                    log.trace("Skipping snippets due to file ending: {} - {}", filename, ending);
+                    return true;
+                }
+            }
+        }
+        if (contents.length <= ScanossConstants.MIN_FILE_SIZE) {
+            log.trace("Skipping snippets as the file is too small: {} - {}", filename, contents.length);
+            return true;
+        }
+        if (contents[0] == '{' || contents[0] == '<') {
+            log.trace("Skipping snippets as the file appears to be JSON/XML/HTML: {}", filename);
+            return true;
+        }
+        return false;
     }
 
     /**
