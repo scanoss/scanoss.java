@@ -57,5 +57,4 @@ public class ScanossConstants {
         "gradlew", "gradlew.bat", "mvnw", "mvnw.cmd", "gradle-wrapper.jar", "maven-wrapper.jar",
                 "thumbs.db", "babel.config.js", "license.txt", "license.md", "copying.lib", "makefile"
     );
-
 }

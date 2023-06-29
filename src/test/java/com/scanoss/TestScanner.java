@@ -144,7 +144,24 @@ public class TestScanner {
         log.info( "Finished {} -->", methodName );
     }
 
-        @Test
+    @Test
+    public void TestScannerScanFilePositive() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Scanner scanner = Scanner.builder().build();
+
+        String file = "src/test/java/com/scanoss/TestScanner.java";
+        String results = scanner.scanFile(file);
+        assertNotNull("Should've gotten a response", results);
+        assertFalse("Scan results should not be empty", results.isEmpty());
+
+        log.info( "Finished {} -->", methodName );
+    }
+
+
+    @Test
     public void TestScannerTemplate() {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();

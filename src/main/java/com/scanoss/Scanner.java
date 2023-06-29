@@ -24,6 +24,7 @@ package com.scanoss;
 
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.rest.ScanApi;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,11 +57,12 @@ public class Scanner {
     @Builder.Default
     private Boolean hiddenFilesFolders = Boolean.FALSE; // Enable Scanning of hidden files/folders
 //    @Builder.Default
-    private Winnowing winnowing;// = Winnowing.builder().build();
+    private Winnowing winnowing;
+    private ScanApi scanApi;
 
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
-                    Boolean hiddenFilesFolders, Winnowing winnowing
+                    Boolean hiddenFilesFolders, Winnowing winnowing, ScanApi scanApi
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
@@ -71,6 +73,11 @@ public class Scanner {
             this.winnowing = Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build();
         } else {
             this.winnowing = winnowing;
+        }
+        if (scanApi == null) {
+            this.scanApi = ScanApi.builder().build();
+        } else {
+            this.scanApi = scanApi;
         }
     }
 
@@ -131,6 +138,21 @@ public class Scanner {
         return false;
     }
 
+    /**
+     * Strip the leading string from the specified path
+     *
+     * @param scanDir Root path
+     * @param path Path to strip
+     * @return Updated (if necessary) path
+     */
+    private String stripDirectory(String scanDir, String path) {
+        int length = scanDir.endsWith(File.pathSeparator) ? scanDir.length() : scanDir.length() + 1;
+        if (length > 0 && path.startsWith(scanDir)) {
+            return path.substring(length);
+        }
+        return path;
+    }
+
     public List<String> wfpFolder(@NonNull String directory) throws ScannerException, WinnowingException {
         if (directory.isEmpty()) {
             throw new ScannerException("No folder/directory specified. Cannot fingerprint");
@@ -165,11 +187,22 @@ public class Scanner {
         log.debug("Found {} files to fingerprint...", fileList.size());
         List<String> wfps = new ArrayList<>(fileList.size());
         for(String file : fileList) {
-            String wfp = this.winnowing.wfpForFile(file, file);
+            String wfp = this.winnowing.wfpForFile(file, stripDirectory(directory, file));
             if (wfp != null && ! wfp.isEmpty()) {
                 wfps.add(wfp);
             }
         }
         return wfps;
+    }
+
+    public String scanFile(@NonNull String filename) {
+        String wfp = wfpFile(filename);
+        if (wfp != null && ! wfp.isEmpty()) {
+            String response = this.scanApi.scan(wfp, "", 1);
+            if (response != null && !response.isEmpty()) {
+                return response;
+            }
+        }
+        return "";
     }
 }
