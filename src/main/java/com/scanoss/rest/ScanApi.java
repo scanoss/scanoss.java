@@ -22,6 +22,7 @@
  */
 package com.scanoss.rest;
 
+import com.scanoss.exceptions.ScanApiException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -89,8 +90,19 @@ public class ScanApi {
         }
     }
 
-    public String scan(String wfp, String context, int scanID)  {
-
+    /**
+     * Scan the given WFP
+     *
+     * @param wfp Fingerprint to scan
+     * @param context Context for the scan (optional)
+     * @param scanID ID of the requesting scanner (usually thread ID)
+     * @return Scan results (in JSON format)
+     * @throws ScanApiException Scanning went wrong
+     */
+    public String scan(String wfp, String context, int scanID)  throws ScanApiException {
+        if (wfp == null || wfp.isEmpty()) {
+            throw new ScanApiException("No WFP specified. Cannot scan.");
+        }
         String boundary = new BigInteger(256, new Random()).toString();
         String uuid = UUID.randomUUID().toString();
         Map<String,String> postHeaders = new HashMap<>(this.headers.size() + 6);
@@ -117,8 +129,8 @@ public class ScanApi {
                             .toArray(String[]::new))
                     .POST(ofMimeMultipartData(data, boundary, uuid))
                     .build();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+        } catch (URISyntaxException | IllegalArgumentException e) {
+            throw new ScanApiException(String.format("Problem with the URI: %s", url), e);
         }
         try {
             log.trace("Sending request to: {} - {}", request.uri(), request.headers());
@@ -131,10 +143,18 @@ public class ScanApi {
 //            log.info("Response body: {}", response.body());
             return response.body();
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new ScanApiException(String.format("Problem encountered scanning: %d - %s", scanID, uuid), e);
         }
     }
 
+    /**
+     * Return a multipart encoded Body Publisher for the given data
+     *
+     * @param data data to put into the multipart message
+     * @param boundary boundary to use for each multipart
+     * @param uuid UUID to use for the WFP filename
+     * @return Multipart Body Publisher
+     */
     private HttpRequest.BodyPublisher ofMimeMultipartData(Map<Object, Object> data, String boundary, String uuid) {
         var byteArrays = new ArrayList<byte[]>();
         byte[] separator = ("--" + boundary + "\r\nContent-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8);

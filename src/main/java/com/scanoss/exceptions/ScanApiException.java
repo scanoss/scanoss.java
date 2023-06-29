@@ -20,28 +20,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss;
+package com.scanoss.exceptions;
 
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
+/**
+ * SCANOSS ScanApi Exception Class
+ * <p/>
+ * <p>
+ *     This exception will be used by the Scan API class to alert on issues
+ * </p>
+ */
+public class ScanApiException extends RuntimeException {
 
-// TODO remove as we're using Slf4j?
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@Slf4j
-public abstract class ScanossBase {
-    @Builder.Default
-    private Boolean debug = Boolean.FALSE;
-    @Builder.Default
-    private Boolean trace = Boolean.FALSE;
-    @Builder.Default
-    private Boolean quiet = Boolean.FALSE;
-
-    public void printMsg(String msg, Object... objects) {
-        if (! this.quiet) {
-            log.info(msg, objects);
-        }
+    public ScanApiException(String errorMessage) {
+        super(errorMessage);
     }
+    public ScanApiException(String errorMessage, Throwable err) {
+        super(errorMessage, err);
+    }
+
 }

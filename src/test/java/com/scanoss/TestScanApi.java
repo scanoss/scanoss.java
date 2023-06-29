@@ -22,6 +22,7 @@
  */
 package com.scanoss;
 
+import com.scanoss.exceptions.ScanApiException;
 import com.scanoss.rest.HttpStatusCode;
 import com.scanoss.rest.ScanApi;
 import lombok.extern.slf4j.Slf4j;
@@ -102,7 +103,23 @@ public class TestScanApi {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
+        try {
+            ScanApi scanApi = ScanApi.builder().build();
+            String result = scanApi.scan("", "", 1);
+            assertNull("Scan result should be null", result);
+        } catch(ScanApiException e) {
+            log.info("Got expected Exception: {}", e.getLocalizedMessage() );
+        }
+        try {
+            ScanApi scanApi = ScanApi.builder().url("invalid-url").build();
+            String result = scanApi.scan("file=...", "", 1);
+            assertNull("Scan result should be null", result);
+        } catch(ScanApiException e) {
+            log.info("Got expected Exception: {}", e.getLocalizedMessage() );
+        }
+
         ScanApi scanApi = ScanApi.builder().url(server.url("/api/scan/direct").toString()).build();
+
         server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
                 .setBody("Scan failed").setResponseCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getValue())
         );
