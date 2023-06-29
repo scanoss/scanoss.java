@@ -83,7 +83,7 @@
       "licenseId": "AFL-1.1",
       "seeAlso": [
         "https://opensource.linux-mirror.org/licenses/afl-1.1.txt",
-        "https://wayback.archive.org/web/20021004124254/http://www.opensource.org/licenses/academic.php"
+        "https://wayback.archive.org/web/20021004124254/https://www.opensource.org/licenses/academic.php"
       ],
       "isOsiApproved": true,
       "isFsfLibre": true
@@ -97,7 +97,7 @@
       "licenseId": "AFL-1.2",
       "seeAlso": [
         "https://opensource.linux-mirror.org/licenses/afl-1.2.txt",
-        "https://wayback.archive.org/web/20021204204652/http://www.opensource.org/licenses/academic.php"
+        "https://wayback.archive.org/web/20021204204652/https://www.opensource.org/licenses/academic.php"
       ],
       "isOsiApproved": true,
       "isFsfLibre": true
@@ -110,7 +110,7 @@
       "name": "Academic Free License v2.0",
       "licenseId": "AFL-2.0",
       "seeAlso": [
-        "https://wayback.archive.org/web/20060924134533/http://www.opensource.org/licenses/afl-2.0.txt"
+        "https://wayback.archive.org/web/20060924134533/https://www.opensource.org/licenses/afl-2.0.txt"
       ],
       "isOsiApproved": true,
       "isFsfLibre": true
@@ -1943,7 +1943,7 @@
       "licenseId": "Condor-1.1",
       "seeAlso": [
         "https://research.cs.wisc.edu/condor/license.html#condor",
-        "https://web.archive.org/web/20111123062036/http://research.cs.wisc.edu/condor/license.html#condor"
+        "https://web.archive.org/web/20111123062036/https://research.cs.wisc.edu/condor/license.html#condor"
       ],
       "isOsiApproved": false,
       "isFsfLibre": true
@@ -5164,7 +5164,7 @@
       "name": "Open Software License 2.0",
       "licenseId": "OSL-2.0",
       "seeAlso": [
-        "https://web.archive.org/web/20041020171434/http://www.rosenlaw.com/osl2.0.html"
+        "https://web.archive.org/web/20041020171434/https://www.rosenlaw.com/osl2.0.html"
       ],
       "isOsiApproved": true,
       "isFsfLibre": true
@@ -5177,7 +5177,7 @@
       "name": "Open Software License 2.1",
       "licenseId": "OSL-2.1",
       "seeAlso": [
-        "https://web.archive.org/web/20050212003940/http://www.rosenlaw.com/osl21.htm",
+        "https://web.archive.org/web/20050212003940/https://www.rosenlaw.com/osl21.htm",
         "https://opensource.org/licenses/OSL-2.1"
       ],
       "isOsiApproved": true,
@@ -5482,7 +5482,7 @@
       "name": "Ricoh Source Code Public License",
       "licenseId": "RSCPL",
       "seeAlso": [
-        "https://wayback.archive.org/web/20060715140826/http://www.risource.org/RPL/RPL-1.0A.shtml",
+        "https://wayback.archive.org/web/20060715140826/https://www.risource.org/RPL/RPL-1.0A.shtml",
         "https://opensource.org/licenses/RSCPL"
       ],
       "isOsiApproved": true
@@ -6336,7 +6336,7 @@
       "name": "Zimbra Public License v1.3",
       "licenseId": "Zimbra-1.3",
       "seeAlso": [
-        "https://web.archive.org/web/20100302225219/http://www.zimbra.com/license/zimbra-public-license-1-3.html"
+        "https://web.archive.org/web/20100302225219/https://www.zimbra.com/license/zimbra-public-license-1-3.html"
       ],
       "isOsiApproved": false,
       "isFsfLibre": true

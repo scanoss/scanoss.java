@@ -3,6 +3,13 @@ package com.scanoss;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * SCANOSS Constants Class
+ * <p/>
+ * <p>
+ *     Contains shared static values to be used by the package classes.
+ * </p>
+ */
 @SuppressWarnings("SpellCheckingInspection")
 public class ScanossConstants {
 

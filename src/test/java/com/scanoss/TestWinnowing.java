@@ -83,7 +83,7 @@ public class TestWinnowing {
         Winnowing winnowing = Winnowing.builder().build();
         assertFalse("Snippets should be enabled", winnowing.getSkipSnippets());
 
-        Winnowing win2 = Winnowing.builder().debug(true).trace(true).quiet(true)
+        Winnowing win2 = Winnowing.builder()
                 .skipSnippets(true).allExtensions(true).obfuscate(true).hpsm(true)
                 .build();
         assertTrue("All Extensions should be enabled", win2.getAllExtensions());
@@ -95,7 +95,7 @@ public class TestWinnowing {
     public void TestWinnowingContents() {
         String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
         log.info( "<-- Starting {}", methodName );
-        Winnowing winnowing = Winnowing.builder().debug(true).trace(true).build();
+        Winnowing winnowing = Winnowing.builder().build();
 
         byte[] contents = "sample c code with lots of code that we should analyse\nAnd even more code to get connected.\nAnd we need to get this as long as possible, in order to trigger snippet matching.\nHere comes more code to help get this working.\nPlease help get this across the line. We need all the help we can get.\n".getBytes();
         String wfp = winnowing.wfpForContents("local-file.c", false, contents);
@@ -109,7 +109,7 @@ public class TestWinnowing {
     public void TestWinnowingFiles() {
         String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
         log.info( "<-- Starting {}", methodName );
-        Winnowing winnowing = Winnowing.builder().debug(true).trace(true).build();
+        Winnowing winnowing = Winnowing.builder().build();
 
         String file = "testing/data/empty.java";
         String wfp = winnowing.wfpForFile(file, "testing/data/empty.java");
@@ -138,7 +138,7 @@ public class TestWinnowing {
         String wfp = winnowing.wfpForFile(file, file);
         log.info("WFP for Json: {}", wfp );
         assertNotNull("Expected a result from WFP", wfp);
-        assertEquals("file=b771ebc47d7a5f7a8615c97ea2bb75d8,229076,testing/data/non-source.json", wfp.trim());
+        assertEquals("file=f8d52217f24ea77ff80a6b1f421d0959,229084,testing/data/non-source.json", wfp.trim());
 
         file = "testing/data/test-file.txt";
         wfp = winnowing.wfpForFile(file, file);

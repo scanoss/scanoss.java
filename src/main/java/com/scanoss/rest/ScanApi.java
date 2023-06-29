@@ -59,6 +59,7 @@ public class ScanApi {
     private HttpClient httpClient;
     private Map<String,String> headers;
 
+    @SuppressWarnings("unused")
     private ScanApi(String scanType, Integer timeout, Integer retryLimit, String url, String apiKey, String flags,
                    HttpClient httpClient, Map<String, String> headers) {
         this.scanType = scanType;
@@ -99,7 +100,13 @@ public class ScanApi {
         postHeaders.put("Content-Type", "multipart/form-data;boundary=" + boundary);
         Map<Object, Object> data = new HashMap<>();
         data.put("file", wfp);
-        // TODO add type, assets, flags, context support here also
+        if (context != null && ! context.isEmpty()) {
+            data.put("context", context);
+        }
+        if (flags != null && !flags.isEmpty()) {
+            data.put("flags", flags);
+        }
+        // TODO add type, assets, support here also
 
         HttpRequest request;
         try {
@@ -121,7 +128,7 @@ public class ScanApi {
                 log.warn("Problem encountered sending WFP to API ({}): {}", HttpStatusCode.getByValue(response.statusCode()), response.body());
                 return null;
             }
-            log.info("Response body: {}", response.body());
+//            log.info("Response body: {}", response.body());
             return response.body();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -131,6 +138,7 @@ public class ScanApi {
     private HttpRequest.BodyPublisher ofMimeMultipartData(Map<Object, Object> data, String boundary, String uuid) {
         var byteArrays = new ArrayList<byte[]>();
         byte[] separator = ("--" + boundary + "\r\nContent-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8);
+        // Cycle through each data entry and add to the multipart body
         for (Map.Entry<Object, Object> entry : data.entrySet()) {
             byteArrays.add(separator);
             if (entry.getKey().equals("file")) {  // Setup WFP contents
@@ -144,10 +152,6 @@ public class ScanApi {
             }
         }
         byteArrays.add(("--" + boundary + "--").getBytes(StandardCharsets.UTF_8));
-//        for(byte[] bytes: byteArrays) {
-//            log.info("Body Data: {}", new String(bytes));
-//        }
         return HttpRequest.BodyPublishers.ofByteArrays(byteArrays);
     }
-
 }

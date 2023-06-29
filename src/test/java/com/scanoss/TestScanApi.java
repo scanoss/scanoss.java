@@ -22,18 +22,95 @@
  */
 package com.scanoss;
 
+import com.scanoss.rest.HttpStatusCode;
+import com.scanoss.rest.ScanApi;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.MockResponse;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.http.HttpClient;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.scanoss.TestConstants.SCAN_RESP_SUCCESS;
+import static org.junit.Assert.*;
+
 @Slf4j
 public class TestScanApi {
-
+    private MockWebServer server;
     @Before
-    public void Setup() {
+    public void Setup() throws IOException {
         log.info("Starting ScanApi test cases...");
         log.debug("Logging debug enabled" );
         log.trace("Logging trace enabled" );
+        log.info("Starting Mock Server...");
+        server = new MockWebServer();
+        server.start(); // Start the server.
+    }
+
+    @After
+    public void Finish() throws IOException {
+        log.info("Shutting down mock server.");
+        server.shutdown(); // Shut down the server. Instances cannot be reused.
+    }
+
+    @Test
+    public void TestScanApiPositive() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        ScanApi scanApi = ScanApi.builder().build();
+        assertFalse("Should have pre-configured headers", scanApi.getHeaders().isEmpty());
+
+        scanApi = ScanApi.builder().apiKey("test-key").httpClient(HttpClient.newHttpClient()).build();
+        assertFalse("API Key should be set", scanApi.getApiKey().isEmpty());
+
+        Map<String,String> headers = new HashMap<>(1);
+        headers.put("test-header-key", "test-header-value");
+        scanApi = ScanApi.builder().headers(headers).build();
+        assertTrue( "Should have custom header key", scanApi.getHeaders().containsKey("test-header-key"));
+
+        log.info( "Finished {} -->", methodName );
+    }
+
+    @Test
+    public void TestScanApiScanPositive() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        ScanApi scanApi = ScanApi.builder().flags("8").url(server.url("/api/scan/direct").toString()).build();
+        server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBody(SCAN_RESP_SUCCESS).setResponseCode(200)
+        );
+        String result = scanApi.scan("file=....", "pkg:github/scanoss/scanoss.py", 1);
+        assertNotNull(result);
+        assertFalse("Should've gotten a response JSON", result.isEmpty());
+        log.info("Scan response: {}", result);
+
+        log.info( "Finished {} -->", methodName );
+    }
+
+    @Test
+    public void TestScanApiScanNegative() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        ScanApi scanApi = ScanApi.builder().url(server.url("/api/scan/direct").toString()).build();
+        server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBody("Scan failed").setResponseCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getValue())
+        );
+        String result = scanApi.scan("file=....", "", 1);
+        log.info("Scan response: {}", result);
+        assertNull("Should've gotten a null response to this scan", result);
+
+        log.info( "Finished {} -->", methodName );
     }
 
     @Test

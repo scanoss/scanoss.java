@@ -24,7 +24,6 @@ package com.scanoss;
 
 import com.scanoss.exceptions.WinnowingException;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -39,14 +38,17 @@ import java.util.zip.CRC32C;
 import java.util.zip.Checksum;
 
 /**
- * The Winnowing class provides all the necessary implementations to fingerprint a give file or contents.
+ * SCANOSS Winnowing Class
+ * <p/>
+ * <p>
+ *     The Winnowing class provides all the necessary implementations to fingerprint a given file or contents.
+ * </p>
  */
-@Data
-@SuperBuilder
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
+@Builder
 @Slf4j
-public class Winnowing extends ScanossBase {
+public class Winnowing {
 
     @Builder.Default
     private Boolean skipSnippets = Boolean.FALSE; // Skip snippet generations
@@ -62,6 +64,7 @@ public class Winnowing extends ScanossBase {
      * @param filePath Full path of the file to fingerprint
      * @param path name/path to record in the WFP
      * @return WFP or <code>null</code>
+     * @throws WinnowingException Something went wrong with fingerprinting
      */
     public String wfpForFile(@NonNull String filePath, String path) throws WinnowingException {
         if (filePath.isEmpty()) {
@@ -81,6 +84,14 @@ public class Winnowing extends ScanossBase {
     }
 
 
+    /**
+     * Generate a WFP for the given file contents
+     *
+     * @param filename name of file to record in WFP
+     * @param binFile mark the file as binary or source
+     * @param contents file contents
+     * @return WFP string
+     */
     public String wfpForContents(String filename, Boolean binFile, byte[] contents) {
         char[] fileContents = (new String(contents, Charset.defaultCharset())).toCharArray();
         String fileMD5 = DigestUtils.md5Hex(contents);
@@ -138,7 +149,14 @@ public class Winnowing extends ScanossBase {
         return wfpBuilder.toString();
     }
 
-    private Boolean skipSnippets(@NonNull String filename, @NonNull char[] contents) {
+    /**
+     * Determine if a file/contents should be skipped for snippet generation or not
+     *
+     * @param filename filename for the contents (optional)
+     * @param contents file contents
+     * @return <code>true</code> if we should skip snippets, <code>false</code> otherwise
+     */
+    private Boolean skipSnippets(@NonNull String filename, char[] contents) {
         // Force snippet collection on all files, regardless of ending or size
         if (this.allExtensions) {
             log.trace("Generating snippets for all extensions: {}", filename);
@@ -188,6 +206,7 @@ public class Winnowing extends ScanossBase {
 
     /**
      * Convert the give number to a Little Endian encoded byte
+     *
      * @param number <code>long</code> number to convert
      * @return Little Endian encoded <code>byte</code>
      */
@@ -202,6 +221,7 @@ public class Winnowing extends ScanossBase {
 
     /**
      * Normalise the given character
+     *
      * @param c character to normalise
      * @return normalised character
      */
@@ -219,6 +239,7 @@ public class Winnowing extends ScanossBase {
 
     /**
      * Calculate the CRC32 for the given string
+     *
      * @param s String to calculate
      * @return CRC32 value of the string
      */
@@ -230,6 +251,7 @@ public class Winnowing extends ScanossBase {
 
     /**
      * Calculate the Hex for the CRC32 of the given number
+     *
      * @param l Number to encode
      * @return Zero padded Hex value of the CRC32
      */
@@ -241,6 +263,7 @@ public class Winnowing extends ScanossBase {
 
     /**
      * Zero pad the given Hex String to be 8 bytes wide
+     *
      * @param hexString Hex String to pad
      * @return Padded Hex String
      */

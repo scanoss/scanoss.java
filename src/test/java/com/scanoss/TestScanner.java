@@ -153,9 +153,10 @@ public class TestScanner {
         Scanner scanner = Scanner.builder().build();
 
         String file = "src/test/java/com/scanoss/TestScanner.java";
-        String results = scanner.scanFile(file);
-        assertNotNull("Should've gotten a response", results);
-        assertFalse("Scan results should not be empty", results.isEmpty());
+        String result = scanner.scanFile(file);
+        assertNotNull("Should've gotten a response", result);
+        assertFalse("Scan results should not be empty", result.isEmpty());
+        log.info("Single Scan result: {}", result);
 
         log.info( "Finished {} -->", methodName );
     }
@@ -167,7 +168,7 @@ public class TestScanner {
         log.info("<-- Starting {}", methodName);
 
         Scanner scanner = Scanner.builder().build();
-        String folder = "/Users/egans/Downloads/vue-dev";
+        String folder = "src/test";
         List<String> results = scanner.scanFolder(folder);
         assertNotNull("Should've gotten a response", results);
         assertFalse("Scan results should not be empty", results.isEmpty());

@@ -81,6 +81,13 @@ public class Scanner {
         }
     }
 
+    /**
+     * Generate a WFP/Fingerprint for the given file
+     * @param filename file to fingerprint
+     * @return WFP
+     * @throws ScannerException Something in Scanning failed
+     * @throws WinnowingException Something in Winnowing failed
+     */
     public String wfpFile(@NonNull String filename) throws ScannerException, WinnowingException {
         if (filename.isEmpty()) {
             throw new ScannerException("No filename specified. Cannot fingerprint");
@@ -92,6 +99,11 @@ public class Scanner {
         return this.winnowing.wfpForFile(filename, filename);
     }
 
+    /**
+     * Determine if a folder should be processed or not
+     * @param name folder/directory to review
+     * @return <code>true</code> if the folder should be skipped, <code>false</code> otherwise
+     */
     private Boolean filterFolder(String name) {
 
         if (! this.hiddenFilesFolders && name.startsWith(".") && ! name.equals(".")) {
@@ -153,17 +165,24 @@ public class Scanner {
         return path;
     }
 
-    public List<String> wfpFolder(@NonNull String directory) throws ScannerException, WinnowingException {
-        if (directory.isEmpty()) {
+    /**
+     * Generate WFPs/Fingerprints for the given folder
+     * @param folder folder/directory to fingerprint
+     * @return List of WFPs
+     * @throws ScannerException Something in Scanning failed
+     * @throws WinnowingException Something in Winnowing failed
+     */
+    public List<String> wfpFolder(@NonNull String folder) throws ScannerException, WinnowingException {
+        if (folder.isEmpty()) {
             throw new ScannerException("No folder/directory specified. Cannot fingerprint");
         }
-        File dir = new File(directory);
+        File dir = new File(folder);
         if (!dir.exists() || ! dir.isDirectory()) {
-            throw new ScannerException(String.format("Folder/directory does not exist or is not a folder: %s", directory));
+            throw new ScannerException(String.format("Folder/directory does not exist or is not a folder: %s", folder));
         }
         Set<String> fileList = new HashSet<>();
         try {
-            Files.walkFileTree(Paths.get(directory), new SimpleFileVisitor<>() {
+            Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) {
                     String nameLower = file.getFileName().toString().toLowerCase();
@@ -182,12 +201,12 @@ public class Scanner {
                 }
             });
         } catch (SecurityException | InvalidPathException | IOException e) {
-            throw new ScannerException(String.format("Problem encountered fingerprinting %s", directory), e);
+            throw new ScannerException(String.format("Problem encountered fingerprinting %s", folder), e);
         }
         log.debug("Found {} files to fingerprint...", fileList.size());
         List<String> wfps = new ArrayList<>(fileList.size());
         for(String file : fileList) {
-            String wfp = this.winnowing.wfpForFile(file, stripDirectory(directory, file));
+            String wfp = this.winnowing.wfpForFile(file, stripDirectory(folder, file));
             if (wfp != null && ! wfp.isEmpty()) {
                 wfps.add(wfp);
             }
@@ -195,6 +214,11 @@ public class Scanner {
         return wfps;
     }
 
+    /**
+     * Scan the given file
+     * @param filename file to scan
+     * @return scan results string (in JSON format)
+     */
     public String scanFile(@NonNull String filename) {
         String wfp = wfpFile(filename);
         if (wfp != null && ! wfp.isEmpty()) {
@@ -206,6 +230,11 @@ public class Scanner {
         return "";
     }
 
+    /**
+     * Scan the given folder
+     * @param folder folder to scan
+     * @return List of scan result strings (in JSON format)
+     */
     public List<String> scanFolder(@NonNull String folder) {
 
         List<String> wfps = wfpFolder(folder);
