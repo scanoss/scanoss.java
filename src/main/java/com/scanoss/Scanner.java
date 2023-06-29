@@ -205,4 +205,20 @@ public class Scanner {
         }
         return "";
     }
+
+    public List<String> scanFolder(@NonNull String folder) {
+
+        List<String> wfps = wfpFolder(folder);
+        if (wfps != null && ! wfps.isEmpty()) {
+            List<String> responses = new ArrayList<>(wfps.size());
+            for (String wfp: wfps) {
+                String response = this.scanApi.scan(wfp, "", 1);
+                if (response != null && !response.isEmpty()) {
+                    responses.add(response);
+                }
+            }
+            return responses;
+        }
+        return new ArrayList<>();
+    }
 }

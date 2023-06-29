@@ -160,6 +160,24 @@ public class TestScanner {
         log.info( "Finished {} -->", methodName );
     }
 
+    @Test
+    public void TestScannerScanFolderPositive() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Scanner scanner = Scanner.builder().build();
+        String folder = "/Users/egans/Downloads/vue-dev";
+        List<String> results = scanner.scanFolder(folder);
+        assertNotNull("Should've gotten a response", results);
+        assertFalse("Scan results should not be empty", results.isEmpty());
+        log.info("Received {} results", results.size());
+
+        log.info("Res Data: {}", results);
+
+        log.info( "Finished {} -->", methodName );
+    }
+
 
     @Test
     public void TestScannerTemplate() {
