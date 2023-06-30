@@ -119,7 +119,6 @@ public class TestWinnowing {
 
         file = "src/test/java/com/scanoss/TestWinnowing.java";
         wfp = winnowing.wfpForFile("src/test/java/com/scanoss/TestWinnowing.java", "TestWinnowing.java");
-        log.info("Winnowing.java WFP: {}", wfp);
         assertNotNull("Expected a WFP here", wfp);
         assertTrue("Expected a basic WFP here",wfp.length() > 0);
         assertTrue("Should have snippets here", snippetPat.matcher(wfp).find());

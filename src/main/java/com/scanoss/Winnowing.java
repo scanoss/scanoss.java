@@ -36,8 +36,6 @@ import org.apache.tika.mime.MediaTypeRegistry;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.FileNameMap;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
@@ -46,7 +44,7 @@ import java.util.zip.Checksum;
 
 /**
  * SCANOSS Winnowing Class
- * <p/>
+ * <p> </p>
  * <p>
  * The Winnowing class provides all the necessary implementations to fingerprint a given file or contents.
  * </p>
@@ -57,7 +55,7 @@ import java.util.zip.Checksum;
 @Slf4j
 public class Winnowing {
 
-    private static final FileNameMap fileNameMap = URLConnection.getFileNameMap();
+    // Media type detection
     private static final Tika tika = new Tika();
     private static final MediaTypeRegistry mediaTypeRegistry = MediaTypeRegistry.getDefaultRegistry();
 
@@ -78,9 +76,9 @@ public class Winnowing {
      * @return WFP or <code>null</code>
      * @throws WinnowingException Something went wrong with fingerprinting
      */
-    public String wfpForFile(@NonNull String filePath, String path) throws WinnowingException {
-        if (filePath.isEmpty()) {
-            throw new WinnowingException("File Path needs to be specified to generate WFP");
+    public String wfpForFile(@NonNull String filePath, @NonNull String path) throws WinnowingException {
+        if (filePath.isEmpty() || path.isEmpty()) {
+            throw new WinnowingException("File and Path need to be specified to generate WFP");
         }
         File file = new File(filePath);
         if (!file.exists() || !file.isFile()) {
@@ -92,8 +90,7 @@ public class Winnowing {
             if (isText == null) {
                 isText = isTextContent(file, contents);  // Detect file type from contents
             }
-            boolean isBinary = (isText == null || isText == false) ? true : false;
-            return wfpForContents(path, isBinary, contents);
+            return wfpForContents(path, !isText, contents);
         } catch (IOException e) {
             throw new WinnowingException(String.format("Failed to load file contents for: %s", filePath), e);
         }
@@ -108,7 +105,10 @@ public class Winnowing {
      * @param contents file contents
      * @return WFP string
      */
-    public String wfpForContents(String filename, Boolean binFile, byte[] contents) {
+    public String wfpForContents(@NonNull String filename, Boolean binFile, byte[] contents) {
+        if (filename.isEmpty()) {
+            throw new WinnowingException("Filename cannot be empty for WFP");
+        }
         char[] fileContents = (new String(contents, Charset.defaultCharset())).toCharArray();
         String fileMD5 = DigestUtils.md5Hex(contents);
         StringBuilder wfpBuilder = new StringBuilder();
@@ -117,6 +117,7 @@ public class Winnowing {
         if (binFile || this.skipSnippets || this.skipSnippets(filename, fileContents)) {
             return wfpBuilder.toString();
         }
+        // TODO add HPSM support here
         String gram = "";
         List<Long> window = new ArrayList<>();
         char normalized;
@@ -198,52 +199,6 @@ public class Winnowing {
         return false;
     }
 
-    /**
-     * Determine if a file is binary or not
-     *
-     * @param f File to check
-     * @return <code>true</code> if binary, <code>false</code> otherwise
-     */
-    private boolean isBinaryFile1(File f) {
-        try {
-            String type = Files.probeContentType(f.toPath());
-            if (type == null) {
-                log.info("Trying Tika for {}", f);
-                type = tika.detect(f);
-                if (type == null || type.isEmpty()) {
-                    log.info("Trying guessContentType for {}", f);
-                    type = URLConnection.guessContentTypeFromName(f.getName());
-                    if (type == null || type.isEmpty()) {
-                        log.info("Trying filenameMap for {}", f);
-                        type = fileNameMap.getContentTypeFor(f.getName());
-                        if (type == null || type.isEmpty()) {
-                            URLConnection connection = f.toURL().openConnection();
-                            type = connection.getContentType();
-                            if (type == null || type.isEmpty()) {
-                                log.debug("Could not determine file type for: {}. Assuming it is not binary.", f);
-                                return false;  // type couldn't be determined, assume not binary
-                            }
-                        }
-                    }
-                }
-            }
-            if (type.contains("octet-stream") || type.contains("application/java-archive")) {
-                return true;
-            }
-            if (type != null || !type.isEmpty()) {
-                log.trace("File type for: {} - {}", type, f);
-                if (type.startsWith("text") || type.contains("javascript") || type.contains("content/unknown") ||
-                        type.contains("application/x-sh") || type.contains("application/x-csh")
-                ) {
-                    return false;
-                }
-            }
-        } catch (IOException | SecurityException e) {
-            log.debug("Issue determining file type for: {} - {}", f, e.getLocalizedMessage());
-        }
-        return true; // Assume it's a binary file and skip snippet generation
-    }
-
     private Boolean isTextFile(File f) {
         try {
             String type = tika.detect(f);
@@ -272,7 +227,6 @@ public class Winnowing {
     }
 
     private Boolean isTextMediaType(MediaType mediaType) {
-
         if (mediaType == null) {
             return false;
         }

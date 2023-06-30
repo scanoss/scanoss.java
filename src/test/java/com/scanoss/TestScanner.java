@@ -27,13 +27,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
 @Slf4j
 public class TestScanner {
-
     @Before
     public void Setup() {
         log.info("Starting Scanner test cases...");
@@ -97,7 +98,7 @@ public class TestScanner {
     }
 
     @Test
-    public void TestScannerWfpFolderPositive() {
+    public void TestScannerWfpFolderPositive() throws IOException {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
@@ -105,10 +106,14 @@ public class TestScanner {
         Scanner scanner = Scanner.builder().build();
 
         String folder = ".";
+//        folder = "/Users/egans/Downloads/vue-dev";
         List<String> wfps = scanner.wfpFolder(folder);
         assertNotNull("Should've gotten a WFP", wfps);
         assertFalse("WFP should not be empty", wfps.isEmpty());
         log.info("Retrieved {} WFPs from {}", wfps.size(), folder);
+        FileWriter f = new FileWriter("tmp/test-root-fingers.wfp");
+        f.write(String.join("", wfps));
+        f.close();
 
         scanner = Scanner.builder().allExtensions(true).build();
         folder = "testing";
@@ -116,6 +121,9 @@ public class TestScanner {
         assertNotNull("Should've gotten a WFP", wfps);
         assertFalse("WFP should not be empty", wfps.isEmpty());
         log.info("Retrieved {} WFPs from {}", wfps.size(), folder);
+        f = new FileWriter("tmp/test-testing-fingers.wfp");
+        f.write(String.join("", wfps));
+        f.close();
 
         log.info( "Finished {} -->", methodName );
     }
@@ -169,6 +177,8 @@ public class TestScanner {
 
         Scanner scanner = Scanner.builder().build();
         String folder = "src/test";
+//        folder = ".";
+//        folder = "/Users/egans/Downloads/vue-dev";
         List<String> results = scanner.scanFolder(folder);
         assertNotNull("Should've gotten a response", results);
         assertFalse("Scan results should not be empty", results.isEmpty());

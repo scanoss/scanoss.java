@@ -9,6 +9,26 @@ help: ## This help
 
 .DEFAULT_GOAL := help
 
+clean:  ## Run maven clean
+	@echo "Running package clean..."
+	mvn clean
+
 test:  ## Run package tests
 	@echo "Running package tests..."
 	mvn test
+
+compile:  ## Run maven compile goal
+	@echo "Running package compilation..."
+	mvn compile
+
+verify:  ## Run maven verify goal
+	@echo "Running package verify..."
+	mvn verify
+
+package:  ## Run maven package goal
+	@echo "Running package..."
+	mvn package
+
+deploy:  ## Deploy the package to central repos
+	@echo "Deploying latest package..."
+	mvn deploy

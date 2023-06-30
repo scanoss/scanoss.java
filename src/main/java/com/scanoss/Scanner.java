@@ -24,6 +24,9 @@ package com.scanoss;
 
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.processor.FileProcessor;
+import com.scanoss.processor.ScanFileProcessor;
+import com.scanoss.processor.WfpFileProcessor;
 import com.scanoss.rest.ScanApi;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +43,7 @@ import java.util.concurrent.Future;
 
 /**
  * SCANOSS Scanner Class
- * <p/>
+ * <p> </p>
  * <p>
  *     This class provides helpers to Fingerprint (WFP) or Scan a given folder or file.
  * </p>
@@ -49,9 +52,8 @@ import java.util.concurrent.Future;
 @Builder
 @Slf4j
 public class Scanner {
-
     @Builder.Default
-    private Boolean skipSnippets = Boolean.FALSE; // Skip snippet generations
+    private Boolean skipSnippets = Boolean.FALSE;  // Skip snippet generations
     @Builder.Default
     private Boolean allExtensions = Boolean.FALSE; // Fingerprint all file extensions
     @Builder.Default
@@ -60,19 +62,24 @@ public class Scanner {
     private Boolean hpsm = Boolean.FALSE; // Enable High Precision Snippet Matching data collection
     @Builder.Default
     private Boolean hiddenFilesFolders = Boolean.FALSE; // Enable Scanning of hidden files/folders
-//    @Builder.Default
+    @Builder.Default
+    private Integer numThreads = 5;  // Number of parallel threads to use when processing a folder
     private Winnowing winnowing;
     private ScanApi scanApi;
+    private ScanFileProcessor scanFileProcessor;
+    private WfpFileProcessor wfpFileProcessor;
 
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
-                    Boolean hiddenFilesFolders, Winnowing winnowing, ScanApi scanApi
+                    Boolean hiddenFilesFolders, Integer numThreads, Winnowing winnowing, ScanApi scanApi,
+                    ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
         this.obfuscate = obfuscate;
         this.hpsm = hpsm;
         this.hiddenFilesFolders = hiddenFilesFolders;
+        this.numThreads = numThreads;
         if (winnowing == null) {
             this.winnowing = Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build();
         } else {
@@ -82,6 +89,16 @@ public class Scanner {
             this.scanApi = ScanApi.builder().build();
         } else {
             this.scanApi = scanApi;
+        }
+        if (scanFileProcessor == null) {
+            this.scanFileProcessor = ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build();
+        } else {
+            this.scanFileProcessor = scanFileProcessor;
+        }
+        if (wfpFileProcessor == null) {
+            this.wfpFileProcessor = WfpFileProcessor.builder().winnowing(this.winnowing).build();
+        } else {
+            this.wfpFileProcessor = wfpFileProcessor;
         }
     }
 
@@ -109,7 +126,6 @@ public class Scanner {
      * @return <code>true</code> if the folder should be skipped, <code>false</code> otherwise
      */
     private Boolean filterFolder(String name) {
-
         if (! this.hiddenFilesFolders && name.startsWith(".") && ! name.equals(".")) {
             log.trace("Skipping hidden folder: {}", name);
             return true;
@@ -170,21 +186,27 @@ public class Scanner {
     }
 
     /**
-     * Generate WFPs/Fingerprints for the given folder
+     * Generate Search the specified folder and pass to the given processor
+     *
      * @param folder folder/directory to fingerprint
-     * @return List of WFPs
+     * @param processor processor to take action on the filtered file
+     * @return List of results
      * @throws ScannerException Something in Scanning failed
      * @throws WinnowingException Something in Winnowing failed
      */
-    public List<String> wfpFolder(@NonNull String folder) throws ScannerException, WinnowingException {
+    public List<String> processFolder(@NonNull String folder, FileProcessor processor) throws ScannerException, WinnowingException {
+        if (processor == null) {
+            throw new ScannerException("No file processor object specified.");
+        }
         if (folder.isEmpty()) {
-            throw new ScannerException("No folder/directory specified. Cannot fingerprint");
+            throw new ScannerException("No folder/directory specified. Cannot process request.");
         }
         File dir = new File(folder);
         if (!dir.exists() || ! dir.isDirectory()) {
             throw new ScannerException(String.format("Folder/directory does not exist or is not a folder: %s", folder));
         }
-        Set<String> fileList = new HashSet<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+        List<Future<String>> futures = new ArrayList<>();
         try {
             Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<>() {
                 @Override
@@ -199,45 +221,55 @@ public class Scanner {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     String nameLower = file.getFileName().toString().toLowerCase();
                     if (attrs.isRegularFile() && !filterFile(nameLower) && attrs.size() > 0) {
-                        fileList.add(file.toString());  // Found a file to fingerprint
+                        String filename = file.toString();
+                        Future<String> future = executorService.submit(() -> processor.process(filename, stripDirectory(folder, filename)));
+                        futures.add(future);
                     }
                     return FileVisitResult.CONTINUE;
                 }
             });
         } catch (SecurityException | InvalidPathException | IOException e) {
-            throw new ScannerException(String.format("Problem encountered fingerprinting %s", folder), e);
+            throw new ScannerException(String.format("Problem encountered processing folder %s", folder), e);
+        } finally {
+            executorService.shutdown();
         }
-        log.debug("Found {} files to fingerprint...", fileList.size());
-
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
-        List<Future<String>> futures = new ArrayList<>(fileList.size());
-        for(String file : fileList) {
-            Future<String> future = executorService.submit(() -> this.winnowing.wfpForFile(file, stripDirectory(folder, file)));
-            futures.add(future);
-        }
-        List<String> wfps = new ArrayList<>(fileList.size());
+        log.debug("Found {} files to process.", futures.size());
+        List<String> results = new ArrayList<>(futures.size());
         for( Future<String> future : futures) {
             try {
-                String wfp = future.get();
-                if (wfp != null && ! wfp.isEmpty()) {
-                    wfps.add(wfp);
+                String result = future.get();
+                if (result != null && ! result.isEmpty()) {
+                    results.add(result);
                 } else {
-                    log.warn("something wrong generating WFP: {}", wfp);
+                    log.warn("something wrong processing result: {}", future);
                 }
-            } catch (InterruptedException e) {
-                throw new ScannerException( "Winnowing subtask failed", e);
-            } catch (ExecutionException e) {
-                throw new ScannerException( "Winnowing subtask failed", e);
-            }}
-        return wfps;
+            } catch (InterruptedException | ExecutionException e) {
+                throw new ScannerException("Folder processing subtask failed", e);
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Generate WFPs/Fingerprints for the given folder
+     *
+     * @param folder folder/directory to fingerprint
+     * @return List of WFPs
+     * @throws ScannerException Something in Scanning failed
+     * @throws WinnowingException Something in Winnowing failed
+     */
+    public List<String> wfpFolder(@NonNull String folder) throws ScannerException, WinnowingException {
+        return processFolder(folder, wfpFileProcessor);
     }
 
     /**
      * Scan the given file
      * @param filename file to scan
      * @return scan results string (in JSON format)
+     * @throws ScannerException Something in Scanning failed
+     * @throws WinnowingException Something in Winnowing failed
      */
-    public String scanFile(@NonNull String filename) {
+    public String scanFile(@NonNull String filename) throws ScannerException, WinnowingException {
         String wfp = wfpFile(filename);
         if (wfp != null && ! wfp.isEmpty()) {
             String response = this.scanApi.scan(wfp, "", 1);
@@ -254,18 +286,6 @@ public class Scanner {
      * @return List of scan result strings (in JSON format)
      */
     public List<String> scanFolder(@NonNull String folder) {
-
-        List<String> wfps = wfpFolder(folder);
-        if (wfps != null && ! wfps.isEmpty()) {
-            List<String> responses = new ArrayList<>(wfps.size());
-            for (String wfp: wfps) {
-                String response = this.scanApi.scan(wfp, "", 1);
-                if (response != null && !response.isEmpty()) {
-                    responses.add(response);
-                }
-            }
-            return responses;
-        }
-        return new ArrayList<>();
+        return processFolder(folder, scanFileProcessor);
     }
 }

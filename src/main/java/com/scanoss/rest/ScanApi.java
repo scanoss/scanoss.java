@@ -39,6 +39,13 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * SCANOSS Scanning REST API Implementation
+ * <p> </p>
+ * <p>
+ *     Provides the ability to issue scan requests for a WFP
+ * </p>
+ */
 @Getter
 @Builder
 @Slf4j
@@ -137,7 +144,7 @@ public class ScanApi {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != HttpStatusCode.OK.getValue())
             {
-                log.warn("Problem encountered sending WFP to API ({}): {}", HttpStatusCode.getByValue(response.statusCode()), response.body());
+                log.warn("Problem encountered sending WFP to API ({}): {}", HttpStatusCode.getByValueToString(response.statusCode()), response.body());
                 return null;
             }
 //            log.info("Response body: {}", response.body());

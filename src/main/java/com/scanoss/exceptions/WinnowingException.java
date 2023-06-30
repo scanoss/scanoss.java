@@ -24,7 +24,7 @@ package com.scanoss.exceptions;
 
 /**
  * SCANOSS Winnowing Exception Class
- * <p/>
+ * <p> </p>
  * <p>
  *     This exception will be used by the Winnowing class to alert on issues
  * </p>

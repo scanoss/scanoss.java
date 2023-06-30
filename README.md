@@ -33,6 +33,11 @@ To package the library, please run:
 make dist
 ```
 
+Check for dependency updates:
+```bash
+mvn versions:display-dependency-updates
+```
+
 #### Deployment
 
 Then deploy to prod:

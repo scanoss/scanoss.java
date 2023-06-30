@@ -20,22 +20,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.exceptions;
+package com.scanoss.processor;
 
 /**
- * SCANOSS ScanApi Exception Class
- * <p> </p>
- * <p>
- *     This exception will be used by the Scan API class to alert on issues
- * </p>
+ * SCANOSS File Processor Interface
+ *
  */
-public class ScanApiException extends RuntimeException {
+public interface FileProcessor {
 
-    public ScanApiException(String errorMessage) {
-        super(errorMessage);
-    }
-    public ScanApiException(String errorMessage, Throwable err) {
-        super(errorMessage, err);
-    }
-
+    String process(String file, String folder);
 }

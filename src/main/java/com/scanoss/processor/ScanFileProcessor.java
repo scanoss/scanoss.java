@@ -20,22 +20,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.exceptions;
+package com.scanoss.processor;
+
+import com.scanoss.Winnowing;
+import com.scanoss.exceptions.ScanApiException;
+import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.rest.ScanApi;
+import lombok.Builder;
 
 /**
- * SCANOSS ScanApi Exception Class
- * <p> </p>
+ * SCANOSS File Scan Process Implementation
+ * <p></p>
  * <p>
- *     This exception will be used by the Scan API class to alert on issues
+ *     This class provides the implementation to fingerprint and scan the requested file
  * </p>
  */
-public class ScanApiException extends RuntimeException {
+@Builder
+public class ScanFileProcessor implements FileProcessor{
+    @Builder.Default
+    private final ScanApi scanApi = ScanApi.builder().build();
+    @Builder.Default
+    private final Winnowing winnowing = Winnowing.builder().build();
 
-    public ScanApiException(String errorMessage) {
-        super(errorMessage);
+    /**
+     * Scan the given file and return results
+     *
+     * @param file File to scan
+     * @param folder root folder of the file to scan
+     * @return Scan result
+     *
+     * @throws WinnowingException if something went wrong while fingerprinting
+     * @throws ScanApiException if something went wrong with the scan API
+     */
+    @Override
+    public String process(String file, String folder) throws WinnowingException, ScanApiException {
+        return scanApi.scan(winnowing.wfpForFile(file, folder),"", 1);
     }
-    public ScanApiException(String errorMessage, Throwable err) {
-        super(errorMessage, err);
-    }
-
 }

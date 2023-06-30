@@ -20,22 +20,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.exceptions;
+package com.scanoss.processor;
+
+import com.scanoss.Winnowing;
+import com.scanoss.exceptions.WinnowingException;
+import lombok.Builder;
 
 /**
- * SCANOSS ScanApi Exception Class
+ * SCANOSS File WFP Processor Implementation
  * <p> </p>
  * <p>
- *     This exception will be used by the Scan API class to alert on issues
+ *     This class provides the implementation to fingerprint the requested file
  * </p>
  */
-public class ScanApiException extends RuntimeException {
+@Builder
+public class WfpFileProcessor implements FileProcessor {
 
-    public ScanApiException(String errorMessage) {
-        super(errorMessage);
-    }
-    public ScanApiException(String errorMessage, Throwable err) {
-        super(errorMessage, err);
-    }
+    @Builder.Default
+    private final Winnowing winnowing = Winnowing.builder().build();
 
+    /**
+     * Fingerprint the given file and return the results
+     *
+     * @param file File to scan
+     * @param folder root folder of the file to scan
+     * @return WFP
+     *
+     * @throws WinnowingException if something went wrong while fingerprinting
+     */
+    @Override
+    public String process(String file, String folder) throws WinnowingException {
+        return winnowing.wfpForFile(file, folder);
+    }
 }

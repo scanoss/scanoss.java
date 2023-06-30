@@ -24,7 +24,7 @@ package com.scanoss.exceptions;
 
 /**
  * SCANOSS Scanner Exception Class
- * <p/>
+ * <p> </p>
  * <p>
  *     This exception will be used by the Scanner class to alert on issues
  * </p>
