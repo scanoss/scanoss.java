@@ -33,6 +33,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * SCANOSS Scanner Class
@@ -194,7 +198,7 @@ public class Scanner {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     String nameLower = file.getFileName().toString().toLowerCase();
-                    if (attrs.isRegularFile() && !filterFile(nameLower)) {
+                    if (attrs.isRegularFile() && !filterFile(nameLower) && attrs.size() > 0) {
                         fileList.add(file.toString());  // Found a file to fingerprint
                     }
                     return FileVisitResult.CONTINUE;
@@ -204,13 +208,27 @@ public class Scanner {
             throw new ScannerException(String.format("Problem encountered fingerprinting %s", folder), e);
         }
         log.debug("Found {} files to fingerprint...", fileList.size());
-        List<String> wfps = new ArrayList<>(fileList.size());
+
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        List<Future<String>> futures = new ArrayList<>(fileList.size());
         for(String file : fileList) {
-            String wfp = this.winnowing.wfpForFile(file, stripDirectory(folder, file));
-            if (wfp != null && ! wfp.isEmpty()) {
-                wfps.add(wfp);
-            }
+            Future<String> future = executorService.submit(() -> this.winnowing.wfpForFile(file, stripDirectory(folder, file)));
+            futures.add(future);
         }
+        List<String> wfps = new ArrayList<>(fileList.size());
+        for( Future<String> future : futures) {
+            try {
+                String wfp = future.get();
+                if (wfp != null && ! wfp.isEmpty()) {
+                    wfps.add(wfp);
+                } else {
+                    log.warn("something wrong generating WFP: {}", wfp);
+                }
+            } catch (InterruptedException e) {
+                throw new ScannerException( "Winnowing subtask failed", e);
+            } catch (ExecutionException e) {
+                throw new ScannerException( "Winnowing subtask failed", e);
+            }}
         return wfps;
     }
 

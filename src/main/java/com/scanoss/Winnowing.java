@@ -23,17 +23,24 @@
 package com.scanoss;
 
 import com.scanoss.exceptions.WinnowingException;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.mime.MediaTypeRegistry;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.FileNameMap;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.zip.CRC32C;
 import java.util.zip.Checksum;
 
@@ -41,7 +48,7 @@ import java.util.zip.Checksum;
  * SCANOSS Winnowing Class
  * <p/>
  * <p>
- *     The Winnowing class provides all the necessary implementations to fingerprint a given file or contents.
+ * The Winnowing class provides all the necessary implementations to fingerprint a given file or contents.
  * </p>
  */
 @Getter
@@ -49,6 +56,10 @@ import java.util.zip.Checksum;
 @Builder
 @Slf4j
 public class Winnowing {
+
+    private static final FileNameMap fileNameMap = URLConnection.getFileNameMap();
+    private static final Tika tika = new Tika();
+    private static final MediaTypeRegistry mediaTypeRegistry = MediaTypeRegistry.getDefaultRegistry();
 
     @Builder.Default
     private Boolean skipSnippets = Boolean.FALSE; // Skip snippet generations
@@ -61,8 +72,9 @@ public class Winnowing {
 
     /**
      * Calculate the WFP (fingerprint) for the given file
+     *
      * @param filePath Full path of the file to fingerprint
-     * @param path name/path to record in the WFP
+     * @param path     name/path to record in the WFP
      * @return WFP or <code>null</code>
      * @throws WinnowingException Something went wrong with fingerprinting
      */
@@ -74,9 +86,13 @@ public class Winnowing {
         if (!file.exists() || !file.isFile()) {
             throw new WinnowingException(String.format("%s does not exist, or is not a file", filePath));
         }
-        Boolean isBinary = this.isBinaryFile(file);
+        Boolean isText = this.isTextFile(file); // Detect file type from name
         try {
             byte[] contents = Files.readAllBytes(file.toPath());
+            if (isText == null) {
+                isText = isTextContent(file, contents);  // Detect file type from contents
+            }
+            boolean isBinary = (isText == null || isText == false) ? true : false;
             return wfpForContents(path, isBinary, contents);
         } catch (IOException e) {
             throw new WinnowingException(String.format("Failed to load file contents for: %s", filePath), e);
@@ -88,7 +104,7 @@ public class Winnowing {
      * Generate a WFP for the given file contents
      *
      * @param filename name of file to record in WFP
-     * @param binFile mark the file as binary or source
+     * @param binFile  mark the file as binary or source
      * @param contents file contents
      * @return WFP string
      */
@@ -188,21 +204,90 @@ public class Winnowing {
      * @param f File to check
      * @return <code>true</code> if binary, <code>false</code> otherwise
      */
-    private boolean isBinaryFile(File f) {
+    private boolean isBinaryFile1(File f) {
         try {
             String type = Files.probeContentType(f.toPath());
             if (type == null) {
-                log.debug("Could not determine file type for: {}. Assuming it is binary.", f);
-                return true;  // type couldn't be determined, assume binary
-            } else {
-                log.trace("File type for: {} - {}", f, type);
-                return !type.startsWith("text");
+                log.info("Trying Tika for {}", f);
+                type = tika.detect(f);
+                if (type == null || type.isEmpty()) {
+                    log.info("Trying guessContentType for {}", f);
+                    type = URLConnection.guessContentTypeFromName(f.getName());
+                    if (type == null || type.isEmpty()) {
+                        log.info("Trying filenameMap for {}", f);
+                        type = fileNameMap.getContentTypeFor(f.getName());
+                        if (type == null || type.isEmpty()) {
+                            URLConnection connection = f.toURL().openConnection();
+                            type = connection.getContentType();
+                            if (type == null || type.isEmpty()) {
+                                log.debug("Could not determine file type for: {}. Assuming it is not binary.", f);
+                                return false;  // type couldn't be determined, assume not binary
+                            }
+                        }
+                    }
+                }
+            }
+            if (type.contains("octet-stream") || type.contains("application/java-archive")) {
+                return true;
+            }
+            if (type != null || !type.isEmpty()) {
+                log.trace("File type for: {} - {}", type, f);
+                if (type.startsWith("text") || type.contains("javascript") || type.contains("content/unknown") ||
+                        type.contains("application/x-sh") || type.contains("application/x-csh")
+                ) {
+                    return false;
+                }
             }
         } catch (IOException | SecurityException e) {
             log.debug("Issue determining file type for: {} - {}", f, e.getLocalizedMessage());
         }
         return true; // Assume it's a binary file and skip snippet generation
     }
+
+    private Boolean isTextFile(File f) {
+        try {
+            String type = tika.detect(f);
+            if (type != null && !type.isEmpty()) {
+                MediaType mediaType = MediaType.parse(type);
+                return isTextMediaType(mediaType);
+            } else {
+                log.warn("Could not determine file type for: {}", f);
+                return null;
+            }
+        } catch (IOException e) {
+            log.warn("Issue determining file type for: {} - {}", f, e.getLocalizedMessage());
+        }
+        return null;
+}
+
+    private Boolean isTextContent(File f, byte[] contentBytes) {
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(contentBytes);
+        try {
+            MediaType mediaType = MediaType.parse(tika.detect(byteArrayInputStream));
+            return isTextMediaType(mediaType);
+        } catch (IOException e) {
+            log.debug("Issue determining file type for: {} - {}", f, e.getLocalizedMessage());
+        }
+        return false;
+    }
+
+    private Boolean isTextMediaType(MediaType mediaType) {
+
+        if (mediaType == null) {
+            return false;
+        }
+        if (mediaType.getType().equals("text")) {
+            return true;
+        }
+        Set<MediaType> mediaTypes = new HashSet<>();
+        while (mediaType != null) {
+            mediaTypes.addAll(mediaTypeRegistry.getAliases(mediaType));
+            mediaTypes.add(mediaType);
+            mediaType = mediaTypeRegistry.getSupertype(mediaType);
+        }
+        return mediaTypes.stream().anyMatch(mt -> mt.getType().equals("text"));
+    }
+
 
     /**
      * Convert the give number to a Little Endian encoded byte
