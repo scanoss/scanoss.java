@@ -32,3 +32,19 @@ package:  ## Run maven package goal
 deploy:  ## Deploy the package to central repos
 	@echo "Deploying latest package..."
 	mvn deploy
+
+inc_patch:  ## Increment the patch version on pom.xml
+	@echo "Incrementing patch version..."
+	mvn build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.majorVersion}.$${parsedVersion.minorVersion}.$${parsedVersion.nextIncrementalVersion}' versions:commit
+
+inc_minor:  ## Increment the minor version on pom.xml
+	@echo "Incrementing minor version..."
+	mvn build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.majorVersion}.$${parsedVersion.nextMinorVersion}.$${parsedVersion.incrementalVersion}' versions:commit
+
+inc_major:  ## Increment the major version on pom.xml
+	@echo "Incrementing major version..."
+	mvn build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.nextMajorVersion}.$${parsedVersion.minorVersion}.$${parsedVersion.incrementalVersion}' versions:commit
+
+version:  ## Show the current version of the package
+	@echo "Getting package version..."
+	VER=$(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout)

@@ -20,7 +20,7 @@ jobs:
           java-version: 11
 
       - name: Build
-        run: make clean compile
+        run: mvn --no-transfer-progress clean compile
 
       - name: Unit Test
-        run: make test
+        run: mvn --no-transfer-progress test
