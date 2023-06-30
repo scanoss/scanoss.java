@@ -1,0 +1,59 @@
+name: Release
+# Build, deploy and attach supported artifacts a draft release tag
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v1.4.3
+        with:
+          java-version: 11
+          server-id: ossrh
+          server-username: ${{ secrets.OSSRH_USER_TOKEN }}
+          server-password: ${{ secrets.OSSRH_PWD_TOKEN }}
+          gpg-private-key: ${{ secrets.GPG_SIGNING_KEY }}
+          gpg-passphrase: ${{ secrets.GPG_PWD }}
+
+      - name: Build
+        run: |
+          make clean package
+
+#      - name: Create release
+#        uses: ncipollo/release-action@v1
+#        with:
+#          allowUpdates: true
+#          artifacts: "${{ github.workspace }}/target/*.jar"
+#          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to the Maven Central Repository
+        run: |
+          mvn --no-transfer-progress --batch-mode deploy
+
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+
+#      - name: Release to Nexus Repository
+#        uses: samuelmeuli/action-maven-publish@v1
+#        with:
+#          gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
+#          gpg_passphrase: ${{ secrets.GPG_PWD }}
+#          nexus_username: ${{ secrets.OSSRH_USER_TOKEN }}
+#          nexus_password: ${{ secrets.OSSRH_PWD_TOKEN }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: |
+            target/*.jar
