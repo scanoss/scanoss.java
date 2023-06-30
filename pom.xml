@@ -6,7 +6,7 @@
 
     <groupId>com.scanoss</groupId>
     <artifactId>scanoss</artifactId>
-    <version>0.2.1</version>
+    <version>0.1.2</version>
     <packaging>jar</packaging>
     <name>scanoss.java</name>
     <url>https://github.com/scanoss/scanoss.java</url>
