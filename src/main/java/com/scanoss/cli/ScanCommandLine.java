@@ -42,8 +42,6 @@ import static com.scanoss.cli.CommandLine.printMsg;
 @SuppressWarnings("unused")
 @picocli.CommandLine.Command(name = "scan", description = "Scan the given file/folder/wfp")
 class ScanCommandLine implements Runnable {
-    //    @picocli.CommandLine.ParentCommand
-//    CommandLine parent;
     @picocli.CommandLine.Spec
     picocli.CommandLine.Model.CommandSpec spec;
 
