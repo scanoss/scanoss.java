@@ -33,6 +33,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * JSON Processing Utility Class
@@ -68,7 +69,49 @@ public class JsonUtils {
      */
     public static String toJsonPretty(@NonNull JsonObject jsonObject) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return gson.toJson(jsonObject);
+        return gson.toJson(sortJsonObject(jsonObject));
+    }
+
+    /**
+     * Recursively sort the JSON object based on key name
+     *
+     * @param jsonObject JSON object to sort
+     * @return sorted object
+     */
+    public static JsonObject sortJsonObject(JsonObject jsonObject) {
+        List<String> keySet = jsonObject.keySet().stream().sorted().collect(Collectors.toList());
+        JsonObject temp = new JsonObject();
+        for (String key : keySet) {
+            JsonElement ele = jsonObject.get(key);
+            if (ele.isJsonObject()) {
+                ele = sortJsonObject(ele.getAsJsonObject());
+                temp.add(key, ele);
+            } else if (ele.isJsonArray()) {
+                temp.add(key, sortJsonArray(ele.getAsJsonArray()));
+            } else
+                temp.add(key, ele.getAsJsonPrimitive());
+        }
+        return temp;
+    }
+
+    /**
+     * Sort the given JSON Array (based on key)
+     *
+     * @param jsonArray JSON Array to sort
+     * @return Sorted array
+     */
+    private static JsonArray sortJsonArray(JsonArray jsonArray) {
+        JsonArray tempArray = new JsonArray();
+        jsonArray.forEach(e -> {
+            if (e.isJsonObject()) {
+                tempArray.add(sortJsonObject(e.getAsJsonObject()));
+            } else if (e.isJsonArray()) {
+                tempArray.add(sortJsonArray(e.getAsJsonArray()));
+            } else {
+                tempArray.add(e);
+            }
+        });
+        return tempArray;
     }
 
     /**
