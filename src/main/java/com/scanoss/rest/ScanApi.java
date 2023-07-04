@@ -41,7 +41,6 @@ import java.util.stream.Stream;
 
 /**
  * SCANOSS Scanning REST API Implementation
- * <p> </p>
  * <p>
  *     Provides the ability to issue scan requests for a WFP
  * </p>

@@ -5,7 +5,6 @@ import java.util.List;
 
 /**
  * SCANOSS Constants Class
- * <p> </p>
  * <p>
  *     Contains shared static values to be used by the package classes.
  * </p>

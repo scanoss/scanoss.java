@@ -43,7 +43,6 @@ import java.util.concurrent.Future;
 
 /**
  * SCANOSS Scanner Class
- * <p> </p>
  * <p>
  *     This class provides helpers to Fingerprint (WFP) or Scan a given folder or file.
  * </p>

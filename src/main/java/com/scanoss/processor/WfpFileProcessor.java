@@ -28,7 +28,6 @@ import lombok.Builder;
 
 /**
  * SCANOSS File WFP Processor Implementation
- * <p> </p>
  * <p>
  *     This class provides the implementation to fingerprint the requested file
  * </p>

@@ -24,16 +24,25 @@ package com.scanoss.exceptions;
 
 /**
  * SCANOSS ScanApi Exception Class
- * <p> </p>
  * <p>
  *     This exception will be used by the Scan API class to alert on issues
  * </p>
  */
 public class ScanApiException extends RuntimeException {
 
+    /**
+     * Scan API Exception
+     * @param errorMessage error message
+     */
     public ScanApiException(String errorMessage) {
         super(errorMessage);
     }
+
+    /**
+     * Nested Scan API Exception
+     * @param errorMessage error message
+     * @param err nested exception
+     */
     public ScanApiException(String errorMessage, Throwable err) {
         super(errorMessage, err);
     }

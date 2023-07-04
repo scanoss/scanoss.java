@@ -44,7 +44,6 @@ import java.util.zip.Checksum;
 
 /**
  * SCANOSS Winnowing Class
- * <p> </p>
  * <p>
  * The Winnowing class provides all the necessary implementations to fingerprint a given file or contents.
  * </p>

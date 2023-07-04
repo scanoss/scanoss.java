@@ -24,15 +24,24 @@ package com.scanoss.exceptions;
 
 /**
  * SCANOSS Scanner Exception Class
- * <p> </p>
  * <p>
  *     This exception will be used by the Scanner class to alert on issues
  * </p>
  */
 public class ScannerException extends RuntimeException {
+    /**
+     * Scanner Exception
+     * @param errorMessage error message
+     */
     public ScannerException(String errorMessage) {
         super(errorMessage);
     }
+
+    /**
+     * Nested Scanner Exception
+     * @param errorMessage error message
+     * @param err nested exception
+     */
     public ScannerException(String errorMessage, Throwable err) {
         super(errorMessage, err);
     }

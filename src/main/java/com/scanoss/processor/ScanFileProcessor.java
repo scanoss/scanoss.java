@@ -30,7 +30,6 @@ import lombok.Builder;
 
 /**
  * SCANOSS File Scan Process Implementation
- * <p></p>
  * <p>
  *     This class provides the implementation to fingerprint and scan the requested file
  * </p>

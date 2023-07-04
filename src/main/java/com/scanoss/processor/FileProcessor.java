@@ -28,5 +28,11 @@ package com.scanoss.processor;
  */
 public interface FileProcessor {
 
+    /**
+     * Implement process method to process the file
+     * @param file file to process
+     * @param folder root folder of the file to scan
+     * @return scan result
+     */
     String process(String file, String folder);
 }

@@ -24,16 +24,25 @@ package com.scanoss.exceptions;
 
 /**
  * SCANOSS Winnowing Exception Class
- * <p> </p>
  * <p>
  *     This exception will be used by the Winnowing class to alert on issues
  * </p>
  */
 public class WinnowingException extends RuntimeException {
 
+    /**
+     * Winnowing Exception
+     * @param errorMessage error message
+     */
     public WinnowingException(String errorMessage) {
         super(errorMessage);
     }
+
+    /**
+     * Nested Winnowing Exception
+     * @param errorMessage error message
+     * @param err nested exception
+     */
     public WinnowingException(String errorMessage, Throwable err) {
         super(errorMessage, err);
     }
