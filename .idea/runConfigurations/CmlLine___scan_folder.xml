@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CmlLine - scan folder" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.scanoss.cli.CommandLine" />
+    <module name="scanoss" />
+    <option name="PROGRAM_PARAMETERS" value="-d scan src/test" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.scanoss.cli.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

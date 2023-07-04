@@ -7,7 +7,7 @@
         </server>
         <server>
             <id>gpg.passphrase</id>
-            <passphrase>loose.AMERICA.blew</passphrase>
+            <passphrase>${env.MAVEN_GPG_PASSPHRASE}</passphrase>
         </server>
     </servers>
 <!--    <profiles>-->
