@@ -27,13 +27,6 @@ jobs:
         run: |
           mvn --no-transfer-progress clean package
 
-#      - name: Create release
-#        uses: ncipollo/release-action@v1
-#        with:
-#          allowUpdates: true
-#          artifacts: "${{ github.workspace }}/target/*.jar"
-#          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Publish to the Maven Central Repository
         run: |
           mvn --no-transfer-progress --batch-mode deploy
@@ -41,14 +34,6 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USER_TOKEN }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_PWD_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PWD }}
-
-#      - name: Release to Nexus Repository
-#        uses: samuelmeuli/action-maven-publish@v1
-#        with:
-#          gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
-#          gpg_passphrase: ${{ secrets.GPG_PWD }}
-#          nexus_username: ${{ secrets.OSSRH_USER_TOKEN }}
-#          nexus_password: ${{ secrets.OSSRH_PWD_TOKEN }}
 
       - name: Release
         uses: softprops/action-gh-release@v1
