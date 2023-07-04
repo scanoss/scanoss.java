@@ -41,6 +41,18 @@ public class TestCli {
     }
 
     @Test
+    public void TestRootCommand() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+        String[] args = new String[]{};
+        int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
+        assertEquals("command should not fail", 0, exitCode);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
     public void TestVersionCommand() {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();

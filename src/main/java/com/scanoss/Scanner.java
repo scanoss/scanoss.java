@@ -65,7 +65,16 @@ public class Scanner {
     @Builder.Default
     private Boolean hiddenFilesFolders = Boolean.FALSE; // Enable Scanning of hidden files/folders
     @Builder.Default
+    private Boolean allFolders = Boolean.FALSE; // Enable Scanning of all folders (except hidden)
+    @Builder.Default
     private Integer numThreads = 5;  // Number of parallel threads to use when processing a folder
+    @Builder.Default
+    private Integer timeout = 120; // API POST timeout
+    @Builder.Default
+    private Integer retryLimit = 5; // Retry limit for posting scan requests
+    private String url;  // Alternative scanning URL
+    private String apiKey; // API key
+    private String scanFlags; // Scan flags to pass to the API
     private Winnowing winnowing;
     private ScanApi scanApi;
     private ScanFileProcessor scanFileProcessor;
@@ -73,7 +82,9 @@ public class Scanner {
 
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
-                    Boolean hiddenFilesFolders, Integer numThreads, Winnowing winnowing, ScanApi scanApi,
+                    Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Integer timeout, Integer retryLimit,
+                    String url, String apiKey, String scanFlags,
+                    Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor
     ) {
         this.skipSnippets = skipSnippets;
@@ -81,14 +92,20 @@ public class Scanner {
         this.obfuscate = obfuscate;
         this.hpsm = hpsm;
         this.hiddenFilesFolders = hiddenFilesFolders;
+        this.allFolders = allFolders;
         this.numThreads = numThreads;
+        this.timeout = timeout;
+        this.retryLimit = retryLimit;
+        this.url = url;
+        this.apiKey = apiKey;
+        this.scanFlags = scanFlags;
         if (winnowing == null) {
             this.winnowing = Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build();
         } else {
             this.winnowing = winnowing;
         }
         if (scanApi == null) {
-            this.scanApi = ScanApi.builder().build();
+            this.scanApi = ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags).build();
         } else {
             this.scanApi = scanApi;
         }
@@ -130,14 +147,16 @@ public class Scanner {
      * @return <code>true</code> if the folder should be skipped, <code>false</code> otherwise
      */
     private Boolean filterFolder(String name) {
-        if (!this.hiddenFilesFolders && name.startsWith(".") && !name.equals(".")) {
+        if (!hiddenFilesFolders && name.startsWith(".") && !name.equals(".")) {
             log.trace("Skipping hidden folder: {}", name);
             return true;
         }
-        for (String ending : ScanossConstants.FILTERED_DIRS) {
-            if (name.endsWith(ending)) {
-                log.trace("Skipping folder due to ending: {} - {}", name, ending);
-                return true;
+        if (!allFolders) { // skip this check if all folders is selected
+            for (String ending : ScanossConstants.FILTERED_DIRS) {
+                if (name.endsWith(ending)) {
+                    log.trace("Skipping folder due to ending: {} - {}", name, ending);
+                    return true;
+                }
             }
         }
         return false;
@@ -151,7 +170,7 @@ public class Scanner {
      */
     private Boolean filterFile(String name) {
         // Skip hidden files unless explicitly asked to read them
-        if (!this.hiddenFilesFolders && name.startsWith(".")) {
+        if (!hiddenFilesFolders && name.startsWith(".")) {
             log.trace("Skipping hidden file: {}", name);
             return true;
         }
@@ -273,10 +292,11 @@ public class Scanner {
      *
      * @param filename file to scan
      * @return scan results string (in JSON format)
-     * @throws ScannerException   Something in Scanning failed
-     * @throws WinnowingException Something in Winnowing failed
+     * @throws ScannerException     Something in Scanning failed
+     * @throws WinnowingException   Something in Winnowing failed
+     * @throws InterruptedException Scan API was interrupted
      */
-    public String scanFile(@NonNull String filename) throws ScannerException, WinnowingException {
+    public String scanFile(@NonNull String filename) throws ScannerException, WinnowingException, InterruptedException {
         String wfp = wfpFile(filename);
         if (wfp != null && !wfp.isEmpty()) {
             String response = this.scanApi.scan(wfp, "", 1);

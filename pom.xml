@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.scanoss</groupId>
     <artifactId>scanoss</artifactId>
-    <version>0.1.4</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
     <name>scanoss.java</name>
     <url>https://github.com/scanoss/scanoss.java</url>
@@ -42,11 +42,11 @@
     </properties>
 
     <distributionManagement>
-<!--        <repository>-->
-<!--            <id>github</id>-->
-<!--            <name>GitHub SCANOSS Apache Maven Packages</name>-->
-<!--            <url>https://maven.pkg.github.com/scanoss/scanoss.java</url>-->
-<!--        </repository>-->
+        <!--        <repository>-->
+        <!--            <id>github</id>-->
+        <!--            <name>GitHub SCANOSS Apache Maven Packages</name>-->
+        <!--            <url>https://maven.pkg.github.com/scanoss/scanoss.java</url>-->
+        <!--        </repository>-->
         <snapshotRepository>
             <id>ossrh</id>
             <name>Maven Central Snapshot Repo</name>

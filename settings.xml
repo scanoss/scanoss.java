@@ -10,15 +10,15 @@
             <passphrase>${env.MAVEN_GPG_PASSPHRASE}</passphrase>
         </server>
     </servers>
-<!--    <profiles>-->
-<!--        <profile>-->
-<!--            <activation>-->
-<!--                <activeByDefault>true</activeByDefault>-->
-<!--            </activation>-->
-<!--            <properties>-->
-<!--                <gpg.keyname>${env.GPG_KEY}</gpg.keyname>-->
-<!--                <gpg.passphrase>${env.GPG_PWD}</gpg.passphrase>-->
-<!--            </properties>-->
-<!--        </profile>-->
-<!--    </profiles>-->
+    <!--    <profiles>-->
+    <!--        <profile>-->
+    <!--            <activation>-->
+    <!--                <activeByDefault>true</activeByDefault>-->
+    <!--            </activation>-->
+    <!--            <properties>-->
+    <!--                <gpg.keyname>${env.GPG_KEY}</gpg.keyname>-->
+    <!--                <gpg.passphrase>${env.GPG_PWD}</gpg.passphrase>-->
+    <!--            </properties>-->
+    <!--        </profile>-->
+    <!--    </profiles>-->
 </settings>

@@ -42,7 +42,7 @@ public class TestFileProcessor {
     }
 
     @Test
-    public void TestWfpFileProcessorPositive() {
+    public void TestWfpFileProcessorPositive() throws InterruptedException {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
@@ -59,7 +59,7 @@ public class TestFileProcessor {
     }
 
     @Test
-    public void TestScanFileProcessorPositive() {
+    public void TestScanFileProcessorPositive() throws InterruptedException {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);

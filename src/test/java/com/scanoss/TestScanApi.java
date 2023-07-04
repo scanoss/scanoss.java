@@ -81,7 +81,7 @@ public class TestScanApi {
     }
 
     @Test
-    public void TestScanApiScanPositive() {
+    public void TestScanApiScanPositive() throws InterruptedException {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
@@ -99,7 +99,7 @@ public class TestScanApi {
     }
 
     @Test
-    public void TestScanApiScanNegative() {
+    public void TestScanApiScanNegative() throws InterruptedException {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
@@ -108,14 +108,14 @@ public class TestScanApi {
             ScanApi scanApi = ScanApi.builder().build();
             String result = scanApi.scan("", "", 1);
             assertNull("Scan result should be null", result);
-        } catch (ScanApiException e) {
+        } catch (ScanApiException | InterruptedException e) {
             log.info("Got expected Exception: {}", e.getLocalizedMessage());
         }
         try {
             ScanApi scanApi = ScanApi.builder().url("invalid-url").build();
             String result = scanApi.scan("file=...", "", 1);
             assertNull("Scan result should be null", result);
-        } catch (ScanApiException e) {
+        } catch (ScanApiException | InterruptedException e) {
             log.info("Got expected Exception: {}", e.getLocalizedMessage());
         }
 

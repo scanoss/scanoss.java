@@ -22,13 +22,11 @@
  */
 package com.scanoss.cli;
 
+import com.scanoss.utils.PackageDetails;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.Properties;
 
 /**
  * Command Line Processor Class
@@ -46,7 +44,7 @@ import java.util.Properties;
 )
 //        mixinStandardHelpOptions = true
 public class CommandLine implements Runnable {
-    static final String version = getVersion();
+    static final String version = PackageDetails.getVersion();
     @Option(names = {"-d", "--debug"}, description = "Enable debug output")
     static boolean debug;
     @Option(names = "--trace")
@@ -55,36 +53,6 @@ public class CommandLine implements Runnable {
     static boolean quiet;
     @Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
     private boolean helpRequested = false;
-
-    private static synchronized String getVersion() {
-        String version = null;
-        // try to load from maven properties first
-        try {
-            Properties p = new Properties();
-            InputStream is = CommandLine.class.getResourceAsStream("/META-INF/maven/com.scanoss/scanoss/pom.properties");
-            if (is != null) {
-                p.load(is);
-                version = p.getProperty("version", "");
-            }
-        } catch (IOException | RuntimeException e) {
-            // ignore
-        }
-        // fallback to using Java API
-        if (version == null) {
-            Package aPackage = CommandLine.class.getPackage();
-            if (aPackage != null) {
-                version = aPackage.getImplementationVersion();
-                if (version == null) {
-                    version = aPackage.getSpecificationVersion();
-                }
-            }
-        }
-        // we could not compute the version so use a blank
-        if (version == null) {
-            version = "";
-        }
-        return version;
-    }
 
     /**
      * Print the given Debug message to the specified Writer
@@ -128,6 +96,6 @@ public class CommandLine implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("scanoss-java command processor.");
+        System.out.printf("scanoss-java command processor (version %s). Add -h to get more information.%n", CommandLine.version);
     }
 }

@@ -16,6 +16,7 @@ import static com.scanoss.cli.CommandLine.printMsg;
  * Produce fingerprints using the Winnowing algorithm
  * </p>
  */
+@SuppressWarnings("CanBeFinal")
 @CommandLine.Command(name = "wfp", aliases = {"fingerprint", "fp"}, description = "Fingerprint the given file/folder")
 public class WfpCommandLine implements Runnable {
     @picocli.CommandLine.Spec
@@ -23,8 +24,26 @@ public class WfpCommandLine implements Runnable {
 
     @picocli.CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
     private boolean helpRequested = false;
+
+    @picocli.CommandLine.Option(names = {"-S", "--skip-snippets"}, description = "Skip the generation of snippets")
+    private boolean skipSnippets = false;
+
+    @picocli.CommandLine.Option(names = "--all-extensions", description = "Fingerprint all file extensions")
+    private boolean allExtensions = false;
+
+    @picocli.CommandLine.Option(names = "--all-hidden", description = "Fingerprint all hidden files/folders")
+    private boolean allHidden = false;
+
+    @picocli.CommandLine.Option(names = "--all-folders", description = "Fingerprint all folders")
+    private boolean allFolders = false;
+
+    @picocli.CommandLine.Option(names = {"-T", "--threads"}, description = "Number of parallel threads to use")
+    private int numThreads = 5;
+
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to fingerprint")
     private String fileFolder;
+
+    private Scanner scanner;
 
     /**
      * Run the 'wfp' command
@@ -38,6 +57,13 @@ public class WfpCommandLine implements Runnable {
         if (!f.exists()) {
             throw new RuntimeException(String.format("Error: File or folder does not exist: %s\n", fileFolder));
         }
+        if (com.scanoss.cli.CommandLine.debug) {
+            var err = spec.commandLine().getErr();
+            if (numThreads != 5) {
+                printMsg(err, String.format("Running with %d threads.", numThreads));
+            }
+        }
+        scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions).hiddenFilesFolders(allHidden).numThreads(numThreads).build();
         if (f.isFile()) {
             wfpFile(fileFolder);
         } else if (f.isDirectory()) {
@@ -55,7 +81,6 @@ public class WfpCommandLine implements Runnable {
     private void wfpFile(String file) {
         var out = spec.commandLine().getOut();
         var err = spec.commandLine().getErr();
-        Scanner scanner = Scanner.builder().build();
         try {
             printMsg(err, String.format("Fingerprinting %s...", file));
             String result = scanner.wfpFile(file);
@@ -82,7 +107,6 @@ public class WfpCommandLine implements Runnable {
     private void wfpFolder(String folder) {
         var out = spec.commandLine().getOut();
         var err = spec.commandLine().getErr();
-        Scanner scanner = Scanner.builder().build();
         try {
             printMsg(err, String.format("Fingerprinting %s...", folder));
             List<String> results = scanner.wfpFolder(folder);

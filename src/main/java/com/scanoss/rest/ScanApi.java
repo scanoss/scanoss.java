@@ -23,6 +23,7 @@
 package com.scanoss.rest;
 
 import com.scanoss.exceptions.ScanApiException;
+import com.scanoss.utils.PackageDetails;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
@@ -57,12 +59,12 @@ public class ScanApi {
     @Builder.Default
     private String scanType = "identify";
     @Builder.Default
-    private Integer timeout = 120;
+    private Integer timeout = 120; // API POST timeout
     @Builder.Default
     private Integer retryLimit = 5; // Retry limit for posting scan requests
-    private String url;
-    private String apiKey;
-    private String flags;
+    private String url; // SCANOSS API URI
+    private String apiKey; // SCANOSS premium API key
+    private String flags; // SCANOSS Premium scanning flags
     private HttpClient httpClient;
     private Map<String, String> headers;
 
@@ -76,23 +78,32 @@ public class ScanApi {
         this.apiKey = apiKey;
         this.flags = flags;
         if (this.apiKey != null && !this.apiKey.isEmpty() && (url == null || url.isEmpty())) {
-            this.url = DEFAULT_SCAN_URL2;
+            this.url = DEFAULT_SCAN_URL2;  // Default premium SCANOSS endpoint
         } else if (url == null || url.isEmpty()) {
-            this.url = DEFAULT_SCAN_URL;
+            this.url = DEFAULT_SCAN_URL;  // Default free SCANOSS endpoint
         }
         if (httpClient == null) {
             this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(this.timeout)).build();
         } else {
             this.httpClient = httpClient;
         }
-        if (headers == null) {
-            this.headers = new HashMap<>(1);
-            this.headers.put("user-agent", "scanoss-java/0.0.0");
-            if (this.apiKey != null && !this.apiKey.isEmpty()) {
-                this.headers.put("x-api-key", this.apiKey);
+        this.headers = Objects.requireNonNullElseGet(headers, () -> new HashMap<>(2));
+//        if (headers == null) {
+//            this.headers = new HashMap<>(2);
+//        } else {
+//            this.headers = headers;
+//        }
+        // Add the user agent to the headers if it's not already there
+        if (!this.headers.containsKey("user-agent")) {
+            String version = PackageDetails.getVersion();
+            if (version == null || version.isEmpty()) {
+                version = "0.0.0";
             }
-        } else {
-            this.headers = headers;
+            this.headers.put("user-agent", String.format("scanoss-java/%s", version));
+        }
+        // Add the API key to the headers if it's not already there
+        if (!this.headers.containsKey("x-api-key") && this.apiKey != null && !this.apiKey.isEmpty()) {
+            this.headers.put("x-api-key", this.apiKey);
         }
     }
 
@@ -103,9 +114,10 @@ public class ScanApi {
      * @param context Context for the scan (optional)
      * @param scanID  ID of the requesting scanner (usually thread ID)
      * @return Scan results (in JSON format)
-     * @throws ScanApiException Scanning went wrong
+     * @throws ScanApiException     Scanning went wrong
+     * @throws InterruptedException Scan API was interrupted
      */
-    public String scan(String wfp, String context, int scanID) throws ScanApiException {
+    public String scan(String wfp, String context, int scanID) throws ScanApiException, InterruptedException {
         if (wfp == null || wfp.isEmpty()) {
             throw new ScanApiException("No WFP specified. Cannot scan.");
         }
@@ -125,7 +137,6 @@ public class ScanApi {
             data.put("flags", flags);
         }
         // TODO add type, assets, support here also
-
         HttpRequest request;
         try {
             request = HttpRequest.newBuilder()
@@ -133,23 +144,42 @@ public class ScanApi {
                     .headers(postHeaders.entrySet().stream()
                             .flatMap(entry -> Stream.of(entry.getKey(), entry.getValue()))
                             .toArray(String[]::new))
+                    .timeout(Duration.ofSeconds(timeout))
                     .POST(ofMimeMultipartData(data, boundary, uuid))
                     .build();
         } catch (URISyntaxException | IllegalArgumentException e) {
             throw new ScanApiException(String.format("Problem with the URI: %s", url), e);
         }
-        try {
-            log.trace("Sending request to: {} - {}", request.uri(), request.headers());
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != HttpStatusCode.OK.getValue()) {
-                log.warn("Problem encountered sending WFP to API ({}): {}", HttpStatusCode.getByValueToString(response.statusCode()), response.body());
-                return null;
+        int retry = 0;
+        do {
+            retry++;
+            try {
+                log.trace("Sending request to: {} - {}", request.uri(), request.headers());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                int statusCode = response.statusCode();
+                if (statusCode != HttpStatusCode.OK.getValue()) {
+                    log.warn("Problem encountered sending WFP to API ({}): {}", HttpStatusCode.getByValueToString(response.statusCode()), response.body());
+                    if (statusCode == HttpStatusCode.SERVICE_UNAVAILABLE.getValue()) {
+                        log.error("SCANOSS API rejected the scan request ({}) for {} due to service limits being exceeded", uuid, url);
+                        throw new ScanApiException("Service Limits exceeded");
+                    }
+                    return null;
+                }
+                return response.body();
+            } catch (HttpTimeoutException e) {
+                if (retry > retryLimit) {
+                    log.error("Error: SCANOSS API request timed out");
+                    throw new ScanApiException("SCANOSS API request timed out for " + url, e);
+                }
+                log.debug("Connection timeout {} (retry {}). Sleeping, then trying again...", timeout, retry);
+                //noinspection BusyWait
+                Thread.sleep(Duration.ofSeconds(5).toMillis()); // Sleep 5 seconds before trying again
+            } catch (IOException | InterruptedException | NullPointerException e) {
+                throw new ScanApiException(String.format("Problem encountered scanning: %d - %s against %s", scanID, uuid, url), e);
             }
-//            log.info("Response body: {}", response.body());
-            return response.body();
-        } catch (IOException | InterruptedException e) {
-            throw new ScanApiException(String.format("Problem encountered scanning: %d - %s", scanID, uuid), e);
-        }
+        } while (retry <= retryLimit);
+
+        throw new ScanApiException(String.format("Something went wrong scanning request %s against %s.", uuid, url));
     }
 
     /**
