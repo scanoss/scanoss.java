@@ -24,8 +24,6 @@ package com.scanoss.rest;
 
 /**
  * Enum list of standard HTTP Status Codes
- *
- * CHECKSTYLE:OFF
  */
 public enum HttpStatusCode {
 
