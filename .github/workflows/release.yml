@@ -41,3 +41,4 @@ jobs:
           draft: true
           files: |
             target/*.jar
+            scanoss-cli.sh
