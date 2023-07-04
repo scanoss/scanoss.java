@@ -22,7 +22,6 @@
  */
 package com.scanoss.cli;
 
-import lombok.NoArgsConstructor;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
@@ -40,39 +39,30 @@ import java.util.Properties;
  * Provide a CLI to interacting with the SCANOSS Java SDK
  * </p>
  */
-@NoArgsConstructor
 @Command(name = "scanoss-java",
         description = "SCANOSS Java CLI, License: MIT",
         subcommands = {
+                VersionCommandLine.class,
+                WfpCommandLine.class,
                 ScanCommandLine.class,
-                CommandLine.VersionCommand.class
         }
 )
 //        mixinStandardHelpOptions = true
-public class CommandLine {
+public class CommandLine implements Runnable {
     static final String version = getVersion();
     @Option(names = {"-d", "--debug"}, description = "Enable debug output")
     static boolean debug;
     @Option(names = "--trace")
     static boolean trace;
-    @Option(names = "--quiet")
+    @Option(names = "--quiet", description = "Run the command in quite mode")
     static boolean quiet;
+    @Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help information")
+    private boolean helpRequested = false;
 
-    /**
-     * Version sub-command
-     */
-    @Command(name = "version", aliases = {"ver", "v"})
-    static class VersionCommand implements Runnable {
-        @ParentCommand
-        CommandLine parent;
-        @Spec
-        CommandSpec spec;
 
-        @Override
-        public void run() {
-            var out = spec.commandLine().getOut();
-            out.println("Version: " + version);
-        }
+    @Override
+    public void run() {
+        System.out.println("scanoss-java command processor.");
     }
 
     private static synchronized String getVersion() {
@@ -90,7 +80,7 @@ public class CommandLine {
         }
         // fallback to using Java API
         if (version == null) {
-            Package aPackage = CommandLine.class.getClass().getPackage();
+            Package aPackage = CommandLine.class.getPackage();
             if (aPackage != null) {
                 version = aPackage.getImplementationVersion();
                 if (version == null) {

@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
@@ -46,7 +47,44 @@ public class TestCli {
         log.info("<-- Starting {}", methodName);
         String[] args = new String[] {"version"};
         int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
-        assertTrue("command should not fail", exitCode == 0);
+        assertEquals("command should not fail", 0, exitCode);
+
+        log.info( "Finished {} -->", methodName );
+    }
+
+    @Test
+    public void TestWfpCommandPositive() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String[] args = new String[] {"-d", "wfp", "src/test/java/com/scanoss/TestScanner.java"};
+        int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
+        assertEquals("command should not fail", 0, exitCode);
+
+        String[] args2 = new String[] {"-d", "wfp", "src/test/java/com"};
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args2);
+        assertEquals("command should not fail", 0, exitCode);
+
+        log.info( "Finished {} -->", methodName );
+    }
+
+    @Test
+    public void TestWfpCommandNegative() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+        String[] args = new String[] {"-d", "wfp"};
+        int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
+        assertTrue("command should fail", exitCode != 0);
+
+        String[] args2 = new String[] {"-d", "wfp", ""};
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args2);
+        assertTrue("command should fail", exitCode != 0);
+
+        String[] args3 = new String[] {"-d", "wfp", "path/to/does-not-exist.java"};
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args3);
+        assertTrue("command should fail", exitCode != 0);
 
         log.info( "Finished {} -->", methodName );
     }
@@ -59,11 +97,11 @@ public class TestCli {
 
         String[] args = new String[] {"-d", "scan", "src/test/java/com/scanoss/TestScanner.java"};
         int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
-        assertTrue("command should not fail", exitCode == 0);
+        assertEquals("command should not fail", 0, exitCode);
 
         String[] args2 = new String[] {"-d", "scan", "src/test/java/com"};
         exitCode = new picocli.CommandLine(new CommandLine()).execute(args2);
-        assertTrue("command should not fail", exitCode == 0);
+        assertEquals("command should not fail", 0, exitCode);
 
         log.info( "Finished {} -->", methodName );
     }
@@ -87,5 +125,4 @@ public class TestCli {
 
         log.info( "Finished {} -->", methodName );
     }
-
 }

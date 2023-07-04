@@ -240,7 +240,7 @@ public class Scanner {
                 if (result != null && ! result.isEmpty()) {
                     results.add(result);
                 } else {
-                    log.warn("something wrong processing result: {}", future);
+                    log.warn("something went wrong processing result: {}", future);
                 }
             } catch (InterruptedException | ExecutionException e) {
                 throw new ScannerException("Folder processing subtask failed", e);

@@ -39,14 +39,17 @@ import static com.scanoss.cli.CommandLine.printMsg;
  * Provide a Scan CLI subcommand to interacting with the SCANOSS Java SDK
  * </p>
  */
-@picocli.CommandLine.Command(name = "scan")
+@SuppressWarnings("unused")
+@picocli.CommandLine.Command(name = "scan", description = "Scan the given file/folder/wfp")
 class ScanCommandLine implements Runnable {
     @picocli.CommandLine.ParentCommand
     CommandLine parent;
     @picocli.CommandLine.Spec
     picocli.CommandLine.Model.CommandSpec spec;
+    @picocli.CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
+    private boolean helpRequested = false;
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to scan")
-    public String fileFolder;
+    private String fileFolder;
 
     /**
      * Run the 'scan' command
@@ -74,7 +77,7 @@ class ScanCommandLine implements Runnable {
     }
 
     /**
-     * Scan the specified file and return the results
+     * Scan the specified file and output the results
      *
      * @param file file to scan
      */
@@ -85,7 +88,7 @@ class ScanCommandLine implements Runnable {
         try {
             printMsg(err, String.format("Scanning %s...", file));
             String result = scanner.scanFile(file);
-            if (result != null || !result.isEmpty()) {
+            if (result != null && !result.isEmpty()) {
                 JsonUtils.writeJsonPretty(JsonUtils.toJsonObject(result), out);
                 return;
             } else {
@@ -112,7 +115,7 @@ class ScanCommandLine implements Runnable {
         try {
             printMsg(err, String.format("Scanning %s...", folder));
             List<String> results = scanner.scanFolder(folder);
-            if (results != null || !results.isEmpty()) {
+            if (results != null && !results.isEmpty()) {
                 printMsg(err, String.format("Found %d results.", results.size()));
                 printDebug(err, "Converting to JSON...");
                 JsonUtils.writeJsonPretty(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)), out);
