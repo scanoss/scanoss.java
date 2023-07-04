@@ -53,7 +53,6 @@ import java.util.zip.Checksum;
 @Builder
 @Slf4j
 public class Winnowing {
-
     // Media type detection
     private static final Tika tika = new Tika();
     private static final MediaTypeRegistry mediaTypeRegistry = MediaTypeRegistry.getDefaultRegistry();

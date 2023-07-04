@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="EntryPointsManager">
+    <entry_points version="2.0">
+      <entry_point TYPE="field" FQNAME="com.scanoss.cli.CommandLine debug" />
+      <entry_point TYPE="field" FQNAME="com.scanoss.cli.CommandLine quiet" />
+      <entry_point TYPE="field" FQNAME="com.scanoss.cli.CommandLine trace" />
+      <entry_point TYPE="field" FQNAME="com.scanoss.cli.CommandLine.VersionCommand parent" />
+      <entry_point TYPE="field" FQNAME="com.scanoss.cli.CommandLine.VersionCommand spec" />
+    </entry_points>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="picocli.CommandLine.Option" />
+    </list>
+    <writeAnnotations>
+      <writeAnnotation name="picocli.CommandLine.Option" />
+      <writeAnnotation name="picocli.CommandLine.Parameters" />
+    </writeAnnotations>
+  </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="MavenProjectsManager">
     <option name="originalFiles">

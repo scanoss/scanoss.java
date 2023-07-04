@@ -2,7 +2,7 @@
   <configuration default="false" name="CmlLine - scan folder" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.scanoss.cli.CommandLine" />
     <module name="scanoss" />
-    <option name="PROGRAM_PARAMETERS" value="-d scan src/test" />
+    <option name="PROGRAM_PARAMETERS" value="wfp src/test" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.scanoss.cli.*" />

@@ -106,7 +106,6 @@ public class TestScanner {
         Scanner scanner = Scanner.builder().build();
 
         String folder = ".";
-//        folder = "/Users/egans/Downloads/vue-dev";
         List<String> wfps = scanner.wfpFolder(folder);
         assertNotNull("Should've gotten a WFP", wfps);
         assertFalse("WFP should not be empty", wfps.isEmpty());
@@ -177,8 +176,6 @@ public class TestScanner {
 
         Scanner scanner = Scanner.builder().build();
         String folder = "src/test";
-//        folder = ".";
-//        folder = "/Users/egans/Downloads/vue-dev";
         List<String> results = scanner.scanFolder(folder);
         assertNotNull("Should've gotten a response", results);
         assertFalse("Scan results should not be empty", results.isEmpty());
