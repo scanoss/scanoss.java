@@ -27,7 +27,7 @@ import picocli.CommandLine;
 /**
  * Version Command Line Processor Class
  * <p>
- *     Display the current version of the CLI
+ * Display the current version of the CLI
  * </p>
  */
 @CommandLine.Command(name = "version", aliases = {"ver", "v"}, description = "Display version info")

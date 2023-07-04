@@ -42,10 +42,11 @@ import static com.scanoss.cli.CommandLine.printMsg;
 @SuppressWarnings("unused")
 @picocli.CommandLine.Command(name = "scan", description = "Scan the given file/folder/wfp")
 class ScanCommandLine implements Runnable {
-    @picocli.CommandLine.ParentCommand
-    CommandLine parent;
+    //    @picocli.CommandLine.ParentCommand
+//    CommandLine parent;
     @picocli.CommandLine.Spec
     picocli.CommandLine.Model.CommandSpec spec;
+
     @picocli.CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
     private boolean helpRequested = false;
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to scan")
@@ -57,7 +58,7 @@ class ScanCommandLine implements Runnable {
     @Override
     public void run() {
         var err = spec.commandLine().getErr();
-        if (parent.debug) {
+        if (CommandLine.debug) {
             printDebug(err, "Debug enabled.");
         }
         if (fileFolder == null || fileFolder.isEmpty()) {
@@ -65,14 +66,14 @@ class ScanCommandLine implements Runnable {
         }
         File f = new File(fileFolder);
         if (!f.exists()) {
-            throw new RuntimeException( String.format("Error: File or folder does not exist: %s\n", fileFolder));
+            throw new RuntimeException(String.format("Error: File or folder does not exist: %s\n", fileFolder));
         }
         if (f.isFile()) {
             scanFile(fileFolder);
         } else if (f.isDirectory()) {
             scanFolder(fileFolder);
         } else {
-            throw new RuntimeException( String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
+            throw new RuntimeException(String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
         }
     }
 
@@ -95,7 +96,7 @@ class ScanCommandLine implements Runnable {
                 err.println("Warning: No results returned.");
             }
         } catch (ScannerException | WinnowingException e) {
-            if (parent.debug) {
+            if (CommandLine.debug) {
                 e.printStackTrace(err);
             }
             throw e;
@@ -124,7 +125,7 @@ class ScanCommandLine implements Runnable {
                 err.println("Error: No results return.");
             }
         } catch (ScannerException | WinnowingException e) {
-            if (parent.debug) {
+            if (CommandLine.debug) {
                 e.printStackTrace(err);
             }
             throw e;

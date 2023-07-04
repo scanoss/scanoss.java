@@ -29,7 +29,7 @@ import lombok.Builder;
 /**
  * SCANOSS File WFP Processor Implementation
  * <p>
- *     This class provides the implementation to fingerprint the requested file
+ * This class provides the implementation to fingerprint the requested file
  * </p>
  */
 @Builder
@@ -41,10 +41,9 @@ public class WfpFileProcessor implements FileProcessor {
     /**
      * Fingerprint the given file and return the results
      *
-     * @param file File to scan
+     * @param file   File to scan
      * @param folder root folder of the file to scan
      * @return WFP
-     *
      * @throws WinnowingException if something went wrong while fingerprinting
      */
     @Override

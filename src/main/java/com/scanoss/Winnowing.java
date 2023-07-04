@@ -211,7 +211,7 @@ public class Winnowing {
             log.warn("Issue determining file type for: {} - {}", f, e.getLocalizedMessage());
         }
         return null;
-}
+    }
 
     private Boolean isTextContent(File f, byte[] contentBytes) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(contentBytes);

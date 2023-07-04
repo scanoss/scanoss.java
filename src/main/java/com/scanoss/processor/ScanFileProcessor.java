@@ -31,11 +31,11 @@ import lombok.Builder;
 /**
  * SCANOSS File Scan Process Implementation
  * <p>
- *     This class provides the implementation to fingerprint and scan the requested file
+ * This class provides the implementation to fingerprint and scan the requested file
  * </p>
  */
 @Builder
-public class ScanFileProcessor implements FileProcessor{
+public class ScanFileProcessor implements FileProcessor {
     @Builder.Default
     private final ScanApi scanApi = ScanApi.builder().build();
     @Builder.Default
@@ -44,15 +44,14 @@ public class ScanFileProcessor implements FileProcessor{
     /**
      * Scan the given file and return results
      *
-     * @param file File to scan
+     * @param file   File to scan
      * @param folder root folder of the file to scan
      * @return Scan result
-     *
      * @throws WinnowingException if something went wrong while fingerprinting
-     * @throws ScanApiException if something went wrong with the scan API
+     * @throws ScanApiException   if something went wrong with the scan API
      */
     @Override
     public String process(String file, String folder) throws WinnowingException, ScanApiException {
-        return scanApi.scan(winnowing.wfpForFile(file, folder),"", 1);
+        return scanApi.scan(winnowing.wfpForFile(file, folder), "", 1);
     }
 }

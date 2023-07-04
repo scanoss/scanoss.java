@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * SCANOSS Constants Class
  * <p>
- *     Contains shared static values to be used by the package classes.
+ * Contains shared static values to be used by the package classes.
  * </p>
  */
 @SuppressWarnings("SpellCheckingInspection")
@@ -15,7 +15,7 @@ public class ScanossConstants {
     static final int GRAM = 30; // Winnowing Gram size. Do NOT Modify
     static final int WINDOW = 64; // Winnowing Window size. Do NOT Modify
     static final long MAX_CRC32 = 4294967296L;
-//    static final int MAX_POST_SIZE = 64 * 1024;  // Default max post size
+    //    static final int MAX_POST_SIZE = 64 * 1024;  // Default max post size
     static final int MIN_FILE_SIZE = 256;
 
 //    static final String WFP_FILE_START = "file=";
@@ -60,7 +60,7 @@ public class ScanossConstants {
 
     // Files to skip
     static final List<String> FILTERED_FILES = Arrays.asList(
-        "gradlew", "gradlew.bat", "mvnw", "mvnw.cmd", "gradle-wrapper.jar", "maven-wrapper.jar",
-                "thumbs.db", "babel.config.js", "license.txt", "license.md", "copying.lib", "makefile"
+            "gradlew", "gradlew.bat", "mvnw", "mvnw.cmd", "gradle-wrapper.jar", "maven-wrapper.jar",
+            "thumbs.db", "babel.config.js", "license.txt", "license.md", "copying.lib", "makefile"
     );
 }

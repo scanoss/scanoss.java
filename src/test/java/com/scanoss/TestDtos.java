@@ -22,7 +22,9 @@
  */
 package com.scanoss;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.scanoss.utils.JsonUtils;
 import dto.ScanFileResult;
 import dto.ServerDetails;
@@ -34,20 +36,22 @@ import java.util.List;
 
 import static com.scanoss.TestConstants.jsonResultNoMatchString;
 import static com.scanoss.TestConstants.jsonResultsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 @Slf4j
 public class TestDtos {
     @Before
     public void Setup() {
         log.info("Starting DTO test cases...");
-        log.debug("Logging debug enabled" );
-        log.trace("Logging trace enabled" );
+        log.debug("Logging debug enabled");
+        log.trace("Logging trace enabled");
     }
 
     @Test
     public void TestDtoServerDetails() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         ServerDetails serverDetails = new ServerDetails("version", new ServerDetails.KbVersion("monthly", "daily"));
@@ -69,25 +73,27 @@ public class TestDtos {
         assertNotNull(jsonObject.getAsJsonObject("kb_version").get("monthly"));
         log.info("Parsed Object: {}", jsonObject);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
     public void TestFileJsonObject() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         JsonObject jsonObject = JsonUtils.toJsonObject(jsonResultNoMatchString);
         assertNotNull(jsonObject);
         log.info("Parsed Object: {}", jsonObject);
-        log.info( "KeySet: {}", jsonObject.keySet());
+        log.info("KeySet: {}", jsonObject.keySet());
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
     public void TestFileResults() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         JsonObject jsonObject = JsonUtils.toJsonObject(jsonResultsString);
@@ -98,14 +104,15 @@ public class TestDtos {
         assertFalse("Should have results list", results.isEmpty());
         log.info("Scan results: {}", results);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
     public void TestDtoTemplate() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 }

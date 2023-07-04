@@ -26,8 +26,8 @@ import com.scanoss.exceptions.ScanApiException;
 import com.scanoss.rest.HttpStatusCode;
 import com.scanoss.rest.ScanApi;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,11 +43,12 @@ import static org.junit.Assert.*;
 @Slf4j
 public class TestScanApi {
     private MockWebServer server;
+
     @Before
     public void Setup() throws IOException {
         log.info("Starting ScanApi test cases...");
-        log.debug("Logging debug enabled" );
-        log.trace("Logging trace enabled" );
+        log.debug("Logging debug enabled");
+        log.trace("Logging trace enabled");
         log.info("Starting Mock Server...");
         server = new MockWebServer();
         server.start(); // Start the server.
@@ -71,12 +72,12 @@ public class TestScanApi {
         scanApi = ScanApi.builder().apiKey("test-key").httpClient(HttpClient.newHttpClient()).build();
         assertFalse("API Key should be set", scanApi.getApiKey().isEmpty());
 
-        Map<String,String> headers = new HashMap<>(1);
+        Map<String, String> headers = new HashMap<>(1);
         headers.put("test-header-key", "test-header-value");
         scanApi = ScanApi.builder().headers(headers).build();
-        assertTrue( "Should have custom header key", scanApi.getHeaders().containsKey("test-header-key"));
+        assertTrue("Should have custom header key", scanApi.getHeaders().containsKey("test-header-key"));
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -94,7 +95,7 @@ public class TestScanApi {
         assertFalse("Should've gotten a response JSON", result.isEmpty());
         log.info("Scan response: {}", result);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -107,15 +108,15 @@ public class TestScanApi {
             ScanApi scanApi = ScanApi.builder().build();
             String result = scanApi.scan("", "", 1);
             assertNull("Scan result should be null", result);
-        } catch(ScanApiException e) {
-            log.info("Got expected Exception: {}", e.getLocalizedMessage() );
+        } catch (ScanApiException e) {
+            log.info("Got expected Exception: {}", e.getLocalizedMessage());
         }
         try {
             ScanApi scanApi = ScanApi.builder().url("invalid-url").build();
             String result = scanApi.scan("file=...", "", 1);
             assertNull("Scan result should be null", result);
-        } catch(ScanApiException e) {
-            log.info("Got expected Exception: {}", e.getLocalizedMessage() );
+        } catch (ScanApiException e) {
+            log.info("Got expected Exception: {}", e.getLocalizedMessage());
         }
 
         ScanApi scanApi = ScanApi.builder().url(server.url("/api/scan/direct").toString()).build();
@@ -127,7 +128,7 @@ public class TestScanApi {
         log.info("Scan response: {}", result);
         assertNull("Should've gotten a null response to this scan", result);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -136,7 +137,7 @@ public class TestScanApi {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
 }

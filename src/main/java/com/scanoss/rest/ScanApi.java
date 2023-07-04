@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 /**
  * SCANOSS Scanning REST API Implementation
  * <p>
- *     Provides the ability to issue scan requests for a WFP
+ * Provides the ability to issue scan requests for a WFP
  * </p>
  */
 @Getter
@@ -64,18 +64,18 @@ public class ScanApi {
     private String apiKey;
     private String flags;
     private HttpClient httpClient;
-    private Map<String,String> headers;
+    private Map<String, String> headers;
 
     @SuppressWarnings("unused")
     private ScanApi(String scanType, Integer timeout, Integer retryLimit, String url, String apiKey, String flags,
-                   HttpClient httpClient, Map<String, String> headers) {
+                    HttpClient httpClient, Map<String, String> headers) {
         this.scanType = scanType;
         this.timeout = timeout;
         this.retryLimit = retryLimit;
         this.url = url;
         this.apiKey = apiKey;
         this.flags = flags;
-        if (this.apiKey != null && ! this.apiKey.isEmpty() && (url == null || url.isEmpty())) {
+        if (this.apiKey != null && !this.apiKey.isEmpty() && (url == null || url.isEmpty())) {
             this.url = DEFAULT_SCAN_URL2;
         } else if (url == null || url.isEmpty()) {
             this.url = DEFAULT_SCAN_URL;
@@ -88,7 +88,7 @@ public class ScanApi {
         if (headers == null) {
             this.headers = new HashMap<>(1);
             this.headers.put("user-agent", "scanoss-java/0.0.0");
-            if(this.apiKey != null && ! this.apiKey.isEmpty()) {
+            if (this.apiKey != null && !this.apiKey.isEmpty()) {
                 this.headers.put("x-api-key", this.apiKey);
             }
         } else {
@@ -99,26 +99,26 @@ public class ScanApi {
     /**
      * Scan the given WFP
      *
-     * @param wfp Fingerprint to scan
+     * @param wfp     Fingerprint to scan
      * @param context Context for the scan (optional)
-     * @param scanID ID of the requesting scanner (usually thread ID)
+     * @param scanID  ID of the requesting scanner (usually thread ID)
      * @return Scan results (in JSON format)
      * @throws ScanApiException Scanning went wrong
      */
-    public String scan(String wfp, String context, int scanID)  throws ScanApiException {
+    public String scan(String wfp, String context, int scanID) throws ScanApiException {
         if (wfp == null || wfp.isEmpty()) {
             throw new ScanApiException("No WFP specified. Cannot scan.");
         }
         String boundary = new BigInteger(256, new Random()).toString();
         String uuid = UUID.randomUUID().toString();
-        Map<String,String> postHeaders = new HashMap<>(this.headers.size() + 6);
+        Map<String, String> postHeaders = new HashMap<>(this.headers.size() + 6);
         postHeaders.putAll(this.headers);
         postHeaders.put("x-request-id", uuid);
         postHeaders.put("Accept", "application/json");
         postHeaders.put("Content-Type", "multipart/form-data;boundary=" + boundary);
         Map<Object, Object> data = new HashMap<>();
         data.put("file", wfp);
-        if (context != null && ! context.isEmpty()) {
+        if (context != null && !context.isEmpty()) {
             data.put("context", context);
         }
         if (flags != null && !flags.isEmpty()) {
@@ -141,8 +141,7 @@ public class ScanApi {
         try {
             log.trace("Sending request to: {} - {}", request.uri(), request.headers());
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != HttpStatusCode.OK.getValue())
-            {
+            if (response.statusCode() != HttpStatusCode.OK.getValue()) {
                 log.warn("Problem encountered sending WFP to API ({}): {}", HttpStatusCode.getByValueToString(response.statusCode()), response.body());
                 return null;
             }
@@ -156,9 +155,9 @@ public class ScanApi {
     /**
      * Return a multipart encoded Body Publisher for the given data
      *
-     * @param data data to put into the multipart message
+     * @param data     data to put into the multipart message
      * @param boundary boundary to use for each multipart
-     * @param uuid UUID to use for the WFP filename
+     * @param uuid     UUID to use for the WFP filename
      * @return Multipart Body Publisher
      */
     private HttpRequest.BodyPublisher ofMimeMultipartData(Map<Object, Object> data, String boundary, String uuid) {

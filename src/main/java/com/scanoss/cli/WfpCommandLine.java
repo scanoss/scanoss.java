@@ -13,15 +13,14 @@ import static com.scanoss.cli.CommandLine.printMsg;
 /**
  * Fingerprint Command Line Processor Class
  * <p>
- *     Produce fingerprints using the Winnowing algorithm
+ * Produce fingerprints using the Winnowing algorithm
  * </p>
  */
 @CommandLine.Command(name = "wfp", aliases = {"fingerprint", "fp"}, description = "Fingerprint the given file/folder")
 public class WfpCommandLine implements Runnable {
-    @picocli.CommandLine.ParentCommand
-    com.scanoss.cli.CommandLine parent;
     @picocli.CommandLine.Spec
     picocli.CommandLine.Model.CommandSpec spec;
+
     @picocli.CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
     private boolean helpRequested = false;
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to fingerprint")
@@ -37,14 +36,14 @@ public class WfpCommandLine implements Runnable {
         }
         File f = new File(fileFolder);
         if (!f.exists()) {
-            throw new RuntimeException( String.format("Error: File or folder does not exist: %s\n", fileFolder));
+            throw new RuntimeException(String.format("Error: File or folder does not exist: %s\n", fileFolder));
         }
         if (f.isFile()) {
             wfpFile(fileFolder);
         } else if (f.isDirectory()) {
             wfpFolder(fileFolder);
         } else {
-            throw new RuntimeException( String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
+            throw new RuntimeException(String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
         }
     }
 
@@ -67,7 +66,7 @@ public class WfpCommandLine implements Runnable {
                 err.println("Warning: No WFP returned.");
             }
         } catch (ScannerException | WinnowingException e) {
-            if (parent.debug) {
+            if (com.scanoss.cli.CommandLine.debug) {
                 e.printStackTrace(err);
             }
             throw e;
@@ -96,7 +95,7 @@ public class WfpCommandLine implements Runnable {
                 err.println("Error: No results return.");
             }
         } catch (ScannerException | WinnowingException e) {
-            if (parent.debug) {
+            if (com.scanoss.cli.CommandLine.debug) {
                 e.printStackTrace(err);
             }
             throw e;

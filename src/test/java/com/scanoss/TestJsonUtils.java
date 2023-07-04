@@ -12,7 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.scanoss.TestConstants.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 @Slf4j
 public class TestJsonUtils {
@@ -20,8 +21,8 @@ public class TestJsonUtils {
     @Before
     public void Setup() {
         log.info("Starting JSON Utils test cases...");
-        log.debug("Logging debug enabled" );
-        log.trace("Logging trace enabled" );
+        log.debug("Logging debug enabled");
+        log.trace("Logging trace enabled");
     }
 
     @Test
@@ -62,6 +63,6 @@ public class TestJsonUtils {
         assertFalse("Should have decode Scan File Results", scanFileResults.isEmpty());
         log.info("Scan File Results: {}", scanFileResults);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 }

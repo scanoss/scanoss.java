@@ -286,30 +286,13 @@ public enum HttpStatusCode {
 
     /**
      * HTTP Status Code Enum
-     * @param value HTTP status code integer
+     *
+     * @param value       HTTP status code integer
      * @param description HTTP status description
      */
     HttpStatusCode(int value, String description) {
         this.value = value;
         this.description = description;
-    }
-
-    /**
-     * Get the Integer value of the HTTP Status Code
-     *
-     * @return HTTP status integer value
-     */
-    public int getValue() {
-        return value;
-    }
-
-    /**
-     * String friendly version of the HTTP Status Code
-     * @return HTTP status code and description
-     */
-    @Override
-    public String toString() {
-        return value + " " + description;
     }
 
     /**
@@ -325,5 +308,24 @@ public enum HttpStatusCode {
             }
         }
         return value + " Unknown Status Code";
+    }
+
+    /**
+     * Get the Integer value of the HTTP Status Code
+     *
+     * @return HTTP status integer value
+     */
+    public int getValue() {
+        return value;
+    }
+
+    /**
+     * String friendly version of the HTTP Status Code
+     *
+     * @return HTTP status code and description
+     */
+    @Override
+    public String toString() {
+        return value + " " + description;
     }
 }

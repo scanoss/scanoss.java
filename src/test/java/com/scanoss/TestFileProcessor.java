@@ -29,20 +29,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 @Slf4j
 public class TestFileProcessor {
     @Before
     public void Setup() {
         log.info("Starting File Processor test cases...");
-        log.debug("Logging debug enabled" );
-        log.trace("Logging trace enabled" );
+        log.debug("Logging debug enabled");
+        log.trace("Logging trace enabled");
     }
 
     @Test
     public void TestWfpFileProcessorPositive() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         FileProcessor wfpProcessor = WfpFileProcessor.builder().build();
@@ -53,12 +55,13 @@ public class TestFileProcessor {
         assertFalse("Expected a basic WFP here", wfp.isEmpty());
         log.info("WFP contents - {}: {}", file, wfp);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
     public void TestScanFileProcessorPositive() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         FileProcessor scanProcessor = ScanFileProcessor.builder().build();
@@ -69,14 +72,15 @@ public class TestFileProcessor {
         assertFalse("Expected a scan result here", wfp.isEmpty());
         log.info("Scan contents - {}: {}", file, wfp);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
     public void TestFileProcessorTemplate() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 }

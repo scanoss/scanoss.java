@@ -24,13 +24,13 @@ package com.scanoss.processor;
 
 /**
  * SCANOSS File Processor Interface
- *
  */
 public interface FileProcessor {
 
     /**
      * Implement process method to process the file
-     * @param file file to process
+     *
+     * @param file   file to process
      * @param folder root folder of the file to scan
      * @return scan result
      */

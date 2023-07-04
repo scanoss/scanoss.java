@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 /**
  * JSON Processing Utility Class
  * <p>
- *     Provide a set of utility methods for manipulating JSON details from the SCANOSS service
+ * Provide a set of utility methods for manipulating JSON details from the SCANOSS service
  * </p>
  */
 @Slf4j
@@ -50,8 +50,9 @@ public class JsonUtils {
 
     /**
      * Pretty Print the given JSON Object to the specified Writer
+     *
      * @param jsonObject JSON Object
-     * @param writer Print Writer (optional - default: STDOUT)
+     * @param writer     Print Writer (optional - default: STDOUT)
      */
     public static void writeJsonPretty(@NonNull JsonObject jsonObject, PrintWriter writer) {
         if (writer == null) {

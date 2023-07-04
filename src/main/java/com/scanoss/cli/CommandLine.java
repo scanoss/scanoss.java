@@ -23,10 +23,7 @@
 package com.scanoss.cli;
 
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.ParentCommand;
-import picocli.CommandLine.Spec;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,14 +53,8 @@ public class CommandLine implements Runnable {
     static boolean trace;
     @Option(names = "--quiet", description = "Run the command in quite mode")
     static boolean quiet;
-    @Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help information")
+    @Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help information")
     private boolean helpRequested = false;
-
-
-    @Override
-    public void run() {
-        System.out.println("scanoss-java command processor.");
-    }
 
     private static synchronized String getVersion() {
         String version = null;
@@ -98,10 +89,11 @@ public class CommandLine implements Runnable {
     /**
      * Print the given Debug message to the specified Writer
      * <p>
-     *     Only print if debug is enabled and quiet is disabled
+     * Only print if debug is enabled and quiet is disabled
      * </p>
+     *
      * @param writer Print Writer
-     * @param msg Message to print
+     * @param msg    Message to print
      */
     static void printDebug(PrintWriter writer, String msg) {
         if (!quiet && debug && writer != null) {
@@ -112,10 +104,11 @@ public class CommandLine implements Runnable {
     /**
      * Print the given message to the specified Writer
      * <p>
-     *     Only print details if <code>quiet</code> mode is not enabled
+     * Only print details if <code>quiet</code> mode is not enabled
      * </p>
+     *
      * @param writer Print Writer
-     * @param msg Message to print
+     * @param msg    Message to print
      */
     static void printMsg(PrintWriter writer, String msg) {
         if (!quiet && writer != null) {
@@ -125,10 +118,16 @@ public class CommandLine implements Runnable {
 
     /**
      * Main Command Line entry point
+     *
      * @param args command arguments
      */
     public static void main(String[] args) {
         int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
         System.exit(exitCode);
+    }
+
+    @Override
+    public void run() {
+        System.out.println("scanoss-java command processor.");
     }
 }

@@ -38,13 +38,15 @@ public class TestScanner {
     @Before
     public void Setup() {
         log.info("Starting Scanner test cases...");
-        log.debug("Logging debug enabled" );
-        log.trace("Logging trace enabled" );
+        log.debug("Logging debug enabled");
+        log.trace("Logging trace enabled");
     }
+
     @Test
     public void TestScannerPositive() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        log.info( "<-- Starting {}", methodName );
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
 
         Scanner scanner = Scanner.builder().build();
         Winnowing winnowing = scanner.getWinnowing();
@@ -55,7 +57,7 @@ public class TestScanner {
         Scanner scanner1 = Scanner.builder().winnowing(winnowing1).build();
         assertTrue("Winnowing skip snippets should be true", scanner1.getWinnowing().getSkipSnippets());
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -70,7 +72,7 @@ public class TestScanner {
         String wfp = scanner.wfpFile(file);
         assertNotNull("Should've gotten a WFP", wfp);
         assertFalse("WFP should not be empty", wfp.isEmpty());
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -84,17 +86,17 @@ public class TestScanner {
             String file = "";
             String wfp = scanner.wfpFile(file);
             assertNull("Should not have gotten a WFP", wfp);
-        } catch (ScannerException e ) {
+        } catch (ScannerException e) {
             log.info("Got expected error: {}", e.getLocalizedMessage());
         }
         try {
             String file = "testing/data/does-not-exist.java";
             String wfp = scanner.wfpFile(file);
             assertNull("Should not have gotten a WFP", wfp);
-        } catch (ScannerException e ) {
+        } catch (ScannerException e) {
             log.info("Got expected error: {}", e.getLocalizedMessage());
         }
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -124,7 +126,7 @@ public class TestScanner {
         f.write(String.join("", wfps));
         f.close();
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -148,7 +150,7 @@ public class TestScanner {
         } catch (ScannerException e) {
             log.info("Got expected error: {}", e.getLocalizedMessage());
         }
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -165,7 +167,7 @@ public class TestScanner {
         assertFalse("Scan results should not be empty", result.isEmpty());
         log.info("Single Scan result: {}", result);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
     @Test
@@ -183,7 +185,7 @@ public class TestScanner {
 
         log.info("Res Data: {}", results);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 
 
@@ -193,6 +195,6 @@ public class TestScanner {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        log.info( "Finished {} -->", methodName );
+        log.info("Finished {} -->", methodName);
     }
 }
