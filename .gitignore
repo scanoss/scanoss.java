@@ -37,5 +37,6 @@ build/
 ### Mac OS ###
 .DS_Store
 
-# Ignore WFP files
+# Ignore WFP & JSON files
 *.wfp
+*.json
