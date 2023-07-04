@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.scanoss.utils.JsonUtils;
+import dto.LicenseDetails;
 import dto.ScanFileResult;
 import dto.ServerDetails;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,6 @@ public class TestDtos {
         serverDetails = gson.fromJson(jsonString, ServerDetails.class);
         assertNotNull(serverDetails);
         assertFalse("Server version should be set", serverDetails.getVersion().isEmpty());
-//        assertFalse("Monthly value should be set", serverDetails.getKbVersion().getMonthly().isEmpty());
         log.info("Parsed Server Details: {}", serverDetails);
 
         JsonObject jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
@@ -72,6 +72,38 @@ public class TestDtos {
         assertNotNull(jsonObject.get("version"));
         assertNotNull(jsonObject.getAsJsonObject("kb_version").get("monthly"));
         log.info("Parsed Object: {}", jsonObject);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestDtoLicenseDetails() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        LicenseDetails licenseDetails = new LicenseDetails("MIT", "component_declared",
+                false, false, "https://spdx.org/licenses/MIT.html",
+                "https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt",
+                "2023-06-25T02:12:00+00:00");
+        assertNotNull(licenseDetails);
+        assertFalse("License Name value should be set", licenseDetails.getName().isEmpty());
+        log.info("License Details: {}", licenseDetails);
+
+        String jsonString = "{\n" +
+                "          \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\n" +
+                "          \"copyleft\": \"no\",\n" +
+                "          \"name\": \"MIT\",\n" +
+                "          \"osadl_updated\": \"2023-06-25T02:12:00+00:00\",\n" +
+                "          \"patent_hints\": \"no\",\n" +
+                "          \"source\": \"component_declared\",\n" +
+                "          \"url\": \"https://spdx.org/licenses/MIT.html\"\n" +
+                "        }";
+
+        Gson gson = new Gson();
+        licenseDetails = gson.fromJson(jsonString, LicenseDetails.class);
+        assertNotNull(licenseDetails);
+        assertFalse("License name should be set", licenseDetails.getName().isEmpty());
 
         log.info("Finished {} -->", methodName);
     }
