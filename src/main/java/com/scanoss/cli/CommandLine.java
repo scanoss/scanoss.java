@@ -55,6 +55,14 @@ public class CommandLine implements Runnable {
     private boolean helpRequested = false;
 
     /**
+     * Run the base 'scanoss-java' command
+     */
+    @Override
+    public void run() {
+        System.out.printf("scanoss-java command processor (version %s). Add -h to get more information.%n", version);
+    }
+
+    /**
      * Print the given Debug message to the specified Writer
      * <p>
      * Only print if debug is enabled and quiet is disabled
@@ -92,10 +100,5 @@ public class CommandLine implements Runnable {
     public static void main(String[] args) {
         int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
         System.exit(exitCode);
-    }
-
-    @Override
-    public void run() {
-        System.out.printf("scanoss-java command processor (version %s). Add -h to get more information.%n", CommandLine.version);
     }
 }
