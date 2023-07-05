@@ -2,7 +2,7 @@ package com.scanoss;
 
 import com.google.gson.JsonObject;
 import com.scanoss.utils.JsonUtils;
-import dto.ScanFileResult;
+import com.scanoss.dto.ScanFileResult;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;

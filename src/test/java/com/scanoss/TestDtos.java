@@ -25,10 +25,8 @@ package com.scanoss;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.scanoss.dto.*;
 import com.scanoss.utils.JsonUtils;
-import dto.LicenseDetails;
-import dto.ScanFileResult;
-import dto.ServerDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,8 +35,7 @@ import java.util.List;
 
 import static com.scanoss.TestConstants.jsonResultNoMatchString;
 import static com.scanoss.TestConstants.jsonResultsString;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @Slf4j
 public class TestDtos {
@@ -83,11 +80,13 @@ public class TestDtos {
         log.info("<-- Starting {}", methodName);
 
         LicenseDetails licenseDetails = new LicenseDetails("MIT", "component_declared",
-                false, false, "https://spdx.org/licenses/MIT.html",
+                "no", "yes", "https://spdx.org/licenses/MIT.html",
                 "https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt",
                 "2023-06-25T02:12:00+00:00");
         assertNotNull(licenseDetails);
         assertFalse("License Name value should be set", licenseDetails.getName().isEmpty());
+        assertTrue("Patent Hints should be true", licenseDetails.hasPatentHints());
+        assertFalse("Copyleft should be false", licenseDetails.isCopyleft());
         log.info("License Details: {}", licenseDetails);
 
         String jsonString = "{\n" +
@@ -104,6 +103,50 @@ public class TestDtos {
         licenseDetails = gson.fromJson(jsonString, LicenseDetails.class);
         assertNotNull(licenseDetails);
         assertFalse("License name should be set", licenseDetails.getName().isEmpty());
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestDtoCopyrightDetails() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        CopyrightDetails copyrightDetails = new CopyrightDetails("Copyright SCANOSS 2022", "license_file");
+        assertNotNull(copyrightDetails);
+        assertNotNull(copyrightDetails.getSource());
+        assertNotNull(copyrightDetails.getName());
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestDtoQualityDetails() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        QualityDetails qualityDetails = new QualityDetails("2/5", "component");
+        assertNotNull(qualityDetails);
+        assertNotNull(qualityDetails.getScore());
+        assertNotNull(qualityDetails.getSource());
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestDtoVulnerabilityDetails() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        VulnerabilityDetails vulnerabilityDetails = new VulnerabilityDetails("CVE-2018-14042", "GHSA-7mvr-5x2g-wfc8",
+                ">=0", "<4.1.2", "2023-04-11", "MODERATE",
+                "github_advisories", "Bootstrap Cross-site Scripting vulnerability");
+        assertNotNull(vulnerabilityDetails);
+        assertNotNull(vulnerabilityDetails.getCve());
+        assertNotNull(vulnerabilityDetails.getId());
 
         log.info("Finished {} -->", methodName);
     }

@@ -20,43 +20,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package dto;
+package com.scanoss.dto;
 
-import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 /**
- * Scan File Result Detailed Information
+ * Scan Results Match Copyright Details
  */
 @Data
-public class ScanFileDetails {
-
-    private final String id;
-    private final String component;
-    private final String vendor;
-    private final String version;
-    private final String latest;
-    private final String url;
-    private final String status;
-    private final String matched;
-    private final String file;
-    private final String lines;
-    @SerializedName("oss_lines")
-    private final String ossLines;
-    @SerializedName("file_hash")
-    private final String fileHash;
-    @SerializedName("file_url")
-    private final String fileUrl;
-    @SerializedName("url_hash")
-    private final String urlHash;
-    @SerializedName("release_date")
-    private final String releaseDate;
-    @SerializedName("source_hash")
-    private final String sourceHash;
-    @SerializedName("purl")
-    private final String[] purls;
-    @SerializedName("server")
-    private final ServerDetails serverDetails;
-    @SerializedName("licenses")
-    private final LicenseDetails[] licenseDetails;
+public class CopyrightDetails {
+    private final String name;
+    private final String source;
 }

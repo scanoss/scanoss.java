@@ -20,17 +20,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package dto;
+package com.scanoss.dto;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * Scan File Results Details
+ * Scan Results Server Details
  */
 @Data
-public class ScanFileResult {
-    private final String filePath;
-    private final List<ScanFileDetails> fileDetails;
+public class ServerDetails {
+    private final String version;
+    @SerializedName("kb_version")
+    private final KbVersion kbVersion;
+
+    /**
+     * Scan Results KB Version Details
+     */
+    @Data
+    public static class KbVersion {
+        private final String monthly;
+        private final String daily;
+    }
 }

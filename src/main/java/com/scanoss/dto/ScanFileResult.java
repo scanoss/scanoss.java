@@ -20,24 +20,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package dto;
+package com.scanoss.dto;
 
-import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
+import java.util.List;
+
 /**
- * Scan Results Match License Details
+ * Scan File Results Details
  */
 @Data
-public class LicenseDetails {
-    private final String name;
-    private final String source;
-    private final Boolean copyleft;
-    @SerializedName("patent_hints")
-    private final Boolean patentHints;
-    private final String url;
-    @SerializedName("checklist_url")
-    private final String checklistUrl;
-    @SerializedName("osadl_updated")
-    private final String osadlUpdated;
+public class ScanFileResult {
+    private final String filePath;
+    private final List<ScanFileDetails> fileDetails;
 }

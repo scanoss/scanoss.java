@@ -24,8 +24,8 @@ package com.scanoss.utils;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import dto.ScanFileDetails;
-import dto.ScanFileResult;
+import com.scanoss.dto.ScanFileDetails;
+import com.scanoss.dto.ScanFileResult;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -187,5 +187,15 @@ public class JsonUtils {
             results.add(new ScanFileResult(f, fileDetails));
         });
         return results;
+    }
+
+    /**
+     * Determine if the given string is a boolean true/false
+     *
+     * @param value String value to check
+     * @return <code>true</code> if value is <code>yes</code> or <code>true</code>, <code>false</code> otherwise
+     */
+    public static boolean checkBooleanString(String value) {
+        return value != null && (value.equals("yes") || value.equals("true"));
     }
 }
