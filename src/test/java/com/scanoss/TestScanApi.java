@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.scanoss.TestConstants.SCAN_RESP_SUCCESS;
 import static org.junit.Assert.*;
@@ -86,10 +87,11 @@ public class TestScanApi {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        ScanApi scanApi = ScanApi.builder().flags("8").url(server.url("/api/scan/direct").toString()).build();
+        String sbomIdentify = "pkg:github/scanoss/scanoss.py\n" + "pkg:pypi/scanoss\n";
+        ScanApi scanApi = ScanApi.builder().flags("8").scanType("identify").sbom(sbomIdentify)
+                .url(server.url("/api/scan/direct").toString()).build();
         server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
-                .setBody(SCAN_RESP_SUCCESS).setResponseCode(200)
-        );
+                .setBody(SCAN_RESP_SUCCESS).setResponseCode(200));
         String result = scanApi.scan("file=....", "pkg:github/scanoss/scanoss.py", 1);
         assertNotNull(result);
         assertFalse("Should've gotten a response JSON", result.isEmpty());
@@ -103,7 +105,6 @@ public class TestScanApi {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
-
         try {
             ScanApi scanApi = ScanApi.builder().build();
             String result = scanApi.scan("", "", 1);
@@ -118,7 +119,6 @@ public class TestScanApi {
         } catch (ScanApiException | InterruptedException e) {
             log.info("Got expected Exception: {}", e.getLocalizedMessage());
         }
-
         ScanApi scanApi = ScanApi.builder().url(server.url("/api/scan/direct").toString()).build();
 
         server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
@@ -128,6 +128,37 @@ public class TestScanApi {
         log.info("Scan response: {}", result);
         assertNull("Should've gotten a null response to this scan", result);
 
+        log.info("Finished {} -->", methodName);
+    }
+
+//    @Test
+    public void TestScanApiScanTimeoutNegative() throws InterruptedException {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        ScanApi scanApi = ScanApi.builder().url(server.url("/api/scan/direct").toString()).timeout(2).retryLimit(2).build();
+
+        server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBodyDelay(60, TimeUnit.SECONDS)
+                .setBody(SCAN_RESP_SUCCESS).setResponseCode(200));
+        server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBodyDelay(60, TimeUnit.SECONDS)
+                .setBody(SCAN_RESP_SUCCESS).setResponseCode(200));
+        server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBodyDelay(60, TimeUnit.SECONDS)
+                .setBody(SCAN_RESP_SUCCESS).setResponseCode(200));
+
+//        server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
+//                .setBodyDelay(60, TimeUnit.SECONDS)
+//                .setBody("Scan failed").setResponseCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getValue()));
+        try {
+            String result = scanApi.scan("file=....", "", 1);
+            log.info("Scan response: {}", result);
+            assertNull("Should've gotten a null response to this scan", result);
+        } catch(ScanApiException e) {
+            log.info("Got expected Exception: {}", e.getLocalizedMessage());
+        }
         log.info("Finished {} -->", methodName);
     }
 

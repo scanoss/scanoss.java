@@ -26,8 +26,11 @@ import com.scanoss.Scanner;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
 import com.scanoss.utils.JsonUtils;
+import lombok.NonNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 import static com.scanoss.cli.CommandLine.printDebug;
@@ -78,6 +81,12 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-F", "--flags"}, description = "Scanning engine flags (1: disable snippet matching, 2 enable snippet ids, 4: disable dependencies, 8: disable licenses, 16: disable copyrights, 32: disable vulnerabilities, 64: disable quality, 128: disable cryptography,256: disable best match only, 512: hide identified files, 1024: enable download_url, 2048: enable GitHub full path, 4096: disable extended server stats")
     private String scanFlags;
 
+    @picocli.CommandLine.Option(names = {"-i", "--identify"}, description = "Scan and identify components in SBOM file")
+    private String identifySbom;
+
+    @picocli.CommandLine.Option(names = {"-n", "--ignore"}, description = "Ignore components specified in the SBOM file")
+    private String ignoreSbom;
+
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to scan")
     private String fileFolder;
 
@@ -91,6 +100,18 @@ class ScanCommandLine implements Runnable {
         var err = spec.commandLine().getErr();
         if (fileFolder == null || fileFolder.isEmpty()) {
             throw new RuntimeException("Error: No file or folder specified to scan");
+        }
+        if (identifySbom != null && ignoreSbom != null) {
+            throw new RuntimeException("Error: Specify one of --identify or --ignore not both");
+        }
+        String sbomType = null;
+        String sbom = null;
+        if (identifySbom != null && !identifySbom.isEmpty()) {
+            sbomType = "identify";
+            sbom = loadFileToString(identifySbom);
+        } else if (ignoreSbom != null && !ignoreSbom.isEmpty()) {
+            sbomType = "ignore";
+            sbom = loadFileToString(ignoreSbom);
         }
         if (com.scanoss.cli.CommandLine.debug) {
             if (numThreads != 5) {
@@ -115,6 +136,7 @@ class ScanCommandLine implements Runnable {
         scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
                 .retryLimit(retryLimit).timeout(timeoutLimit).scanFlags(scanFlags)
+                .sbomType(sbomType).sbom(sbom)
                 .build();
         File f = new File(fileFolder);
         if (!f.exists()) {
@@ -126,6 +148,23 @@ class ScanCommandLine implements Runnable {
             scanFolder(fileFolder);
         } else {
             throw new RuntimeException(String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
+        }
+    }
+
+    /**
+     * Load the specified file into a string
+     * @param filename filename to load
+     * @return loaded string
+     */
+    private String loadFileToString(@NonNull String filename) {
+        File file = new File(filename);
+        if (!file.exists() || !file.isFile()) {
+            throw new RuntimeException(String.format("File does not exist or is not a file: %s", filename));
+        }
+        try {
+            return Files.readString(file.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

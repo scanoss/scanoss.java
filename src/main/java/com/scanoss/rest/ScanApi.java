@@ -39,6 +39,7 @@ import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -52,10 +53,6 @@ import java.util.stream.Stream;
 @Slf4j
 public class ScanApi {
 
-    static final String DEFAULT_SCAN_URL = "https://osskb.org/api/scan/direct";
-    static final String DEFAULT_SCAN_URL2 = "https://scanoss.com/api/scan/direct";
-//    static final String SCANOSS_SCAN_URL = System.getenv("SCANOSS_SCAN_URL");
-
     @Builder.Default
     private String scanType = "identify";
     @Builder.Default
@@ -65,11 +62,14 @@ public class ScanApi {
     private String url; // SCANOSS API URI
     private String apiKey; // SCANOSS premium API key
     private String flags; // SCANOSS Premium scanning flags
+    private String sbomType; // SBOM type (identify/ignore)
+    private String sbom;  // SBOM to supply while scanning
     private HttpClient httpClient;
     private Map<String, String> headers;
 
     @SuppressWarnings("unused")
     private ScanApi(String scanType, Integer timeout, Integer retryLimit, String url, String apiKey, String flags,
+                    String sbomType, String sbom,
                     HttpClient httpClient, Map<String, String> headers) {
         this.scanType = scanType;
         this.timeout = timeout;
@@ -77,27 +77,29 @@ public class ScanApi {
         this.url = url;
         this.apiKey = apiKey;
         this.flags = flags;
+        this.sbomType = sbomType;
+        this.sbom = sbom;
         if (this.apiKey != null && !this.apiKey.isEmpty() && (url == null || url.isEmpty())) {
             this.url = DEFAULT_SCAN_URL2;  // Default premium SCANOSS endpoint
         } else if (url == null || url.isEmpty()) {
             this.url = DEFAULT_SCAN_URL;  // Default free SCANOSS endpoint
         }
-        if (httpClient == null) {
-            this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(this.timeout)).build();
-        } else {
-            this.httpClient = httpClient;
-        }
-        this.headers = Objects.requireNonNullElseGet(headers, () -> new HashMap<>(2));
-//        if (headers == null) {
-//            this.headers = new HashMap<>(2);
+
+
+        this.httpClient = Objects.requireNonNullElseGet(httpClient, () ->
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(this.timeout)).build());
+
+        //        if (httpClient == null) {
+//            this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(this.timeout)).build();
 //        } else {
-//            this.headers = headers;
+//            this.httpClient = httpClient;
 //        }
+        this.headers = Objects.requireNonNullElseGet(headers, () -> new HashMap<>(2));
         // Add the user agent to the headers if it's not already there
         if (!this.headers.containsKey("user-agent")) {
             String version = PackageDetails.getVersion();
             if (version == null || version.isEmpty()) {
-                version = "0.0.0";
+                version = "0.0.0"; // nothing found. set a default value
             }
             this.headers.put("user-agent", String.format("scanoss-java/%s", version));
         }
@@ -136,9 +138,13 @@ public class ScanApi {
         if (flags != null && !flags.isEmpty()) {
             data.put("flags", flags);
         }
-        // TODO add type, assets, support here also
+        if (sbom != null && !sbom.isEmpty()) {
+            String type = sbomType != null ? sbomType : "identify";
+            data.put(type, sbom);
+        }
         HttpRequest request;
         try {
+            log.info("Setting timeout of {}", timeout);
             request = HttpRequest.newBuilder()
                     .uri(new URI(url))
                     .headers(postHeaders.entrySet().stream()
@@ -173,7 +179,7 @@ public class ScanApi {
                 }
                 log.debug("Connection timeout {} (retry {}). Sleeping, then trying again...", timeout, retry);
                 //noinspection BusyWait
-                Thread.sleep(Duration.ofSeconds(5).toMillis()); // Sleep 5 seconds before trying again
+                TimeUnit.SECONDS.sleep(RETRY_FAIL_SLEEP_TIME); // Sleep ? seconds before trying again
             } catch (IOException | InterruptedException | NullPointerException e) {
                 throw new ScanApiException(String.format("Problem encountered scanning: %d - %s against %s", scanID, uuid, url), e);
             }
@@ -209,4 +215,9 @@ public class ScanApi {
         byteArrays.add(("--" + boundary + "--").getBytes(StandardCharsets.UTF_8));
         return HttpRequest.BodyPublishers.ofByteArrays(byteArrays);
     }
+
+    private static final int RETRY_FAIL_SLEEP_TIME = 5; // Time to sleep between failed scan requests
+    static final String DEFAULT_SCAN_URL = "https://osskb.org/api/scan/direct"; // Free OSS OSSKB URL
+    static final String DEFAULT_SCAN_URL2 = "https://scanoss.com/api/scan/direct"; // Standard SCANOSS Premium URL
+//    static final String SCANOSS_SCAN_URL = System.getenv("SCANOSS_SCAN_URL");
 }

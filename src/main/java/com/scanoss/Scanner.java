@@ -39,6 +39,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,6 +76,8 @@ public class Scanner {
     private String url;  // Alternative scanning URL
     private String apiKey; // API key
     private String scanFlags; // Scan flags to pass to the API
+    private String sbomType; // SBOM type (identify/ignore)
+    private String sbom;  // SBOM to supply while scanning
     private Winnowing winnowing;
     private ScanApi scanApi;
     private ScanFileProcessor scanFileProcessor;
@@ -83,7 +86,7 @@ public class Scanner {
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Integer timeout, Integer retryLimit,
-                    String url, String apiKey, String scanFlags,
+                    String url, String apiKey, String scanFlags, String sbomType, String sbom,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor
     ) {
@@ -99,26 +102,35 @@ public class Scanner {
         this.url = url;
         this.apiKey = apiKey;
         this.scanFlags = scanFlags;
-        if (winnowing == null) {
-            this.winnowing = Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build();
-        } else {
-            this.winnowing = winnowing;
-        }
-        if (scanApi == null) {
-            this.scanApi = ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags).build();
-        } else {
-            this.scanApi = scanApi;
-        }
-        if (scanFileProcessor == null) {
-            this.scanFileProcessor = ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build();
-        } else {
-            this.scanFileProcessor = scanFileProcessor;
-        }
-        if (wfpFileProcessor == null) {
-            this.wfpFileProcessor = WfpFileProcessor.builder().winnowing(this.winnowing).build();
-        } else {
-            this.wfpFileProcessor = wfpFileProcessor;
-        }
+        this.sbomType = sbomType;
+        this.sbom = sbom;
+        this.winnowing = Objects.requireNonNullElseGet(winnowing, () ->
+                Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build());
+//        if (winnowing == null) {
+//            this.winnowing = Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build();
+//        } else {
+//            this.winnowing = winnowing;
+//        }
+        this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
+                ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags).scanType(sbomType).sbom(sbom).build());
+//        if (scanApi == null) {
+//            this.scanApi = ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags).build();
+//        } else {
+//            this.scanApi = scanApi;
+//        }
+        this.scanFileProcessor = Objects.requireNonNullElseGet(scanFileProcessor, () ->
+                ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build());
+//        if (scanFileProcessor == null) {
+//            this.scanFileProcessor = ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build();
+//        } else {
+//            this.scanFileProcessor = scanFileProcessor;
+//        }
+        this.wfpFileProcessor = Objects.requireNonNullElseGet(wfpFileProcessor, () -> WfpFileProcessor.builder().winnowing(this.winnowing).build());
+//        if (wfpFileProcessor == null) {
+//            this.wfpFileProcessor = WfpFileProcessor.builder().winnowing(this.winnowing).build();
+//        } else {
+//            this.wfpFileProcessor = wfpFileProcessor;
+//        }
     }
 
     /**

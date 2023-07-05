@@ -45,6 +45,126 @@ public class TestConstants {
             "      }\n" +
             "    }\n" +
             "  ],\n" +
+            "  \"CMSsite/admin/js/npm.js\": [\n" +
+            "    {\n" +
+            "      \"component\": \"bootstrap\",\n" +
+            "      \"copyrights\": [\n" +
+            "        {\n" +
+            "          \"name\": \"Copyright (c) 2011-2021 Twitter; Inc.\",\n" +
+            "          \"source\": \"license_file\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"name\": \"Copyright (c) 2011-2022 The Bootstrap Authors\",\n" +
+            "          \"source\": \"license_file\"\n" +
+            "        }\n" +
+            "      ],\n" +
+            "      \"cryptography\": [],\n" +
+            "      \"dependencies\": [],\n" +
+            "      \"file\": \"dist/js/npm.js\",\n" +
+            "      \"file_hash\": \"ccb7f3909e30b1eb8f65a24393c6e12b\",\n" +
+            "      \"file_url\": \"https://osskb.org/api/file_contents/ccb7f3909e30b1eb8f65a24393c6e12b\",\n" +
+            "      \"health\": {\n" +
+            "        \"creation_date\": \"2011-07-29\",\n" +
+            "        \"issues\": 402,\n" +
+            "        \"last_push\": \"2023-05-13\",\n" +
+            "        \"last_update\": \"2023-05-14\",\n" +
+            "        \"stars\": 163518\n" +
+            "      },\n" +
+            "      \"id\": \"file\",\n" +
+            "      \"latest\": \"3.3.5\",\n" +
+            "      \"licenses\": [\n" +
+            "        {\n" +
+            "          \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\n" +
+            "          \"copyleft\": \"no\",\n" +
+            "          \"name\": \"MIT\",\n" +
+            "          \"osadl_updated\": \"2023-05-14T02:12:00+00:00\",\n" +
+            "          \"patent_hints\": \"no\",\n" +
+            "          \"source\": \"component_declared\",\n" +
+            "          \"url\": \"https://spdx.org/licenses/MIT.html\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\n" +
+            "          \"copyleft\": \"no\",\n" +
+            "          \"name\": \"MIT\",\n" +
+            "          \"osadl_updated\": \"2023-05-14T02:12:00+00:00\",\n" +
+            "          \"patent_hints\": \"no\",\n" +
+            "          \"source\": \"license_file\",\n" +
+            "          \"url\": \"https://spdx.org/licenses/MIT.html\"\n" +
+            "        }\n" +
+            "      ],\n" +
+            "      \"lines\": \"all\",\n" +
+            "      \"matched\": \"100%\",\n" +
+            "      \"oss_lines\": \"all\",\n" +
+            "      \"provenance\": \"United States\",\n" +
+            "      \"purl\": [\n" +
+            "        \"pkg:github/twbs/bootstrap\",\n" +
+            "        \"pkg:sourceforge/bootstrap.mirror\",\n" +
+            "        \"pkg:googlesource/external/github.com/twbs/bootstrap\",\n" +
+            "        \"pkg:npm/mip-bootstrap\",\n" +
+            "        \"pkg:npm/monsta-bootstrap\",\n" +
+            "        \"pkg:npm/myoneui\",\n" +
+            "        \"pkg:npm/livn-bootstrap\",\n" +
+            "        \"pkg:npm/abbstrap\",\n" +
+            "        \"pkg:npm/co_bootstrap\",\n" +
+            "        \"pkg:npm/cumulon-bootstrap\"\n" +
+            "      ],\n" +
+            "      \"quality\": [\n" +
+            "        {\n" +
+            "          \"score\": \"4/5\",\n" +
+            "          \"source\": \"best_practices\"\n" +
+            "        }\n" +
+            "      ],\n" +
+            "      \"release_date\": \"2014-10-29\",\n" +
+            "      \"server\": {\n" +
+            "        \"elapsed\": \"1.655429s\",\n" +
+            "        \"flags\": \"0\",\n" +
+            "        \"hostname\": \"p14\",\n" +
+            "        \"kb_version\": {\n" +
+            "          \"daily\": \"23.05.15\",\n" +
+            "          \"monthly\": \"23.04\"\n" +
+            "        },\n" +
+            "        \"version\": \"5.2.5\"\n" +
+            "      },\n" +
+            "      \"source_hash\": \"ccb7f3909e30b1eb8f65a24393c6e12b\",\n" +
+            "      \"status\": \"pending\",\n" +
+            "      \"url\": \"https://github.com/twbs/bootstrap\",\n" +
+            "      \"url_hash\": \"1363e882db14cc94d4d5011248a86d20\",\n" +
+            "      \"vendor\": \"twbs\",\n" +
+            "      \"version\": \"3.3.0\",\n" +
+            "      \"vulnerabilities\": [\n" +
+            "        {\n" +
+            "          \"CVE\": \"CVE-2018-14042\",\n" +
+            "          \"ID\": \"GHSA-7mvr-5x2g-wfc8\",\n" +
+            "          \"introduced\": \">=0\",\n" +
+            "          \"patched\": \"<4.1.2\",\n" +
+            "          \"reported\": \"2023-04-11\",\n" +
+            "          \"severity\": \"MODERATE\",\n" +
+            "          \"source\": \"github_advisories\",\n" +
+            "          \"summary\": \"Bootstrap Cross-site Scripting vulnerability\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"CVE\": \"CVE-2019-8331\",\n" +
+            "          \"ID\": \"cpe:2.3:a:getbootstrap:bootstrap:3.3.0:*:*:*:*:*:*:*\",\n" +
+            "          \"introduced\": \"\",\n" +
+            "          \"patched\": \"3.3.0\",\n" +
+            "          \"reported\": \"\",\n" +
+            "          \"severity\": \"MEDIUM\",\n" +
+            "          \"source\": \"nvd\",\n" +
+            "          \"summary\": \"https://nvd.nist.gov/vuln/detail/CVE-2019-8331\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"CVE\": \"CVE-2019-8331\",\n" +
+            "          \"ID\": \"cpe:2.3:a:getbootstrap:bootstrap:3.3.5:*:*:*:*:*:*:*\",\n" +
+            "          \"introduced\": \"\",\n" +
+            "          \"patched\": \"3.3.5\",\n" +
+            "          \"reported\": \"\",\n" +
+            "          \"severity\": \"MEDIUM\",\n" +
+            "          \"source\": \"nvd\",\n" +
+            "          \"summary\": \"https://nvd.nist.gov/vuln/detail/CVE-2019-8331\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ],\n" +
             "  \"scanoss/api/__init__.py\": [\n" +
             "    {\n" +
             "      \"component\": \"scanoss.py\",\n" +
