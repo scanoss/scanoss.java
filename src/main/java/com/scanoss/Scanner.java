@@ -78,6 +78,7 @@ public class Scanner {
     private String scanFlags; // Scan flags to pass to the API
     private String sbomType; // SBOM type (identify/ignore)
     private String sbom;  // SBOM to supply while scanning
+    private int snippetLimit; // Size limit for a single line of generated snippet
     private Winnowing winnowing;
     private ScanApi scanApi;
     private ScanFileProcessor scanFileProcessor;
@@ -86,7 +87,7 @@ public class Scanner {
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Integer timeout, Integer retryLimit,
-                    String url, String apiKey, String scanFlags, String sbomType, String sbom,
+                    String url, String apiKey, String scanFlags, String sbomType, String sbom, Integer snippetLimit,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor
     ) {
@@ -104,33 +105,14 @@ public class Scanner {
         this.scanFlags = scanFlags;
         this.sbomType = sbomType;
         this.sbom = sbom;
+        this.snippetLimit = snippetLimit;
         this.winnowing = Objects.requireNonNullElseGet(winnowing, () ->
-                Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build());
-//        if (winnowing == null) {
-//            this.winnowing = Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).build();
-//        } else {
-//            this.winnowing = winnowing;
-//        }
+                Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).snippetLimit(snippetLimit).build());
         this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
                 ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags).scanType(sbomType).sbom(sbom).build());
-//        if (scanApi == null) {
-//            this.scanApi = ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags).build();
-//        } else {
-//            this.scanApi = scanApi;
-//        }
         this.scanFileProcessor = Objects.requireNonNullElseGet(scanFileProcessor, () ->
                 ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build());
-//        if (scanFileProcessor == null) {
-//            this.scanFileProcessor = ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build();
-//        } else {
-//            this.scanFileProcessor = scanFileProcessor;
-//        }
         this.wfpFileProcessor = Objects.requireNonNullElseGet(wfpFileProcessor, () -> WfpFileProcessor.builder().winnowing(this.winnowing).build());
-//        if (wfpFileProcessor == null) {
-//            this.wfpFileProcessor = WfpFileProcessor.builder().winnowing(this.winnowing).build();
-//        } else {
-//            this.wfpFileProcessor = wfpFileProcessor;
-//        }
     }
 
     /**
@@ -214,7 +196,7 @@ public class Scanner {
      * @return Updated (if necessary) path
      */
     private String stripDirectory(String scanDir, String path) {
-        int length = scanDir.endsWith(File.pathSeparator) ? scanDir.length() : scanDir.length() + 1;
+        int length = scanDir.endsWith(File.separator) ? scanDir.length() : scanDir.length() + 1;
         if (length > 0 && path.startsWith(scanDir)) {
             return path.substring(length);
         }

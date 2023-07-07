@@ -87,6 +87,9 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-n", "--ignore"}, description = "Ignore components specified in the SBOM file")
     private String ignoreSbom;
 
+    @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
+    private int snippetLimit = 1000;
+
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to scan")
     private String fileFolder;
 
@@ -136,7 +139,7 @@ class ScanCommandLine implements Runnable {
         scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
                 .retryLimit(retryLimit).timeout(timeoutLimit).scanFlags(scanFlags)
-                .sbomType(sbomType).sbom(sbom)
+                .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit)
                 .build();
         File f = new File(fileFolder);
         if (!f.exists()) {

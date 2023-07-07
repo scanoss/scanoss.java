@@ -16,6 +16,7 @@ public class ScanossConstants {
     static final int WINDOW = 64; // Winnowing Window size. Do NOT Modify
     static final long MAX_CRC32 = 4294967296L;
     static final int MIN_FILE_SIZE = 256; // Minimum size for a file to be considered for snippet generation
+    static final int MAX_LONG_LINE_CHARS = 1000; // Maximum length of a single source line to be considered source code
 
     // File extensions to ignore snippets for
     static final List<String> SKIP_SNIPPET_EXT = Arrays.asList(

@@ -42,6 +42,8 @@ import java.util.*;
 import java.util.zip.CRC32C;
 import java.util.zip.Checksum;
 
+import static com.scanoss.ScanossConstants.MAX_LONG_LINE_CHARS;
+
 /**
  * SCANOSS Winnowing Class
  * <p>
@@ -65,6 +67,8 @@ public class Winnowing {
     private Boolean obfuscate = Boolean.FALSE; // Obfuscate file path
     @Builder.Default
     private Boolean hpsm = Boolean.FALSE; // Enable High Precision Snippet Matching data collection
+    @Builder.Default
+    private int snippetLimit = MAX_LONG_LINE_CHARS; // Enable limiting of size of a single line of snippet generation
 
     /**
      * Calculate the WFP (fingerprint) for the given file
@@ -141,10 +145,15 @@ public class Winnowing {
                         if (minHash != lastHash) {
                             String minHashHex = crc32cHex(minHash);
                             if (lastLine != line) {
-                                if (outputBuilder.length() > 0) {
-                                    wfpBuilder.append(outputBuilder).append("\n");
+                                int obLength = outputBuilder.length();
+                                if (obLength > 0) {
+                                    if (snippetLimit > 0 && obLength > snippetLimit) {
+                                        log.debug("Skipping snippet line as it's too big ({}): {}", filename, outputBuilder);
+                                    } else {
+                                        wfpBuilder.append(outputBuilder).append("\n");
+                                    }
                                 }
-                                outputBuilder.delete(0, outputBuilder.length());
+                                outputBuilder.delete(0, obLength);
                                 outputBuilder.append(String.format("%d=%s", line, minHashHex));
                             } else {
                                 outputBuilder.append(",").append(minHashHex);
@@ -158,8 +167,13 @@ public class Winnowing {
                 }
             }
         }
-        if (outputBuilder.length() > 0) {
-            wfpBuilder.append(outputBuilder).append("\n");
+        int obLength = outputBuilder.length();
+        if (obLength > 0) {
+            if (snippetLimit > 0 && obLength > snippetLimit) {
+                log.debug("Skipping snippet line as it's too big ({}) {} - {}: {}", filename, snippetLimit, obLength, outputBuilder);
+            } else {
+                wfpBuilder.append(outputBuilder).append("\n");
+            }
         }
         return wfpBuilder.toString();
     }
@@ -177,6 +191,14 @@ public class Winnowing {
             log.trace("Generating snippets for all extensions: {}", filename);
             return false;
         }
+        if (contents.length <= ScanossConstants.MIN_FILE_SIZE) {
+            log.trace("Skipping snippets as the file is too small: {} - {}", filename, contents.length);
+            return true;
+        }
+        if (contents[0] == '{' || contents[0] == '<') {
+            log.trace("Skipping snippets as the file appears to be JSON/XML/HTML: {}", filename);
+            return true;
+        }
         if (!filename.isEmpty()) {
             String lowerFilename = filename.toLowerCase();
             for (String ending : ScanossConstants.SKIP_SNIPPET_EXT) {
@@ -186,17 +208,42 @@ public class Winnowing {
                 }
             }
         }
-        if (contents.length <= ScanossConstants.MIN_FILE_SIZE) {
-            log.trace("Skipping snippets as the file is too small: {} - {}", filename, contents.length);
-            return true;
-        }
-        if (contents[0] == '{' || contents[0] == '<') {
-            log.trace("Skipping snippets as the file appears to be JSON/XML/HTML: {}", filename);
-            return true;
-        }
+        // TODO do we still want this?
+        // Check to see if the first newline is very far away. If so, it's another hint this could be a binary/data file
+//        for (int i = 0; i < contents.length; i++) {
+//            if (contents[i] == '\n') {
+//                return false;
+//            } else if (i > MAX_LONG_LINE_CHARS) {
+//                log.trace("Skipping snippets due to file line being too long: {} - {}", filename, MAX_LONG_LINE_CHARS);
+//                return true;
+//            }
+//        }
+        // TODO do we want to skip a whole file is some of it is a large single line?
+//        StringBuilder outputBuilder = new StringBuilder();
+//        for (char c: contents) {
+//            if (c == '\n') { // New line, check line length
+//                if (outputBuilder.length() > MAX_LONG_LINE_CHARS) {
+//                    log.trace("Skipping snippets due to file line being too long: {} - {}", filename, MAX_LONG_LINE_CHARS);
+//                    return true;
+//                }
+//                outputBuilder.setLength(0);  // empty the string again
+//            } else {
+//                outputBuilder.append(c);
+//            }
+//        }
+//        if (outputBuilder.length() > MAX_LONG_LINE_CHARS) { // Check the last string length
+//            log.trace("Skipping snippets due to file line being too long: {} - {}", filename, MAX_LONG_LINE_CHARS);
+//            return true;
+//        }
         return false;
     }
 
+    /**
+     * Try to detect if this is a text file or not
+     *
+     * @param f File to check
+     * @return <code>true/false</code> if is/is not a text file, <code>null</code> if something went wrong
+     */
     private Boolean isTextFile(File f) {
         try {
             String type = tika.detect(f);
@@ -213,6 +260,13 @@ public class Winnowing {
         return null;
     }
 
+    /**
+     * Check if the file contents is a text file
+     *
+     * @param f File being checked
+     * @param contentBytes File Contents
+     * @return <code>true</code> if a text file, <code>false</code> otherwise
+     */
     private Boolean isTextContent(File f, byte[] contentBytes) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(contentBytes);
         try {
@@ -224,6 +278,12 @@ public class Winnowing {
         return false;
     }
 
+    /**
+     * Check if this media type is a text based
+     *
+     * @param mediaType Media Type
+     * @return <code>true</code> if a text file, <code>false</code> otherwise
+     */
     private Boolean isTextMediaType(MediaType mediaType) {
         if (mediaType == null) {
             return false;

@@ -162,6 +162,12 @@ public class TestWinnowing {
         assertNotNull("Expected a result from WFP", wfp);
         assertEquals("file=d7cfce9cff6d109c6b0249233ee26368,345,testing/data/json-file.c", wfp.trim());
 
+        file = "testing/data/source-file-with-long-line.c";
+        wfp = winnowing.wfpForFile(file, file);
+        log.info("WFP for Long C file: {}", wfp);
+        assertNotNull("Expected a result from WFP", wfp);
+        assertFalse("Should NOT have snippets here", snippetPat.matcher(wfp).matches());
+
         winnowing.setSkipSnippets(true);
         file = "src/test/java/com/scanoss/TestWinnowing.java";
         wfp = winnowing.wfpForFile(file, file);

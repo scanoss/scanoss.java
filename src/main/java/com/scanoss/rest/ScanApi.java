@@ -178,7 +178,6 @@ public class ScanApi {
                     throw new ScanApiException("SCANOSS API request timed out for " + url, e);
                 }
                 log.debug("Connection timeout {} (retry {}). Sleeping, then trying again...", timeout, retry);
-                //noinspection BusyWait
                 TimeUnit.SECONDS.sleep(RETRY_FAIL_SLEEP_TIME); // Sleep ? seconds before trying again
             } catch (IOException | InterruptedException | NullPointerException e) {
                 throw new ScanApiException(String.format("Problem encountered scanning: %d - %s against %s", scanID, uuid, url), e);

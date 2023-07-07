@@ -40,6 +40,9 @@ public class WfpCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-T", "--threads"}, description = "Number of parallel threads to use")
     private int numThreads = 5;
 
+    @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
+    private int snippetLimit = 1000;
+
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to fingerprint")
     private String fileFolder;
 
@@ -63,7 +66,8 @@ public class WfpCommandLine implements Runnable {
                 printMsg(err, String.format("Running with %d threads.", numThreads));
             }
         }
-        scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions).hiddenFilesFolders(allHidden).numThreads(numThreads).build();
+        scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
+                .hiddenFilesFolders(allHidden).numThreads(numThreads).snippetLimit(snippetLimit).build();
         if (f.isFile()) {
             wfpFile(fileFolder);
         } else if (f.isDirectory()) {
