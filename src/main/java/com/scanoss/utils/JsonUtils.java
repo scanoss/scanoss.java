@@ -69,7 +69,7 @@ public class JsonUtils {
      * @return prettified string
      */
     public static String toJsonPretty(@NonNull JsonObject jsonObject) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
         return gson.toJson(sortJsonObject(jsonObject));
     }
 
@@ -89,8 +89,14 @@ public class JsonUtils {
                 temp.add(key, ele);
             } else if (ele.isJsonArray()) {
                 temp.add(key, sortJsonArray(ele.getAsJsonArray()));
-            } else
+            } else if (ele.isJsonPrimitive()) {
                 temp.add(key, ele.getAsJsonPrimitive());
+            } else if ( ele.isJsonNull()) {
+                temp.add(key, ele.getAsJsonNull());
+            } else {
+                log.debug("Unknown Element Type found: {} - {}", key, ele);
+                temp.add(key, ele);
+            }
         }
         return temp;
     }
