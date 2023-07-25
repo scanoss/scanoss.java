@@ -33,7 +33,6 @@ public interface FileProcessor {
      * @param file   file to process
      * @param folder root folder of the file to scan
      * @return scan result
-     * @throws InterruptedException Processor was interrupted
      */
-    String process(String file, String folder) throws InterruptedException;
+    String process(String file, String folder);
 }

@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -70,7 +71,7 @@ public class Scanner {
     @Builder.Default
     private Integer numThreads = 5;  // Number of parallel threads to use when processing a folder
     @Builder.Default
-    private Integer timeout = 120; // API POST timeout
+    private Duration timeout = Duration.ofSeconds(120); // API POST timeout
     @Builder.Default
     private Integer retryLimit = 5; // Retry limit for posting scan requests
     private String url;  // Alternative scanning URL
@@ -86,7 +87,7 @@ public class Scanner {
 
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
-                    Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Integer timeout, Integer retryLimit,
+                    Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout, Integer retryLimit,
                     String url, String apiKey, String scanFlags, String sbomType, String sbom, Integer snippetLimit,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor
@@ -288,9 +289,8 @@ public class Scanner {
      * @return scan results string (in JSON format)
      * @throws ScannerException     Something in Scanning failed
      * @throws WinnowingException   Something in Winnowing failed
-     * @throws InterruptedException Scan API was interrupted
      */
-    public String scanFile(@NonNull String filename) throws ScannerException, WinnowingException, InterruptedException {
+    public String scanFile(@NonNull String filename) throws ScannerException, WinnowingException {
         String wfp = wfpFile(filename);
         if (wfp != null && !wfp.isEmpty()) {
             String response = this.scanApi.scan(wfp, "", 1);

@@ -27,20 +27,16 @@ import com.scanoss.utils.PackageDetails;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpTimeoutException;
-import java.nio.charset.StandardCharsets;
+import java.io.InterruptedIOException;
 import java.time.Duration;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 /**
  * SCANOSS Scanning REST API Implementation
@@ -52,11 +48,10 @@ import java.util.stream.Stream;
 @Builder
 @Slf4j
 public class ScanApi {
-
     @Builder.Default
     private String scanType = "identify";
     @Builder.Default
-    private Integer timeout = 120; // API POST timeout
+    private Duration timeout = Duration.ofSeconds(120); // API POST timeout
     @Builder.Default
     private Integer retryLimit = 5; // Retry limit for posting scan requests
     private String url; // SCANOSS API URI
@@ -64,13 +59,13 @@ public class ScanApi {
     private String flags; // SCANOSS Premium scanning flags
     private String sbomType; // SBOM type (identify/ignore)
     private String sbom;  // SBOM to supply while scanning
-    private HttpClient httpClient;
+    private OkHttpClient okHttpClient;
     private Map<String, String> headers;
 
     @SuppressWarnings("unused")
-    private ScanApi(String scanType, Integer timeout, Integer retryLimit, String url, String apiKey, String flags,
+    private ScanApi(String scanType, Duration timeout, Integer retryLimit, String url, String apiKey, String flags,
                     String sbomType, String sbom,
-                    HttpClient httpClient, Map<String, String> headers) {
+                    OkHttpClient okHttpClient, Map<String, String> headers) {
         this.scanType = scanType;
         this.timeout = timeout;
         this.retryLimit = retryLimit;
@@ -84,16 +79,9 @@ public class ScanApi {
         } else if (url == null || url.isEmpty()) {
             this.url = DEFAULT_SCAN_URL;  // Default free SCANOSS endpoint
         }
-
-
-        this.httpClient = Objects.requireNonNullElseGet(httpClient, () ->
-                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(this.timeout)).build());
-
-        //        if (httpClient == null) {
-//            this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(this.timeout)).build();
-//        } else {
-//            this.httpClient = httpClient;
-//        }
+        this.okHttpClient = Objects.requireNonNullElseGet(okHttpClient, () ->
+                new OkHttpClient.Builder().callTimeout(timeout).build()
+        );
         this.headers = Objects.requireNonNullElseGet(headers, () -> new HashMap<>(2));
         // Add the user agent to the headers if it's not already there
         if (!this.headers.containsKey("user-agent")) {
@@ -116,21 +104,20 @@ public class ScanApi {
      * @param context Context for the scan (optional)
      * @param scanID  ID of the requesting scanner (usually thread ID)
      * @return Scan results (in JSON format)
-     * @throws ScanApiException     Scanning went wrong
-     * @throws InterruptedException Scan API was interrupted
+     * @throws ScanApiException Scanning went wrong
      */
-    public String scan(String wfp, String context, int scanID) throws ScanApiException, InterruptedException {
+    public String scan(String wfp, String context, int scanID) throws ScanApiException {
         if (wfp == null || wfp.isEmpty()) {
             throw new ScanApiException("No WFP specified. Cannot scan.");
         }
-        String boundary = new BigInteger(256, new Random()).toString();
         String uuid = UUID.randomUUID().toString();
-        Map<String, String> postHeaders = new HashMap<>(this.headers.size() + 6);
+        // Copy & setup headers
+        Map<String, String> postHeaders = new HashMap<>(this.headers.size() + 2);
         postHeaders.putAll(this.headers);
         postHeaders.put("x-request-id", uuid);
         postHeaders.put("Accept", "application/json");
-        postHeaders.put("Content-Type", "multipart/form-data;boundary=" + boundary);
-        Map<Object, Object> data = new HashMap<>();
+        // Setup multipart data to post
+        Map<String, String> data = new HashMap<>(1);
         data.put("file", wfp);
         if (context != null && !context.isEmpty()) {
             data.put("context", context);
@@ -139,80 +126,85 @@ public class ScanApi {
             data.put("flags", flags);
         }
         if (sbom != null && !sbom.isEmpty()) {
-            String type = sbomType != null ? sbomType : "identify";
+            String type = sbomType != null ? sbomType : "identify";  // Set SBOM type or default to 'identify'
             data.put(type, sbom);
         }
-        HttpRequest request;
+        Request request;  // Create multipart request
         try {
-            log.info("Setting timeout of {}", timeout);
-            request = HttpRequest.newBuilder()
-                    .uri(new URI(url))
-                    .headers(postHeaders.entrySet().stream()
-                            .flatMap(entry -> Stream.of(entry.getKey(), entry.getValue()))
-                            .toArray(String[]::new))
-                    .timeout(Duration.ofSeconds(timeout))
-                    .POST(ofMimeMultipartData(data, boundary, uuid))
+            request = new Request.Builder().url(url).headers(Headers.of(postHeaders))
+                    .post(multipartData(data, uuid))
                     .build();
-        } catch (URISyntaxException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new ScanApiException(String.format("Problem with the URI: %s", url), e);
         }
+        // Post request body and return response, retrying where necessary
         int retry = 0;
+        Response response = null;
+        ResponseBody body = null;
         do {
-            retry++;
             try {
-                log.trace("Sending request to: {} - {}", request.uri(), request.headers());
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                int statusCode = response.statusCode();
-                if (statusCode != HttpStatusCode.OK.getValue()) {
-                    log.warn("Problem encountered sending WFP to API ({}): {}", HttpStatusCode.getByValueToString(response.statusCode()), response.body());
-                    if (statusCode == HttpStatusCode.SERVICE_UNAVAILABLE.getValue()) {
-                        log.error("SCANOSS API rejected the scan request ({}) for {} due to service limits being exceeded", uuid, url);
-                        throw new ScanApiException("Service Limits exceeded");
-                    }
-                    return null;
+                if (retry > 0) {
+                    log.debug("Connection timeout {} (retry {}) for {}. Sleeping, then trying again...", timeout.getSeconds(), retry, uuid);
+                    TimeUnit.SECONDS.sleep(RETRY_FAIL_SLEEP_TIME); // Sleep ? seconds before trying again
                 }
-                return response.body();
-            } catch (HttpTimeoutException e) {
-                if (retry > retryLimit) {
+                response = okHttpClient.newCall(request).execute();
+                if (response.isSuccessful()) {
+                    body = response.body();
+                    if (body == null) {
+                        log.error("Empty response body received for {} - {} against {}. Response {}", scanID, uuid, url, response.code());
+                    } else {
+                        return body.string();
+                    }
+                } else if (response.code() == HttpStatusCode.SERVICE_UNAVAILABLE.getValue()) {
+                    log.error("SCANOSS API rejected the scan request ({}) for {} due to service limits being exceeded", uuid, url);
+                    throw new ScanApiException("Service Limits exceeded");
+                } else {
+                    log.error("Something went wrong scanning: {} - {} against {}. Response {} ({}): {}",
+                            scanID, uuid, url, response.code(),
+                            HttpStatusCode.getByValueToString(response.code()), response.message());
+                }
+                return null;
+            } catch (InterruptedIOException e) {
+                if (retry >= retryLimit) {
                     log.error("Error: SCANOSS API request timed out");
                     throw new ScanApiException("SCANOSS API request timed out for " + url, e);
                 }
-                log.debug("Connection timeout {} (retry {}). Sleeping, then trying again...", timeout, retry);
-                TimeUnit.SECONDS.sleep(RETRY_FAIL_SLEEP_TIME); // Sleep ? seconds before trying again
             } catch (IOException | InterruptedException | NullPointerException e) {
                 throw new ScanApiException(String.format("Problem encountered scanning: %d - %s against %s", scanID, uuid, url), e);
+            } finally {
+                if (body != null) {
+                    body.close();
+                }
+                if (response != null) {
+                    response.close();
+                }
             }
+            retry++;
         } while (retry <= retryLimit);
-
         throw new ScanApiException(String.format("Something went wrong scanning request %s against %s.", uuid, url));
     }
 
     /**
-     * Return a multipart encoded Body Publisher for the given data
+     * Return a Multipart Request Body for the given data
      *
-     * @param data     data to put into the multipart message
-     * @param boundary boundary to use for each multipart
-     * @param uuid     UUID to use for the WFP filename
-     * @return Multipart Body Publisher
+     * @param data data to put into the multipart body
+     * @param uuid UUID to use for the WFP filename
+     * @return Multipart Request Body
      */
-    private HttpRequest.BodyPublisher ofMimeMultipartData(Map<Object, Object> data, String boundary, String uuid) {
-        var byteArrays = new ArrayList<byte[]>();
-        byte[] separator = ("--" + boundary + "\r\nContent-Disposition: form-data; name=").getBytes(StandardCharsets.UTF_8);
-        // Cycle through each data entry and add to the multipart body
-        for (Map.Entry<Object, Object> entry : data.entrySet()) {
-            byteArrays.add(separator);
-            if (entry.getKey().equals("file")) {  // Setup WFP contents
-                var wfp = (String) entry.getValue();
-                byteArrays.add(("\"" + entry.getKey() + "\"; filename=\"" + uuid + ".wfp\"\r\n" +
-                        "Content-Type: text/plain" + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
-                byteArrays.add(wfp.getBytes(StandardCharsets.UTF_8));
-                byteArrays.add("\r\n".getBytes(StandardCharsets.UTF_8));
-            } else {  // Add other form data
-                byteArrays.add(("\"" + entry.getKey() + "\"\r\n\r\n" + entry.getValue() + "\r\n").getBytes(StandardCharsets.UTF_8));
+    private RequestBody multipartData(Map<String, String> data, String uuid) {
+
+        MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+        for (Map.Entry<String, String> entry : data.entrySet()) {
+            String key = entry.getKey();
+            if (key.equals("file")) {  // Setup WFP contents
+                builder.addFormDataPart(key, uuid + ".wfp",
+                        RequestBody.create(entry.getValue(), MediaType.parse("text/plain"))
+                );
+            } else {
+                builder.addFormDataPart(key, entry.getValue());
             }
         }
-        byteArrays.add(("--" + boundary + "--").getBytes(StandardCharsets.UTF_8));
-        return HttpRequest.BodyPublishers.ofByteArrays(byteArrays);
+        return builder.build();
     }
 
     private static final int RETRY_FAIL_SLEEP_TIME = 5; // Time to sleep between failed scan requests

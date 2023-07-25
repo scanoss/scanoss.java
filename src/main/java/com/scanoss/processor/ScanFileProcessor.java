@@ -51,7 +51,7 @@ public class ScanFileProcessor implements FileProcessor {
      * @throws ScanApiException   if something went wrong with the scan API
      */
     @Override
-    public String process(String file, String folder) throws WinnowingException, ScanApiException, InterruptedException {
+    public String process(String file, String folder) throws WinnowingException, ScanApiException {
         return scanApi.scan(winnowing.wfpForFile(file, folder), "", 1);
     }
 }

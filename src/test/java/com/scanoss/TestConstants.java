@@ -68,7 +68,7 @@ public class TestConstants {
             "        \"issues\": 402,\n" +
             "        \"last_push\": \"2023-05-13\",\n" +
             "        \"last_update\": \"2023-05-14\",\n" +
-            "        \"stars\": 163518\n" +
+            "        \"stars\": null\n" +
             "      },\n" +
             "      \"id\": \"file\",\n" +
             "      \"latest\": \"3.3.5\",\n" +

@@ -31,6 +31,7 @@ import lombok.NonNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.List;
 
 import static com.scanoss.cli.CommandLine.printDebug;
@@ -76,7 +77,7 @@ class ScanCommandLine implements Runnable {
     private int retryLimit = 5;
 
     @picocli.CommandLine.Option(names = {"-M", "--timeout"}, description = "Timeout (in seconds) for API communication (optional - default 120)")
-    private int timeoutLimit = 5;
+    private int timeoutLimit = 120;
 
     @picocli.CommandLine.Option(names = {"-F", "--flags"}, description = "Scanning engine flags (1: disable snippet matching, 2 enable snippet ids, 4: disable dependencies, 8: disable licenses, 16: disable copyrights, 32: disable vulnerabilities, 64: disable quality, 128: disable cryptography,256: disable best match only, 512: hide identified files, 1024: enable download_url, 2048: enable GitHub full path, 4096: disable extended server stats")
     private String scanFlags;
@@ -138,7 +139,7 @@ class ScanCommandLine implements Runnable {
         }
         scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
-                .retryLimit(retryLimit).timeout(timeoutLimit).scanFlags(scanFlags)
+                .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
                 .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit)
                 .build();
         File f = new File(fileFolder);
@@ -193,8 +194,6 @@ class ScanCommandLine implements Runnable {
                 e.printStackTrace(err);
             }
             throw e;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
         throw new RuntimeException(String.format("Something went wrong while scanning %s", file));
     }

@@ -111,7 +111,9 @@ public class TestCli {
         int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
         assertEquals("command should not fail", 0, exitCode);
 
-        String[] args2 = new String[]{"-d", "scan", "src/test/java/com"};
+        String[] args2 = new String[]{"-d", "scan", "src/test/java/com", "-T", "2", "--all-hidden",
+                "--identify", "SBOM.json", "--skip-snippets", "--all-extensions", "-F", "256"
+        };
         exitCode = new picocli.CommandLine(new CommandLine()).execute(args2);
         assertEquals("command should not fail", 0, exitCode);
 
@@ -133,6 +135,16 @@ public class TestCli {
 
         String[] args3 = new String[]{"-d", "scan", "path/to/does-not-exist.java"};
         exitCode = new picocli.CommandLine(new CommandLine()).execute(args3);
+        assertTrue("command should fail", exitCode != 0);
+
+        String[] args4 = new String[]{"-d", "scan", "path/to/does-not-exist.java",
+                "--identify", "SBOM.json", "--ignore", "does-not-exist.json"
+        };
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args4);
+        assertTrue("command should fail", exitCode != 0);
+
+        String[] args5 = new String[]{"-d", "scan", "src/test/java/com", "--ignore", "does-not-exist.json"};
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args5);
         assertTrue("command should fail", exitCode != 0);
 
         log.info("Finished {} -->", methodName);
