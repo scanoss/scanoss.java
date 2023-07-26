@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import okhttp3.tls.Certificates;
+import okhttp3.tls.HandshakeCertificates;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -37,6 +39,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static com.scanoss.ScanossConstants.DEFAULT_HTTP_RETRY_LIMIT;
+import static com.scanoss.ScanossConstants.DEFAULT_TIMEOUT;
 
 /**
  * SCANOSS Scanning REST API Implementation
@@ -51,21 +56,22 @@ public class ScanApi {
     @Builder.Default
     private String scanType = "identify";
     @Builder.Default
-    private Duration timeout = Duration.ofSeconds(120); // API POST timeout
+    private Duration timeout = Duration.ofSeconds(DEFAULT_TIMEOUT); // API POST timeout
     @Builder.Default
-    private Integer retryLimit = 5; // Retry limit for posting scan requests
+    private Integer retryLimit = DEFAULT_HTTP_RETRY_LIMIT; // Retry limit for posting scan requests
     private String url; // SCANOSS API URI
     private String apiKey; // SCANOSS premium API key
     private String flags; // SCANOSS Premium scanning flags
     private String sbomType; // SBOM type (identify/ignore)
     private String sbom;  // SBOM to supply while scanning
-    private OkHttpClient okHttpClient;
-    private Map<String, String> headers;
+    private OkHttpClient okHttpClient; // okhttp3 client
+    private Map<String, String> headers; // custom REST client headers
+    private String customCert; // Custom certificate
 
     @SuppressWarnings("unused")
     private ScanApi(String scanType, Duration timeout, Integer retryLimit, String url, String apiKey, String flags,
                     String sbomType, String sbom,
-                    OkHttpClient okHttpClient, Map<String, String> headers) {
+                    OkHttpClient okHttpClient, Map<String, String> headers, String customCert) {
         this.scanType = scanType;
         this.timeout = timeout;
         this.retryLimit = retryLimit;
@@ -74,14 +80,26 @@ public class ScanApi {
         this.flags = flags;
         this.sbomType = sbomType;
         this.sbom = sbom;
+        this.customCert = customCert;
         if (this.apiKey != null && !this.apiKey.isEmpty() && (url == null || url.isEmpty())) {
             this.url = DEFAULT_SCAN_URL2;  // Default premium SCANOSS endpoint
         } else if (url == null || url.isEmpty()) {
             this.url = DEFAULT_SCAN_URL;  // Default free SCANOSS endpoint
         }
-        this.okHttpClient = Objects.requireNonNullElseGet(okHttpClient, () ->
-                new OkHttpClient.Builder().callTimeout(timeout).build()
-        );
+        // Build the HTTP client with a custom certificate (ignoring hostname verification)
+        if (customCert != null && ! customCert.isEmpty()) {
+            HandshakeCertificates certificates = new HandshakeCertificates.Builder()
+                    .addTrustedCertificate(Certificates.decodeCertificatePem(customCert))
+                    .build();
+            this.okHttpClient = new OkHttpClient.Builder().callTimeout(this.timeout)
+                    .hostnameVerifier((hostname, session) -> true)
+                    .sslSocketFactory(certificates.sslSocketFactory(), certificates.trustManager())
+                    .build();
+        } else {
+            this.okHttpClient = Objects.requireNonNullElseGet(okHttpClient, () ->
+                    new OkHttpClient.Builder().callTimeout(this.timeout).build()
+            );
+        }
         this.headers = Objects.requireNonNullElseGet(headers, () -> new HashMap<>(2));
         // Add the user agent to the headers if it's not already there
         if (!this.headers.containsKey("user-agent")) {

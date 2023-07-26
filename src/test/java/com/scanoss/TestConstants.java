@@ -255,4 +255,20 @@ public class TestConstants {
             "    }\n" +
             "  ]\n" +
             "}\n";
+
+    // Custom self-signed certificate
+    static final String customSelfSignedCertificate =
+            "-----BEGIN CERTIFICATE-----\n" +
+            "MIICATCCAWoCCQCp8OJx30PXlDANBgkqhkiG9w0BAQUFADBFMQswCQYDVQQGEwJB\n" +
+            "VDEQMA4GA1UEBwwHVmlsbGFjaDEQMA4GA1UECwwHU0NBTk9TUzESMBAGA1UEAwwJ\n" +
+            "bG9jYWxob3N0MB4XDTIzMDUxNzA4NDQ1NloXDTI0MDUxNjA4NDQ1NlowRTELMAkG\n" +
+            "A1UEBhMCQVQxEDAOBgNVBAcMB1ZpbGxhY2gxEDAOBgNVBAsMB1NDQU5PU1MxEjAQ\n" +
+            "BgNVBAMMCWxvY2FsaG9zdDCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAr+sn\n" +
+            "tnzteHLVlDJPUmiIcxCeR0+fWDTEAbZy4BVoIf3GcqF9Wd4dJv7ecAlX+3dtg8KW\n" +
+            "rNjGtswmQmQjnYesHBRV7bA8IhwJzFdEI9+Egsqjrti598/ZigG/J26FoVTK5QC6\n" +
+            "yKnrNWwpl+cm2jt8EoslxoCWdkynf6LA32XU7hUCAwEAATANBgkqhkiG9w0BAQUF\n" +
+            "AAOBgQB5Gknh1FKoZNUxeeW/hpyLERMBjNT0zmdSGOAIrAm+MarywQ16vUlek1yB\n" +
+            "T8khRt8nVmv3ELOr5/KaRKJzYCUzCtUQyMsLQj9DA3XMLFS+PLGB0WGW5C6BwsRT\n" +
+            "fAl9Hb0H+ljShqzwQDeFBfVQRNe6z/UXa9uk4bCkPEX8h5Kurw==\n" +
+            "-----END CERTIFICATE-----\n";
 }

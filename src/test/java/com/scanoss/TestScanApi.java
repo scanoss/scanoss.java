@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.scanoss.TestConstants.SCAN_RESP_SUCCESS;
+import static com.scanoss.TestConstants.customSelfSignedCertificate;
 import static org.junit.Assert.*;
 
 @Slf4j
@@ -96,6 +97,27 @@ public class TestScanApi {
         String sbomIdentify = "pkg:github/scanoss/scanoss.py\n" + "pkg:pypi/scanoss\n";
         ScanApi scanApi = ScanApi.builder().flags("8").scanType("identify").sbom(sbomIdentify)
                 .url(server.url("/api/scan/direct").toString()).build();
+        server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBody(SCAN_RESP_SUCCESS).setResponseCode(200));
+        String result = scanApi.scan("file=....", "pkg:github/scanoss/scanoss.py", 1);
+        assertNotNull(result);
+        assertFalse("Should've gotten a response JSON", result.isEmpty());
+        log.info("Scan response: {}", result);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestScanApiScanCustomCertPositive() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String sbomIdentify = "pkg:github/scanoss/scanoss.py\n" + "pkg:pypi/scanoss\n";
+        ScanApi scanApi = ScanApi.builder().flags("8").scanType("identify").sbom(sbomIdentify)
+                .url(server.url("/api/scan/direct").toString())
+                .customCert(customSelfSignedCertificate)
+                .build();
         server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
                 .setBody(SCAN_RESP_SUCCESS).setResponseCode(200));
         String result = scanApi.scan("file=....", "pkg:github/scanoss/scanoss.py", 1);

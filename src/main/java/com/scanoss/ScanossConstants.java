@@ -11,6 +11,18 @@ import java.util.List;
  */
 @SuppressWarnings("SpellCheckingInspection")
 public class ScanossConstants {
+    /**
+     * Default timeout for HTTP communication
+     */
+    public static final int DEFAULT_TIMEOUT = 120;
+    /**
+     * Default number of worker threads to use then processing files
+     */
+    public static final int DEFAULT_WORKER_THREADS = 5;
+    /**
+     * Default number of times to retry sending data to HTTP
+     */
+    public static final int DEFAULT_HTTP_RETRY_LIMIT = 5;
 
     static final int GRAM = 30; // Winnowing Gram size. Do NOT Modify
     static final int WINDOW = 64; // Winnowing Window size. Do NOT Modify

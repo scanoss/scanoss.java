@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upcoming changes...
 
-## [0.5.0] - 2023-07-25
+## [0.5.0] - 2023-07-26
 ### Added
 - Switched to okhttp for REST communication
+- Added custom HTTP certificate support (`customCert`)
+  - CLI option: `--ca-cert`
 ### Fixed
 - Fixed issue with null json object printing
 
