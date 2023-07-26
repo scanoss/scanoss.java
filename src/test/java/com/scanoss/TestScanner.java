@@ -154,7 +154,7 @@ public class TestScanner {
     }
 
     @Test
-    public void TestScannerScanFilePositive() throws InterruptedException {
+    public void TestScannerScanFilePositive() {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);

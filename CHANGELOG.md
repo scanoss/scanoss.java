@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upcoming changes...
 
+## [0.5.0] - 2023-07-26
+### Added
+- Switched to okhttp for REST communication
+- Added custom HTTP certificate support (`customCert`)
+  - CLI option: `--ca-cert`
+### Fixed
+- Fixed issue with null json object printing
+
 ## [0.4.0] - 2023-07-07
 
 ### Added
@@ -18,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added command line option: `--snippet-limit` to support it
 
 ## [0.2.0] - 2023-07-04
-
 ### Added
 - First pass at the following Classes
     - Fingerprinting ([Winnowing](src/main/java/com/scanoss/Winnowing.java))
@@ -29,3 +36,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.2.0]: https://github.com/scanoss/scanoss.java/compare/v0.0.0...v0.2.0
 [0.4.0]: https://github.com/scanoss/scanoss.java/compare/v0.2.0...v0.4.0
+[0.5.0]: https://github.com/scanoss/scanoss.java/compare/v0.4.0...v0.5.0

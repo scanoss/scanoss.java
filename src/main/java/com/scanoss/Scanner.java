@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +45,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import static com.scanoss.ScanossConstants.*;
 
 /**
  * SCANOSS Scanner Class
@@ -68,17 +71,18 @@ public class Scanner {
     @Builder.Default
     private Boolean allFolders = Boolean.FALSE; // Enable Scanning of all folders (except hidden)
     @Builder.Default
-    private Integer numThreads = 5;  // Number of parallel threads to use when processing a folder
+    private Integer numThreads = DEFAULT_WORKER_THREADS;  // Number of parallel threads to use when processing a folder
     @Builder.Default
-    private Integer timeout = 120; // API POST timeout
+    private Duration timeout = Duration.ofSeconds(DEFAULT_TIMEOUT); // API POST timeout
     @Builder.Default
-    private Integer retryLimit = 5; // Retry limit for posting scan requests
+    private Integer retryLimit = DEFAULT_HTTP_RETRY_LIMIT; // Retry limit for posting scan requests
     private String url;  // Alternative scanning URL
     private String apiKey; // API key
     private String scanFlags; // Scan flags to pass to the API
     private String sbomType; // SBOM type (identify/ignore)
     private String sbom;  // SBOM to supply while scanning
     private int snippetLimit; // Size limit for a single line of generated snippet
+    private String customCert; // Custom certificate
     private Winnowing winnowing;
     private ScanApi scanApi;
     private ScanFileProcessor scanFileProcessor;
@@ -86,8 +90,9 @@ public class Scanner {
 
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
-                    Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Integer timeout, Integer retryLimit,
-                    String url, String apiKey, String scanFlags, String sbomType, String sbom, Integer snippetLimit,
+                    Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
+                    Integer retryLimit, String url, String apiKey, String scanFlags, String sbomType, String sbom,
+                    Integer snippetLimit, String customCert,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor
     ) {
@@ -106,13 +111,20 @@ public class Scanner {
         this.sbomType = sbomType;
         this.sbom = sbom;
         this.snippetLimit = snippetLimit;
+        this.customCert = customCert;
         this.winnowing = Objects.requireNonNullElseGet(winnowing, () ->
-                Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate).hpsm(hpsm).snippetLimit(snippetLimit).build());
+                Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate)
+                        .hpsm(hpsm).snippetLimit(snippetLimit)
+                        .build());
         this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
-                ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags).scanType(sbomType).sbom(sbom).build());
+                ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
+                        .scanType(sbomType).sbom(sbom).customCert(customCert)
+                        .build());
         this.scanFileProcessor = Objects.requireNonNullElseGet(scanFileProcessor, () ->
                 ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build());
-        this.wfpFileProcessor = Objects.requireNonNullElseGet(wfpFileProcessor, () -> WfpFileProcessor.builder().winnowing(this.winnowing).build());
+        this.wfpFileProcessor = Objects.requireNonNullElseGet(wfpFileProcessor, () -> WfpFileProcessor.builder()
+                .winnowing(this.winnowing)
+                .build());
     }
 
     /**
@@ -288,9 +300,8 @@ public class Scanner {
      * @return scan results string (in JSON format)
      * @throws ScannerException     Something in Scanning failed
      * @throws WinnowingException   Something in Winnowing failed
-     * @throws InterruptedException Scan API was interrupted
      */
-    public String scanFile(@NonNull String filename) throws ScannerException, WinnowingException, InterruptedException {
+    public String scanFile(@NonNull String filename) throws ScannerException, WinnowingException {
         String wfp = wfpFile(filename);
         if (wfp != null && !wfp.isEmpty()) {
             String response = this.scanApi.scan(wfp, "", 1);

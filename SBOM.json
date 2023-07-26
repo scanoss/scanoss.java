@@ -1,0 +1,189 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:36e7c0cb-8330-4fe5-82ce-11061851147e",
+  "version": 1,
+  "components": [
+    {
+      "type": "library",
+      "name": "scanoss.java",
+      "publisher": "scanoss",
+      "version": "0.4.0",
+      "purl": "pkg:github/scanoss/scanoss.java",
+      "bom-ref": "pkg:github/scanoss/scanoss.java",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "junit",
+      "publisher": "",
+      "version": "4.13.1",
+      "purl": "pkg:maven/junit/junit",
+      "bom-ref": "pkg:maven/junit/junit",
+      "licenses": [
+        {
+          "license": {
+            "id": "EPL-1.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "mockwebserver",
+      "publisher": "",
+      "version": "4.11.0",
+      "purl": "pkg:maven/com.squareup.okhttp3/mockwebserver",
+      "bom-ref": "pkg:maven/com.squareup.okhttp3/mockwebserver",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "lombok",
+      "publisher": "",
+      "version": "1.18.26",
+      "purl": "pkg:maven/org.projectlombok/lombok",
+      "bom-ref": "pkg:maven/org.projectlombok/lombok",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "okhttp",
+      "publisher": "",
+      "version": "4.11.0",
+      "purl": "pkg:maven/com.squareup.okhttp3/okhttp",
+      "bom-ref": "pkg:maven/com.squareup.okhttp3/okhttp",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "commons-codec",
+      "publisher": "",
+      "version": "1.15",
+      "purl": "pkg:maven/commons-codec/commons-codec",
+      "bom-ref": "pkg:maven/commons-codec/commons-codec",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "slf4j-api",
+      "publisher": "",
+      "version": "2.0.7",
+      "purl": "pkg:maven/org.slf4j/slf4j-api",
+      "bom-ref": "pkg:maven/org.slf4j/slf4j-api",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "slf4j-simple",
+      "publisher": "",
+      "version": "2.0.7",
+      "purl": "pkg:maven/org.slf4j/slf4j-simple",
+      "bom-ref": "pkg:maven/org.slf4j/slf4j-simple",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "tika-core",
+      "publisher": "",
+      "version": "2.7.0",
+      "purl": "pkg:maven/org.apache.tika/tika-core",
+      "bom-ref": "pkg:maven/org.apache.tika/tika-core",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "picocli",
+      "publisher": "",
+      "version": "4.7.3",
+      "purl": "pkg:maven/info.picocli/picocli",
+      "bom-ref": "pkg:maven/info.picocli/picocli",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "gson",
+      "publisher": "",
+      "version": "2.10.1",
+      "purl": "pkg:maven/com.google.code.gson/gson",
+      "bom-ref": "pkg:maven/com.google.code.gson/gson",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jquery",
+      "publisher": "OpenJS Foundation and other contributors",
+      "version": "3.5.1",
+      "purl": "pkg:npm/jquery",
+      "bom-ref": "pkg:npm/jquery",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    }
+  ],
+  "vulnerabilities": []
+}

@@ -31,8 +31,10 @@ import lombok.NonNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.List;
 
+import static com.scanoss.ScanossConstants.*;
 import static com.scanoss.cli.CommandLine.printDebug;
 import static com.scanoss.cli.CommandLine.printMsg;
 
@@ -63,8 +65,8 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = "--all-folders", description = "Scan all folders")
     private boolean allFolders = false;
 
-    @picocli.CommandLine.Option(names = {"-T", "--threads"}, description = "Number of parallel threads to use")
-    private int numThreads = 5;
+    @picocli.CommandLine.Option(names = {"-T", "--threads"}, description = "Number of parallel threads to use (optional - default " + DEFAULT_WORKER_THREADS + ")")
+    private int numThreads = DEFAULT_WORKER_THREADS;
 
     @picocli.CommandLine.Option(names = "--apiurl", description = "SCANOSS API URL (optional - default: https://osskb.org/api/scan/direct)")
     private String apiUrl;
@@ -72,11 +74,11 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-k", "--key"}, description = "SCANOSS API Key token (optional - not required for default OSSKB URL)")
     private String apiKey;
 
-    @picocli.CommandLine.Option(names = {"-R", "--retry"}, description = "Retry limit for API communication (optional - default 5)")
-    private int retryLimit = 5;
+    @picocli.CommandLine.Option(names = {"-R", "--retry"}, description = "Retry limit for API communication (optional - default " + DEFAULT_HTTP_RETRY_LIMIT + ")")
+    private int retryLimit = DEFAULT_HTTP_RETRY_LIMIT;
 
-    @picocli.CommandLine.Option(names = {"-M", "--timeout"}, description = "Timeout (in seconds) for API communication (optional - default 120)")
-    private int timeoutLimit = 5;
+    @picocli.CommandLine.Option(names = {"-M", "--timeout"}, description = "Timeout (in seconds) for API communication (optional - default " + DEFAULT_TIMEOUT + ")")
+    private int timeoutLimit = DEFAULT_TIMEOUT;
 
     @picocli.CommandLine.Option(names = {"-F", "--flags"}, description = "Scanning engine flags (1: disable snippet matching, 2 enable snippet ids, 4: disable dependencies, 8: disable licenses, 16: disable copyrights, 32: disable vulnerabilities, 64: disable quality, 128: disable cryptography,256: disable best match only, 512: hide identified files, 1024: enable download_url, 2048: enable GitHub full path, 4096: disable extended server stats")
     private String scanFlags;
@@ -89,6 +91,9 @@ class ScanCommandLine implements Runnable {
 
     @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
     private int snippetLimit = 1000;
+
+    @picocli.CommandLine.Option(names = {"--ca-cert"}, description = "Alternative certificate PEM file (optional)")
+    private String caCert;
 
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to scan")
     private String fileFolder;
@@ -116,11 +121,15 @@ class ScanCommandLine implements Runnable {
             sbomType = "ignore";
             sbom = loadFileToString(ignoreSbom);
         }
+        String caCertPem = null;
+        if (caCert != null && !caCert.isEmpty()) {
+            caCertPem = loadFileToString(caCert);
+        }
         if (com.scanoss.cli.CommandLine.debug) {
-            if (numThreads != 5) {
+            if (numThreads != DEFAULT_WORKER_THREADS) {
                 printMsg(err, String.format("Running with %d threads.", numThreads));
             }
-            if (timeoutLimit != 120) {
+            if (timeoutLimit != DEFAULT_TIMEOUT) {
                 printMsg(err, String.format("Scanning with timeout of %d seconds", timeoutLimit));
             }
             if (skipSnippets) {
@@ -138,8 +147,8 @@ class ScanCommandLine implements Runnable {
         }
         scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
-                .retryLimit(retryLimit).timeout(timeoutLimit).scanFlags(scanFlags)
-                .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit)
+                .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
+                .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem)
                 .build();
         File f = new File(fileFolder);
         if (!f.exists()) {
@@ -193,8 +202,6 @@ class ScanCommandLine implements Runnable {
                 e.printStackTrace(err);
             }
             throw e;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
         throw new RuntimeException(String.format("Something went wrong while scanning %s", file));
     }

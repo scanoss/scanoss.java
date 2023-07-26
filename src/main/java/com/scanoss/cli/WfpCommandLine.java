@@ -8,6 +8,7 @@ import picocli.CommandLine;
 import java.io.File;
 import java.util.List;
 
+import static com.scanoss.ScanossConstants.DEFAULT_WORKER_THREADS;
 import static com.scanoss.cli.CommandLine.printMsg;
 
 /**
@@ -38,7 +39,7 @@ public class WfpCommandLine implements Runnable {
     private boolean allFolders = false;
 
     @picocli.CommandLine.Option(names = {"-T", "--threads"}, description = "Number of parallel threads to use")
-    private int numThreads = 5;
+    private int numThreads = DEFAULT_WORKER_THREADS;
 
     @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
     private int snippetLimit = 1000;
@@ -62,7 +63,7 @@ public class WfpCommandLine implements Runnable {
         }
         if (com.scanoss.cli.CommandLine.debug) {
             var err = spec.commandLine().getErr();
-            if (numThreads != 5) {
+            if (numThreads != DEFAULT_WORKER_THREADS) {
                 printMsg(err, String.format("Running with %d threads.", numThreads));
             }
         }

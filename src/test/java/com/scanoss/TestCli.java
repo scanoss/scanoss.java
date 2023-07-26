@@ -24,20 +24,41 @@ package com.scanoss;
 
 import com.scanoss.cli.CommandLine;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+
+import static com.scanoss.TestConstants.SCAN_RESP_SUCCESS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
 public class TestCli {
 
+    private MockWebServer server;
+
     @Before
-    public void Setup() {
+    public void Setup() throws IOException {
         log.info("Starting CLI test cases...");
         log.debug("Logging debug enabled");
         log.trace("Logging trace enabled");
+        server = new MockWebServer();
+        server.start(); // Start the server.
+    }
+
+    @After
+    public void Finish() {
+        log.info("Shutting down mock server.");
+        try {
+            server.close();
+            server.shutdown(); // Shut down the server. Instances cannot be reused.
+        } catch (IOException e) {
+            log.warn("Some issue shutting down mock server: {}", e.getLocalizedMessage());
+        }
     }
 
     @Test
@@ -70,7 +91,7 @@ public class TestCli {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        String[] args = new String[]{"-d", "wfp", "src/test/java/com/scanoss/TestScanner.java"};
+        String[] args = new String[]{"-d", "wfp", "src/test/java/com/scanoss/TestCli.java"};
         int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
         assertEquals("command should not fail", 0, exitCode);
 
@@ -107,11 +128,13 @@ public class TestCli {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        String[] args = new String[]{"-d", "scan", "src/test/java/com/scanoss/TestScanner.java"};
+        String[] args = new String[]{"-d", "scan", "src/test/java/com/scanoss/TestCli.java"};
         int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
         assertEquals("command should not fail", 0, exitCode);
 
-        String[] args2 = new String[]{"-d", "scan", "src/test/java/com"};
+        String[] args2 = new String[]{"-d", "scan", "src/test/java/com", "-T", "2", "--all-hidden",
+                "--identify", "SBOM.json", "--skip-snippets", "--all-extensions", "-F", "256"
+        };
         exitCode = new picocli.CommandLine(new CommandLine()).execute(args2);
         assertEquals("command should not fail", 0, exitCode);
 
@@ -135,6 +158,38 @@ public class TestCli {
         exitCode = new picocli.CommandLine(new CommandLine()).execute(args3);
         assertTrue("command should fail", exitCode != 0);
 
+        String[] args4 = new String[]{"-d", "scan", "path/to/does-not-exist.java",
+                "--identify", "SBOM.json", "--ignore", "does-not-exist.json"
+        };
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args4);
+        assertTrue("command should fail", exitCode != 0);
+
+        String[] args5 = new String[]{"-d", "scan", "src/test/java/com", "--ignore", "does-not-exist.json"};
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args5);
+        assertTrue("command should fail", exitCode != 0);
+
         log.info("Finished {} -->", methodName);
     }
+
+    @Test
+    public void TestScanCommandMockPositive() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBody(SCAN_RESP_SUCCESS).setResponseCode(200));
+
+        String[] args = new String[]{"-d", "scan", "src/test/java/com/scanoss/TestCli.java", "-T", "2", "--all-hidden",
+                "--identify", "SBOM.json", "--skip-snippets", "--all-extensions", "-F", "256",
+                "-M", "60",
+                "--ca-cert", "testing/data/localhost.pem",
+                "--apiurl", server.url("/api/scan/direct").toString()
+        };
+        int exitCode = new picocli.CommandLine(new CommandLine()).execute(args);
+        assertEquals("command should not fail", 0, exitCode);
+
+        log.info("Finished {} -->", methodName);
+    }
+
 }

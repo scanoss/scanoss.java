@@ -52,6 +52,14 @@ The package also ships with a sample CLI. It can be run using the example script
 scanos-cli.sh -h
 ```
 
+### Custom Certificate
+In order to connect to a SCANOSS server with a custom (self-signed) certificate,
+the keychain will need to be imported onto the CA Certs into the instance of java before proceeding:
+
+```bash
+keytool -cacerts -importcert -file custom-key-chain.pem
+```
+
 ## Development
 
 Before starting with development of this project, please read our [CONTRIBUTING](CONTRIBUTING.md)
