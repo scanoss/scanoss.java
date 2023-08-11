@@ -6,7 +6,7 @@
 
     <groupId>com.scanoss</groupId>
     <artifactId>scanoss</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
     <packaging>jar</packaging>
     <name>scanoss.java</name>
     <url>https://github.com/scanoss/scanoss.java</url>
@@ -39,6 +39,8 @@
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4jVersion>2.0.7</slf4jVersion>
+        <native.maven.plugin.version>0.9.13</native.maven.plugin.version>
+        <exec.mainClass>com.scanoss.cli.CommandLine</exec.mainClass>
     </properties>
 
     <distributionManagement>
@@ -156,9 +158,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>
-                                        com.scanoss.cli.CommandLine
-                                    </mainClass>
+                                    <mainClass>${exec.mainClass}</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
@@ -213,7 +213,53 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                            <execution>
+                                <id>test-native</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <phase>test</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>${exec.mainClass}</mainClass>
+                            <imageName>scanoss-java-${version}</imageName>
+                            <skipNativeTests>true</skipNativeTests>
+                            <buildArgs>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                                <buildArg>-H:ReflectionConfigurationFiles=../config/reflect-config.json</buildArg>
+                                <buildArg>-H:ResourceConfigurationFiles=../config/resource-config.json</buildArg>
+                                <!-- <buildArg>-H:+StaticExecutableWithDynamicLibC</buildArg> -->
+                                <buildArg>--verbose</buildArg>
+                                <buildArg>--no-fallback</buildArg>
+                                <buildArg>-march=native</buildArg>
+                                <!-- For Quick Build (22.1+) -->
+<!--                                <buildArg>-Ob</buildArg>-->
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

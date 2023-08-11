@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upcoming changes...
 
+## [0.5.1] - 2023-08-11
+### Added
+- Added support for scanning a file list (`scanFileList`)
+- Added maven support for GraalVM compilation
+
 ## [0.5.0] - 2023-07-26
 ### Added
 - Switched to okhttp for REST communication
@@ -37,3 +42,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.2.0]: https://github.com/scanoss/scanoss.java/compare/v0.0.0...v0.2.0
 [0.4.0]: https://github.com/scanoss/scanoss.java/compare/v0.2.0...v0.4.0
 [0.5.0]: https://github.com/scanoss/scanoss.java/compare/v0.4.0...v0.5.0
+[0.5.1]: https://github.com/scanoss/scanoss.java/compare/v0.5.0...v0.5.1

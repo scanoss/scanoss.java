@@ -265,6 +265,56 @@ public class Scanner {
             executorService.shutdown();
         }
         log.debug("Found {} files to process.", futures.size());
+        return processFutures(futures);
+    }
+
+
+    public List<String> processFileList(@NonNull String root, @NonNull List<String> files, FileProcessor processor) throws ScannerException, WinnowingException {
+        if (processor == null) {
+            throw new ScannerException("No file processor object specified.");
+        }
+        File rootDir = new File(root);
+        if (!rootDir.exists() || !rootDir.isDirectory()) {
+            throw new ScannerException(String.format("Folder/directory does not exist or is not a folder: %s", root));
+        }
+        if (files.isEmpty()) {
+            throw new ScannerException("No file list specified. Cannot process request.");
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+        List<Future<String>> futures = new ArrayList<>();
+        try {
+            for(String file : files) {
+                Path path = Path.of(file);
+                boolean skipDir = false;
+                for (Path p : path) {
+                    if (filterFolder(p.toString().toLowerCase())) {  // should we skip this folder or not
+                        skipDir = true;
+                        break;
+                    }
+                }
+                if (skipDir) {
+                    continue; // skip this file as the folder is not allowed
+                }
+                String nameLower = path.getFileName().toString().toLowerCase();
+                if (!filterFile(nameLower)) {
+                    Path fullPath = Path.of(root, file);
+                    File f = fullPath.toFile();
+                    if (f.exists() && f.isFile() && f.length() > 0) {
+                        Future<String> future = executorService.submit(() -> processor.process(file, stripDirectory(root, file)));
+                        futures.add(future);
+                    }
+                }
+            }
+        } catch (SecurityException | InvalidPathException e) {
+            throw new ScannerException(String.format("Problem encountered processing folder %s", root), e);
+        } finally {
+            executorService.shutdown();
+        }
+        log.debug("Found {} list files to process.", futures.size());
+        return processFutures(futures);
+    }
+
+    private List<String> processFutures(@NonNull List<Future<String>> futures) throws ScannerException {
         List<String> results = new ArrayList<>(futures.size());
         for (Future<String> future : futures) {
             try {
@@ -321,4 +371,9 @@ public class Scanner {
     public List<String> scanFolder(@NonNull String folder) {
         return processFolder(folder, scanFileProcessor);
     }
+
+    public List<String> scanFileList(@NonNull String folder, @NonNull List<String> files) {
+        return processFileList(folder, files, scanFileProcessor);
+    }
+
 }

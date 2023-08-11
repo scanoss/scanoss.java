@@ -29,6 +29,8 @@ import org.junit.Test;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -188,8 +190,59 @@ public class TestScanner {
         log.info("Finished {} -->", methodName);
     }
 
+    @Test
+    public void TestScannerScanFileListPositive() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Scanner scanner = Scanner.builder().build();
+
+        List<String> fileList = Arrays.asList(
+                "src/test/java/com/scanoss/TestScanner.java",
+                "src/test/java/com/scanoss/TestWinnowing.java",
+                ".github/workflows/release.yml",
+                ".gitignore",
+                "tmp/.gitignore"
+        );
+        String folder = ".";
+        List<String> results = scanner.scanFileList(folder, fileList);
+
+        assertNotNull("Should've gotten a response", results);
+        assertFalse("Scan results should not be empty", results.isEmpty());
+        assertEquals("Should've only gotten two results",2, results.size());
+        log.info("Received {} results", results.size());
+        log.info("Res Data: {}", results);
+
+        log.info("Finished {} -->", methodName);
+    }
 
     @Test
+    public void TestScannerScanFileListNegative() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Scanner scanner = Scanner.builder().build();
+        try {
+            String folder = "testing/does-no-exist";
+            List<String> results = scanner.scanFileList(folder, new ArrayList<>());
+            assertNull("Should not have gotten a result", results);
+        } catch (ScannerException e) {
+            log.info("Got expected error: {}", e.getLocalizedMessage());
+        }
+        try {
+            String folder = ".";
+            List<String> results = scanner.scanFileList(folder, new ArrayList<>());
+            assertNull("Should not have gotten a result", results);
+        } catch (ScannerException e) {
+            log.info("Got expected error: {}", e.getLocalizedMessage());
+        }
+
+        log.info("Finished {} -->", methodName);
+    }
+
+        @Test
     public void TestScannerTemplate() {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();

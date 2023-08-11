@@ -33,6 +33,10 @@ deploy:  ## Deploy the package to central repos
 	@echo "Deploying latest package..."
 	mvn deploy
 
+native:  ## Run maven native binary build
+	@echo "Running native package..."
+	mvn -Pnative -DskipTests package -X
+
 inc_patch:  ## Increment the patch version on pom.xml
 	@echo "Incrementing patch version..."
 	mvn build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.majorVersion}.$${parsedVersion.minorVersion}.$${parsedVersion.nextIncrementalVersion}' versions:commit
