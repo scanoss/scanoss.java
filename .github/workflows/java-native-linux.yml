@@ -50,14 +50,25 @@ jobs:
       - name: Native Build ${{ github.event.inputs.build_env }}
         run: |
           mvn --no-transfer-progress -Pnative -DskipTests package -X
-          mv target/scanoss-java-* target/scanoss-java-${{ github.event.inputs.build_env }}
+
+      - name: Rename Binary Windows
+        if: runner.os == 'Windows'
+        run: |
+          cd target
+          ren scanoss-java-* scanoss-java-${{ github.event.inputs.build_env }}
+          cd ..
+
+      - name: Rename Binary Unix
+        if: runner.os != 'Windows'
+        run: mv target/scanoss-java-* target/scanoss-java-${{ github.event.inputs.build_env }}
+
 
       - name: List Packages
         continue-on-error: true
         run: |
-          ls -la target/
+          ls target/
 
       - name: Test Binary
         run: |
           ./target/scanoss-java-${{ github.event.inputs.build_env }} -h
-          ./target/scanoss-java-${{ github.event.inputs.build_env }} wfp src > fingers-${{ github.event.inputs.build_env }}.wfp
+          ./target/scanoss-java-${{ github.event.inputs.build_env }} wfp -o fingers-${{ github.event.inputs.build_env }}.wfp src
