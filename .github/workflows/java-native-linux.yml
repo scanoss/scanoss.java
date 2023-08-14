@@ -31,6 +31,17 @@ jobs:
         os: [ubuntu-20.04]
     steps:
       - uses: actions/checkout@v3
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17'
+          distribution: 'graalvm' # See 'Options' for all available distributions
+
+      - name: Version Details
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          echo "JAVA_HOME: $JAVA_HOME"
+          java --version
+          native-image --version
 
       - name: Native Build ${{ matrix.os }}
         run: |
