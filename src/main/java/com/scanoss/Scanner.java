@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Proxy;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
@@ -83,6 +84,7 @@ public class Scanner {
     private String sbom;  // SBOM to supply while scanning
     private int snippetLimit; // Size limit for a single line of generated snippet
     private String customCert; // Custom certificate
+    private Proxy proxy; // Proxy
     private Winnowing winnowing;
     private ScanApi scanApi;
     private ScanFileProcessor scanFileProcessor;
@@ -92,7 +94,7 @@ public class Scanner {
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
                     Integer retryLimit, String url, String apiKey, String scanFlags, String sbomType, String sbom,
-                    Integer snippetLimit, String customCert,
+                    Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor
     ) {
@@ -112,13 +114,14 @@ public class Scanner {
         this.sbom = sbom;
         this.snippetLimit = snippetLimit;
         this.customCert = customCert;
+        this.proxy = proxy;
         this.winnowing = Objects.requireNonNullElseGet(winnowing, () ->
                 Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate)
                         .hpsm(hpsm).snippetLimit(snippetLimit)
                         .build());
         this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
                 ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
-                        .scanType(sbomType).sbom(sbom).customCert(customCert)
+                        .scanType(sbomType).sbom(sbom).customCert(customCert).proxy(proxy)
                         .build());
         this.scanFileProcessor = Objects.requireNonNullElseGet(scanFileProcessor, () ->
                 ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build());
@@ -269,6 +272,19 @@ public class Scanner {
     }
 
 
+    /**
+     * Process the given list of files (including paths)
+     * <p>
+     *     This method still applies the file/folder filtering to remove unwanted files from the scan list.
+     *     Configure the Scanner object to skip these filters before calling this method if desired.
+     * </p>
+     * @param root root folder for the files
+     * @param files list of files
+     * @param processor processor to take action on the filtered file
+     * @return List of results
+     * @throws ScannerException   Something in Scanning failed
+     * @throws WinnowingException Something in Winnowing failed
+     */
     public List<String> processFileList(@NonNull String root, @NonNull List<String> files, FileProcessor processor) throws ScannerException, WinnowingException {
         if (processor == null) {
             throw new ScannerException("No file processor object specified.");
@@ -372,6 +388,13 @@ public class Scanner {
         return processFolder(folder, scanFileProcessor);
     }
 
+    /**
+     * Scan the given list of files
+     *
+     * @param folder root folder
+     * @param files list of files to scan
+     * @return List of scan result strings (in JSON format)
+     */
     public List<String> scanFileList(@NonNull String folder, @NonNull List<String> files) {
         return processFileList(folder, files, scanFileProcessor);
     }

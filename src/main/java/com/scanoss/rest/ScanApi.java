@@ -33,6 +33,7 @@ import okhttp3.tls.HandshakeCertificates;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.Proxy;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,11 +68,13 @@ public class ScanApi {
     private OkHttpClient okHttpClient; // okhttp3 client
     private Map<String, String> headers; // custom REST client headers
     private String customCert; // Custom certificate
+    private Proxy proxy; // Proxy configuration
 
     @SuppressWarnings("unused")
     private ScanApi(String scanType, Duration timeout, Integer retryLimit, String url, String apiKey, String flags,
                     String sbomType, String sbom,
-                    OkHttpClient okHttpClient, Map<String, String> headers, String customCert) {
+                    OkHttpClient okHttpClient, Map<String, String> headers, String customCert,
+                    Proxy proxy) {
         this.scanType = scanType;
         this.timeout = timeout;
         this.retryLimit = retryLimit;
@@ -81,24 +84,29 @@ public class ScanApi {
         this.sbomType = sbomType;
         this.sbom = sbom;
         this.customCert = customCert;
+        this.proxy = proxy;
         if (this.apiKey != null && !this.apiKey.isEmpty() && (url == null || url.isEmpty())) {
             this.url = DEFAULT_SCAN_URL2;  // Default premium SCANOSS endpoint
         } else if (url == null || url.isEmpty()) {
             this.url = DEFAULT_SCAN_URL;  // Default free SCANOSS endpoint
         }
-        // Build the HTTP client with a custom certificate (ignoring hostname verification)
-        if (customCert != null && ! customCert.isEmpty()) {
-            HandshakeCertificates certificates = new HandshakeCertificates.Builder()
-                    .addTrustedCertificate(Certificates.decodeCertificatePem(customCert))
-                    .build();
-            this.okHttpClient = new OkHttpClient.Builder().callTimeout(this.timeout)
-                    .hostnameVerifier((hostname, session) -> true)
-                    .sslSocketFactory(certificates.sslSocketFactory(), certificates.trustManager())
-                    .build();
+        if (okHttpClient == null) {
+            OkHttpClient.Builder okBuilder = new OkHttpClient.Builder();
+            okBuilder.callTimeout(this.timeout);  // Set default timeout
+            // Build the HTTP client with a custom certificate (ignoring hostname verification)
+            if (customCert != null && ! customCert.isEmpty()) {
+                HandshakeCertificates certificates = new HandshakeCertificates.Builder()
+                        .addTrustedCertificate(Certificates.decodeCertificatePem(customCert))
+                        .build();
+                okBuilder.hostnameVerifier((hostname, session) -> true);
+                okBuilder.sslSocketFactory(certificates.sslSocketFactory(), certificates.trustManager());
+            }
+            if (proxy != null) {
+                okBuilder.proxy(proxy);
+            }
+            this.okHttpClient = okBuilder.build();
         } else {
-            this.okHttpClient = Objects.requireNonNullElseGet(okHttpClient, () ->
-                    new OkHttpClient.Builder().callTimeout(this.timeout).build()
-            );
+            this.okHttpClient = okHttpClient;
         }
         this.headers = Objects.requireNonNullElseGet(headers, () -> new HashMap<>(2));
         // Add the user agent to the headers if it's not already there

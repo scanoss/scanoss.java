@@ -1,0 +1,43 @@
+name: Java Native Build - Linux
+# This workflow will build a java project and produce a GraalVM native image
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v1.4.3
+        with:
+          java-version: 11
+
+      - name: Build
+        run: mvn --no-transfer-progress clean compile
+
+      - name: Unit Test
+        run: mvn --no-transfer-progress test
+
+  build_native:
+    if: success()
+    needs: [ build_and_test ]
+    name: Build native on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Native Build ${{ matrix.os }}
+        run: |
+          mvn --no-transfer-progress -Pnative -DskipTests package -X
+          mv target/scanoss-java-* target/scanoss-java-${{ matrix.os }}
+
+      - name: List Packages
+        continue-on-error: true
+        run: |
+          ls -la target/

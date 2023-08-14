@@ -26,10 +26,12 @@ import com.scanoss.Scanner;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
 import com.scanoss.utils.JsonUtils;
+import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Proxy;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
@@ -95,6 +97,9 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"--ca-cert"}, description = "Alternative certificate PEM file (optional)")
     private String caCert;
 
+    @picocli.CommandLine.Option(names = {"--proxy"}, description = "HTTP Proxy URL (optional)")
+    private String proxyString;
+
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to scan")
     private String fileFolder;
 
@@ -125,6 +130,13 @@ class ScanCommandLine implements Runnable {
         if (caCert != null && !caCert.isEmpty()) {
             caCertPem = loadFileToString(caCert);
         }
+        Proxy proxy = null;
+        if (proxyString != null && !proxyString.isEmpty()) {
+            proxy = ProxyUtils.createProxyFromString(proxyString);
+            if (proxy == null) {
+                throw new RuntimeException("Error: Failed to setup proxy config");
+            }
+        }
         if (com.scanoss.cli.CommandLine.debug) {
             if (numThreads != DEFAULT_WORKER_THREADS) {
                 printMsg(err, String.format("Running with %d threads.", numThreads));
@@ -148,7 +160,7 @@ class ScanCommandLine implements Runnable {
         scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
                 .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
-                .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem)
+                .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy)
                 .build();
         File f = new File(fileFolder);
         if (!f.exists()) {
