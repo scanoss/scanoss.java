@@ -243,7 +243,7 @@
                         </executions>
                         <configuration>
                             <mainClass>${exec.mainClass}</mainClass>
-                            <imageName>scanoss-java-${version}</imageName>
+                            <imageName>scanoss-java-${project.version}</imageName>
                             <skipNativeTests>true</skipNativeTests>
                             <buildArgs>
                                 <buildArg>-H:+ReportExceptionStackTraces</buildArg>

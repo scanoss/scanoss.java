@@ -3,6 +3,13 @@ name: Java Native Build - Linux
 
 on:
   workflow_dispatch:
+    inputs:
+      build_env:
+        required: true
+        default: "ubuntu-latest"
+        type: choice
+        options: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-20.04', 'macos-11', 'windows-2019']
+        description: "Use to select OS to build native image for."
 
 jobs:
   build_and_test:
@@ -28,13 +35,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04]
+        os: [${{ github.event.inputs.deploy_environment }}]
     steps:
       - uses: actions/checkout@v3
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: '17'
-          distribution: 'graalvm' # See 'Options' for all available distributions
+          distribution: 'graalvm'
 
       - name: Version Details
         run: |
@@ -52,3 +59,8 @@ jobs:
         continue-on-error: true
         run: |
           ls -la target/
+
+      - name: Test Binary
+        run: |
+          ./target/scanoss-java-${{ matrix.os }} -h
+          ./target/scanoss-java-${{ matrix.os }} wfp src > fingers-${{ matrix.os }}.wfp
