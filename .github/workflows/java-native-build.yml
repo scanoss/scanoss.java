@@ -1,4 +1,4 @@
-name: Java Native Build - Linux
+name: Java Native Build
 # This workflow will build a java project and produce a GraalVM native image
 
 on:
@@ -68,7 +68,16 @@ jobs:
         run: |
           ls target/
 
-      - name: Test Binary
+      - name: Test Binary Windows
+        if: runner.os == 'Windows'
+        run: |
+          cd target
+          scanoss-java-${{ github.event.inputs.build_env }} -h
+          scanoss-java-${{ github.event.inputs.build_env }} wfp -o fingers-${{ github.event.inputs.build_env }}.wfp .
+          cd ..
+
+      - name: Test Binary Unix
+        if: runner.os != 'Windows'
         run: |
           ./target/scanoss-java-${{ github.event.inputs.build_env }} -h
           ./target/scanoss-java-${{ github.event.inputs.build_env }} wfp -o fingers-${{ github.event.inputs.build_env }}.wfp src
