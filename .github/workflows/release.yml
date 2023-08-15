@@ -1,5 +1,5 @@
 name: Release
-# Build, deploy and attach supported artifacts a draft release tag
+# Build, deploy and attach supported artifacts and draft release tag
 
 on:
   workflow_dispatch:
@@ -8,7 +8,27 @@ on:
       - "v*.*.*"
 
 jobs:
-  build:
+  build_and_test:
+    name: Build and test java code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v1.4.3
+        with:
+          java-version: 11
+
+      - name: Build
+        run: mvn --no-transfer-progress clean compile
+
+      - name: Unit Test
+        run: mvn --no-transfer-progress test
+
+  build_jars:
+    if: success()
+    needs: [ build_and_test ]
+    name: Package and upload package to Maven Central
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,9 +43,9 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_SIGNING_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Build
+      - name: Package
         run: |
-          mvn --no-transfer-progress clean package
+          mvn --no-transfer-progress -DskipTests clean package
 
       - name: Publish to the Maven Central Repository
         run: |
@@ -35,10 +55,117 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.OSSRH_PWD_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PWD }}
 
-      - name: Release
+      - name: Cache Jars
+        uses: actions/upload-artifact@v3
+        with:
+          name: scanoss-jars
+          path: ./target/*.jar
+
+#      - name: Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          draft: true
+#          files: |
+#            target/*.jar
+#            scanoss-cli.sh
+
+  # Build all the native binaries for the given OSes
+  build_native:
+    if: success()
+    needs: [ build_and_test ]
+    name: Build native on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-11, windows-2019]
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17'
+          distribution: 'graalvm'
+
+      - name: Version Details
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          echo "JAVA_HOME: $JAVA_HOME"
+          java --version
+          native-image --version
+
+      - name: Native Build ${{ matrix.os }}
+        run: |
+          mvn --no-transfer-progress -Pnative -DskipTests package -X
+
+      - name: List Binaries
+        continue-on-error: true
+        run: |
+          ls target/scanoss-java*
+
+      - name: Rename Binary Windows
+        if: runner.os == 'Windows'
+        run: |
+          cd target
+          ren scanoss-java-*.exe scanoss-java-${{ matrix.os }}.exe
+          cd ..
+
+      - name: Rename Binary Unix
+        if: runner.os != 'Windows'
+        run: mv target/scanoss-java-* target/scanoss-java-${{ matrix.os }}
+
+      - name: List Packages
+        continue-on-error: true
+        run: |
+          ls target/
+
+      - name: Test Binary Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          .\target\scanoss-java-${{ matrix.os }}.exe -h
+          .\target\scanoss-java-${{ matrix.os }}.exe wfp src > fingers-${{ matrix.os }}.wfp
+
+      - name: Test Binary Unix
+        if: runner.os != 'Windows'
+        run: |
+          ./target/scanoss-java-${{ matrix.os }} -h
+          ./target/scanoss-java-${{ matrix.os }} wfp src > fingers-${{ matrix.os }}.wfp
+          wfps=$(fgrep 'file=' fingers-${{ matrix.os }}.wfp | wc -l)
+          echo "Found ${wfps} in src."
+
+      - name: Cache ${{ matrix.os }} Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: scanoss-jars
+          path: ./target/scanoss-java-${{ matrix.os }}
+
+
+  # Upload all the jars and binaries  a GH Release
+  create_release:
+    if: success()
+    needs: [ build_jars, build_native ]
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Cached artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: scanoss-jars
+          path: target
+
+      - name: List Packages
+        continue-on-error: true
+        run: |
+          ls -la target/
+
+      # Only create a release if we have a tagged push
+      - name: Release ${{ github.ref_type }} - ${{ github.ref_name }}
+        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           files: |
-            target/*.jar
+            target/*
             scanoss-cli.sh
