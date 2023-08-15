@@ -51,6 +51,11 @@ jobs:
         run: |
           mvn --no-transfer-progress -Pnative -DskipTests package -X
 
+      - name: List Binaries
+        continue-on-error: true
+        run: |
+          ls target/scanoss-java*
+
       - name: Rename Binary Windows
         if: runner.os == 'Windows'
         run: |
@@ -60,8 +65,7 @@ jobs:
 
       - name: Rename Binary Unix
         if: runner.os != 'Windows'
-        run: mv target/scanoss-java-* target/scanoss-java-${{ github.event.inputs.build_env }}
-
+        run: mv target/scanoss-java-*.exe target/scanoss-java-${{ github.event.inputs.build_env }}.exe
 
       - name: List Packages
         continue-on-error: true
@@ -72,8 +76,8 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           cd target
-          scanoss-java-${{ github.event.inputs.build_env }} -h
-          scanoss-java-${{ github.event.inputs.build_env }} wfp -o fingers-${{ github.event.inputs.build_env }}.wfp .
+          scanoss-java-${{ github.event.inputs.build_env }}.exe -h
+          scanoss-java-${{ github.event.inputs.build_env }}.exe wfp -o fingers-${{ github.event.inputs.build_env }}.wfp .
           cd ..
 
       - name: Test Binary Unix
