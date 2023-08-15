@@ -60,12 +60,12 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           cd target
-          ren scanoss-java-* scanoss-java-${{ github.event.inputs.build_env }}
+          ren scanoss-java-*.exe scanoss-java-${{ github.event.inputs.build_env }}.exe
           cd ..
 
       - name: Rename Binary Unix
         if: runner.os != 'Windows'
-        run: mv target/scanoss-java-*.exe target/scanoss-java-${{ github.event.inputs.build_env }}.exe
+        run: mv target/scanoss-java-* target/scanoss-java-${{ github.event.inputs.build_env }}
 
       - name: List Packages
         continue-on-error: true
