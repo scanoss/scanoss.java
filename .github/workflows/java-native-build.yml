@@ -74,10 +74,11 @@ jobs:
 
       - name: Test Binary Windows
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           cd target
-          scanoss-java-${{ github.event.inputs.build_env }}.exe -h
-          scanoss-java-${{ github.event.inputs.build_env }}.exe wfp -o fingers-${{ github.event.inputs.build_env }}.wfp .
+          .\scanoss-java-${{ github.event.inputs.build_env }}.exe -h
+          .\scanoss-java-${{ github.event.inputs.build_env }}.exe wfp -o fingers-${{ github.event.inputs.build_env }}.wfp .
           cd ..
 
       - name: Test Binary Unix
