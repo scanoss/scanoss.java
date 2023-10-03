@@ -315,7 +315,7 @@ public class Scanner {
                 if (!filterFile(nameLower)) {
                     Path fullPath = Path.of(root, file);
                     File f = fullPath.toFile();
-                    if (f.exists() && f.isFile() && f.length() > 0) {
+                    if (f.exists() && f.isFile() && f.length() > 0 && ! Files.isSymbolicLink(fullPath)) {
                         Future<String> future = executorService.submit(() -> processor.process(file, stripDirectory(root, file)));
                         futures.add(future);
                     }
