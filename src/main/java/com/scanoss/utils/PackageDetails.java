@@ -22,8 +22,6 @@
  */
 package com.scanoss.utils;
 
-import com.scanoss.cli.CommandLine;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -44,7 +42,7 @@ public class PackageDetails {
             // try to load from maven properties first
             try {
                 Properties p = new Properties();
-                InputStream is = CommandLine.class.getResourceAsStream("/META-INF/maven/com.scanoss/scanoss/pom.properties");
+                InputStream is = PackageDetails.class.getResourceAsStream("/META-INF/maven/com.scanoss/scanoss/pom.properties");
                 if (is != null) {
                     p.load(is);
                     version = p.getProperty("version", "");
@@ -54,7 +52,7 @@ public class PackageDetails {
             }
             // fallback to using Java API
             if (version == null) {
-                Package aPackage = CommandLine.class.getPackage();
+                Package aPackage = PackageDetails.class.getPackage();
                 if (aPackage != null) {
                     version = aPackage.getImplementationVersion();
                     if (version == null) {
