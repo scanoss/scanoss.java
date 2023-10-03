@@ -102,7 +102,7 @@ public class TestWinnowing {
         byte[] contents = "sample c code with lots of code that we should analyse\nAnd even more code to get connected.\nAnd we need to get this as long as possible, in order to trigger snippet matching.\nHere comes more code to help get this working.\nPlease help get this across the line. We need all the help we can get.\n".getBytes();
         String wfp = winnowing.wfpForContents("local-file.c", false, contents);
         assertNotNull(wfp);
-        assertTrue(wfp.length() > 0);
+        assertFalse(wfp.isEmpty());
         log.info("TestWinnowingContents - WFP contents: {}", wfp);
 
         log.info("Finished {} -->", methodName);
@@ -118,13 +118,13 @@ public class TestWinnowing {
         String file = "testing/data/empty.java";
         String wfp = winnowing.wfpForFile(file, "testing/data/empty.java");
         assertNotNull("Expected a basic WFP here", wfp);
-        assertTrue("Expected a basic WFP here", wfp.length() > 0);
+        assertFalse("Expected a basic WFP here", wfp.isEmpty());
         log.info("TestWinnowingFiles - WFP contents - {}: {}", file, wfp);
 
         file = "src/test/java/com/scanoss/TestWinnowing.java";
         wfp = winnowing.wfpForFile("src/test/java/com/scanoss/TestWinnowing.java", "TestWinnowing.java");
         assertNotNull("Expected a WFP here", wfp);
-        assertTrue("Expected a basic WFP here", wfp.length() > 0);
+        assertFalse("Expected a basic WFP here", wfp.isEmpty());
         assertTrue("Should have snippets here", snippetPat.matcher(wfp).find());
         log.info("TestWinnowingFiles - WFP contents - {}: {}", file, wfp);
 
