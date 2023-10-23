@@ -316,6 +316,7 @@ public class Scanner {
                     Path fullPath = Path.of(root, file);
                     File f = fullPath.toFile();
                     if (f.exists() && f.isFile() && f.length() > 0 && ! Files.isSymbolicLink(fullPath)) {
+                        log.debug("Adding file to processing list: {}", file);
                         Future<String> future = executorService.submit(() -> processor.process(file, stripDirectory(root, file)));
                         futures.add(future);
                     }
@@ -341,7 +342,10 @@ public class Scanner {
                     log.warn("something went wrong processing result: {}", future);
                 }
             } catch (InterruptedException | ExecutionException e) {
-                throw new ScannerException("Folder processing subtask failed", e);
+                if (log.isDebugEnabled()) {
+                    log.error("Issue encountered processing subtask futures: {}", e.getLocalizedMessage(), e);
+                }
+                throw new ScannerException("File processing subtask failed", e);
             }
         }
         return results;
