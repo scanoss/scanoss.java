@@ -316,8 +316,9 @@ public class Scanner {
                     Path fullPath = Path.of(root, file);
                     File f = fullPath.toFile();
                     if (f.exists() && f.isFile() && f.length() > 0 && ! Files.isSymbolicLink(fullPath)) {
-                        log.debug("Adding file to processing list: {}", file);
-                        Future<String> future = executorService.submit(() -> processor.process(file, stripDirectory(root, file)));
+                        String filename = f.toString();
+                        log.debug("Adding file to processing list: {} - {}", file, filename);
+                        Future<String> future = executorService.submit(() -> processor.process(filename, stripDirectory(root, filename)));
                         futures.add(future);
                     }
                 }
