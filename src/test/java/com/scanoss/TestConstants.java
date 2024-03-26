@@ -29,7 +29,7 @@ public class TestConstants {
     static final String jsonResultNoMatchString = "{\"src/test/java/com/scanoss/TestWinnowing.java\": [{\"id\": \"none\",\"server\": {\"version\": \"5.2.5\",\"kb_version\": {\"monthly\":\"23.06\", \"daily\":\"23.06.20\"}}}]}";
 
     // Single file results block - Match
-    static final String jsonResultWithMatchString = "{\"java/com/scanoss/TestFileProcessor.java\": [{\"id\": \"file\",\"lines\": \"all\",\"oss_lines\": \"all\",\"matched\": \"100%\",\"file_hash\": \"81aff7648524d40036020bb7124a8b23\",\"source_hash\": \"81aff7648524d40036020bb7124a8b23\",\"file_url\": \"https://osskb.org/api/file_contents/81aff7648524d40036020bb7124a8b23\",\"purl\": [\"pkg:github/scanoss/scanoss.java\"],\"vendor\": \"scanoss\",\"component\": \"scanoss.java\",\"version\": \"a2b2b54\",\"latest\": \"8b47dda\",\"url\": \"https://github.com/scanoss/scanoss.java\",\"status\": \"pending\",\"release_date\": \"2023-06-30\",\"file\": \"test/java/com/scanoss/TestFileProcessor.java\",\"url_hash\": \"8e1b0b3393b4921b4c22dc887998e712\",\"licenses\": [{\"name\": \"MIT\",\"patent_hints\": \"no\", \"copyleft\": \"no\", \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\"osadl_updated\": \"2023-07-02T02:15:00+00:00\",\"source\": \"component_declared\",\"url\": \"https://spdx.org/licenses/MIT.html\"},{\"name\": \"MIT\",\"patent_hints\": \"no\", \"copyleft\": \"no\", \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\"osadl_updated\": \"2023-07-02T02:15:00+00:00\",\"source\": \"file_spdx_tag\",\"url\": \"https://spdx.org/licenses/MIT.html\"},{\"name\": \"MIT\",\"patent_hints\": \"no\", \"copyleft\": \"no\", \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\"osadl_updated\": \"2023-07-02T02:15:00+00:00\",\"source\": \"license_file\",\"url\": \"https://spdx.org/licenses/MIT.html\"}],\"server\": {\"version\": \"5.2.5\",\"kb_version\": {\"monthly\":\"23.06\", \"daily\":\"23.07.03\"}}}]}";
+    static final String jsonResultWithMatchString = "{\"java/com/scanoss/TestFileProcessor.java\": [{\"id\": \"file\",\"lines\": \"all\",\"oss_lines\": \"all\",\"matched\": \"100%\",\"file_hash\": \"81aff7648524d40036020bb7124a8b23\",\"source_hash\": \"81aff7648524d40036020bb7124a8b23\",\"file_url\": \"https://api.osskb.org/file_contents/81aff7648524d40036020bb7124a8b23\",\"purl\": [\"pkg:github/scanoss/scanoss.java\"],\"vendor\": \"scanoss\",\"component\": \"scanoss.java\",\"version\": \"a2b2b54\",\"latest\": \"8b47dda\",\"url\": \"https://github.com/scanoss/scanoss.java\",\"status\": \"pending\",\"release_date\": \"2023-06-30\",\"file\": \"test/java/com/scanoss/TestFileProcessor.java\",\"url_hash\": \"8e1b0b3393b4921b4c22dc887998e712\",\"licenses\": [{\"name\": \"MIT\",\"patent_hints\": \"no\", \"copyleft\": \"no\", \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\"osadl_updated\": \"2023-07-02T02:15:00+00:00\",\"source\": \"component_declared\",\"url\": \"https://spdx.org/licenses/MIT.html\"},{\"name\": \"MIT\",\"patent_hints\": \"no\", \"copyleft\": \"no\", \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\"osadl_updated\": \"2023-07-02T02:15:00+00:00\",\"source\": \"file_spdx_tag\",\"url\": \"https://spdx.org/licenses/MIT.html\"},{\"name\": \"MIT\",\"patent_hints\": \"no\", \"copyleft\": \"no\", \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/MIT.txt\",\"osadl_updated\": \"2023-07-02T02:15:00+00:00\",\"source\": \"license_file\",\"url\": \"https://spdx.org/licenses/MIT.html\"}],\"server\": {\"version\": \"5.2.5\",\"kb_version\": {\"monthly\":\"23.06\", \"daily\":\"23.07.03\"}}}]}";
 
     // Multi-file results block
     static final String jsonResultsString = "{\n" +
@@ -62,7 +62,7 @@ public class TestConstants {
             "      \"dependencies\": [],\n" +
             "      \"file\": \"dist/js/npm.js\",\n" +
             "      \"file_hash\": \"ccb7f3909e30b1eb8f65a24393c6e12b\",\n" +
-            "      \"file_url\": \"https://osskb.org/api/file_contents/ccb7f3909e30b1eb8f65a24393c6e12b\",\n" +
+            "      \"file_url\": \"https://api.osskb.org/file_contents/ccb7f3909e30b1eb8f65a24393c6e12b\",\n" +
             "      \"health\": {\n" +
             "        \"creation_date\": \"2011-07-29\",\n" +
             "        \"issues\": 402,\n" +
@@ -170,7 +170,7 @@ public class TestConstants {
             "      \"component\": \"scanoss.py\",\n" +
             "      \"file\": \"scanoss/api/__init__.py\",\n" +
             "      \"file_hash\": \"11d0f68db66ebe04f2e74a761e1ad067\",\n" +
-            "      \"file_url\": \"https://osskb.org/api/file_contents/11d0f68db66ebe04f2e74a761e1ad067\",\n" +
+            "      \"file_url\": \"https://api.osskb.org/file_contents/11d0f68db66ebe04f2e74a761e1ad067\",\n" +
             "      \"id\": \"file\",\n" +
             "      \"latest\": \"1.3.7\",\n" +
             "      \"licenses\": [\n" +

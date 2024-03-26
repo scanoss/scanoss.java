@@ -234,7 +234,7 @@ public class ScanApi {
     }
 
     private static final int RETRY_FAIL_SLEEP_TIME = 5; // Time to sleep between failed scan requests
-    static final String DEFAULT_SCAN_URL = "https://osskb.org/api/scan/direct"; // Free OSS OSSKB URL
-    static final String DEFAULT_SCAN_URL2 = "https://scanoss.com/api/scan/direct"; // Standard SCANOSS Premium URL
+    static final String DEFAULT_SCAN_URL = "https://api.osskb.org/scan/direct"; // Free OSS OSSKB URL
+    static final String DEFAULT_SCAN_URL2 = "https://api.scanoss.com/scan/direct"; // Standard SCANOSS Premium URL
 //    static final String SCANOSS_SCAN_URL = System.getenv("SCANOSS_SCAN_URL");
 }

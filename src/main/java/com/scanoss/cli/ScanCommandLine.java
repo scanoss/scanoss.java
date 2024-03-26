@@ -70,7 +70,7 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-T", "--threads"}, description = "Number of parallel threads to use (optional - default " + DEFAULT_WORKER_THREADS + ")")
     private int numThreads = DEFAULT_WORKER_THREADS;
 
-    @picocli.CommandLine.Option(names = "--apiurl", description = "SCANOSS API URL (optional - default: https://osskb.org/api/scan/direct)")
+    @picocli.CommandLine.Option(names = "--apiurl", description = "SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)")
     private String apiUrl;
 
     @picocli.CommandLine.Option(names = {"-k", "--key"}, description = "SCANOSS API Key token (optional - not required for default OSSKB URL)")

@@ -16,7 +16,7 @@ Include in a maven project using:
         <dependency>
             <groupId>com.scanoss</groupId>
             <artifactId>scanoss</artifactId>
-            <version>0.1.0</version>
+            <version>0.6.0</version>
         </dependency>
 ```
 
