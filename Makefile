@@ -11,44 +11,52 @@ help: ## This help
 
 clean:  ## Run maven clean
 	@echo "Running package clean..."
-	mvn clean
+	./mvnw clean
 
 test:  ## Run package tests
 	@echo "Running package tests..."
-	mvn test
+	./mvnw test
+
+dep_update_check:  ## Run maven versions command to check for dependency updates
+	@echo "Running dependency update check..."
+	./mvnw versions:display-dependency-updates
+
+dep_use_next_version:  ## Run maven to update dependencies to next available version
+	@echo "Running dependency update check..."
+	./mvnw versions:use-next-versions
 
 compile:  ## Run maven compile goal
 	@echo "Running package compilation..."
-	mvn compile
+	./mvnw compile
 
 verify:  ## Run maven verify goal
 	@echo "Running package verify..."
-	mvn verify
+	./mvnw verify
 
 package:  ## Run maven package goal
 	@echo "Running package..."
-	mvn package
+	./mvnw package
 
 deploy:  ## Deploy the package to central repos
 	@echo "Deploying latest package..."
-	mvn deploy
+	./mvnw deploy
 
 native:  ## Run maven native binary build
 	@echo "Running native package..."
-	mvn -Pnative -DskipTests package -X
+	./mvnw -Pnative -DskipTests package -X
 
 inc_patch:  ## Increment the patch version on pom.xml
 	@echo "Incrementing patch version..."
-	mvn build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.majorVersion}.$${parsedVersion.minorVersion}.$${parsedVersion.nextIncrementalVersion}' versions:commit
+	./mvnw build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.majorVersion}.$${parsedVersion.minorVersion}.$${parsedVersion.nextIncrementalVersion}' versions:commit
 
 inc_minor:  ## Increment the minor version on pom.xml
 	@echo "Incrementing minor version..."
-	mvn build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.majorVersion}.$${parsedVersion.nextMinorVersion}.$${parsedVersion.incrementalVersion}' versions:commit
+	./mvnw build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.majorVersion}.$${parsedVersion.nextMinorVersion}.$${parsedVersion.incrementalVersion}' versions:commit
 
 inc_major:  ## Increment the major version on pom.xml
 	@echo "Incrementing major version..."
-	mvn build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.nextMajorVersion}.$${parsedVersion.minorVersion}.$${parsedVersion.incrementalVersion}' versions:commit
+	./mvnw build-helper:parse-version versions:set -DnewVersion='$${parsedVersion.nextMajorVersion}.$${parsedVersion.minorVersion}.$${parsedVersion.incrementalVersion}' versions:commit
 
 version:  ## Show the current version of the package
 	@echo "Getting package version..."
-	VER=$(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+	VER=$(shell ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
