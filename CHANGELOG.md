@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upcoming changes...
 
+## [0.6.1] - 2024-04-01
+### Changed
+- Fixed issue with SBOM ingestion
+
 ## [0.6.0] - 2024-03-26
 ### Changed
 - Updated free default URL to now point to `https://api.osskb.org`
@@ -69,3 +73,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.4]: https://github.com/scanoss/scanoss.java/compare/v0.5.3...v0.5.4
 [0.5.5]: https://github.com/scanoss/scanoss.java/compare/v0.5.4...v0.5.5
 [0.6.0]: https://github.com/scanoss/scanoss.java/compare/v0.5.5...v0.6.0
+[0.6.1]: https://github.com/scanoss/scanoss.java/compare/v0.6.0...v0.6.1

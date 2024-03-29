@@ -123,7 +123,7 @@ class ScanCommandLine implements Runnable {
             sbomType = "identify";
             sbom = loadFileToString(identifySbom);
         } else if (ignoreSbom != null && !ignoreSbom.isEmpty()) {
-            sbomType = "ignore";
+            sbomType = "blacklist";
             sbom = loadFileToString(ignoreSbom);
         }
         String caCertPem = null;

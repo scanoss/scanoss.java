@@ -121,7 +121,7 @@ public class Scanner {
                         .build());
         this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
                 ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
-                        .scanType(sbomType).sbom(sbom).customCert(customCert).proxy(proxy)
+                        .sbomType(sbomType).sbom(sbom).customCert(customCert).proxy(proxy)
                         .build());
         this.scanFileProcessor = Objects.requireNonNullElseGet(scanFileProcessor, () ->
                 ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build());
