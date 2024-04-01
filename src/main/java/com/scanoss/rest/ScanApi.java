@@ -153,7 +153,8 @@ public class ScanApi {
         }
         if (sbom != null && !sbom.isEmpty()) {
             String type = sbomType != null ? sbomType : "identify";  // Set SBOM type or default to 'identify'
-            data.put(type, sbom);
+            data.put("assets", sbom);
+            data.put("type", type);
         }
         Request request;  // Create multipart request
         try {

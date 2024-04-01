@@ -95,7 +95,7 @@ public class TestScanApi {
         log.info("<-- Starting {}", methodName);
 
         String sbomIdentify = "pkg:github/scanoss/scanoss.py\n" + "pkg:pypi/scanoss\n";
-        ScanApi scanApi = ScanApi.builder().flags("8").scanType("identify").sbom(sbomIdentify)
+        ScanApi scanApi = ScanApi.builder().flags("8").sbomType("identify").sbom(sbomIdentify)
                 .url(server.url("/api/scan/direct").toString()).build();
         server.enqueue(new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
                 .setBody(SCAN_RESP_SUCCESS).setResponseCode(200));
@@ -114,7 +114,7 @@ public class TestScanApi {
         log.info("<-- Starting {}", methodName);
 
         String sbomIdentify = "pkg:github/scanoss/scanoss.py\n" + "pkg:pypi/scanoss\n";
-        ScanApi scanApi = ScanApi.builder().flags("8").scanType("identify").sbom(sbomIdentify)
+        ScanApi scanApi = ScanApi.builder().flags("8").sbomType("identify").sbom(sbomIdentify)
                 .url(server.url("/api/scan/direct").toString())
                 .customCert(customSelfSignedCertificate)
                 .build();
