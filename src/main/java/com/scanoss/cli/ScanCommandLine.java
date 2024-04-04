@@ -100,6 +100,9 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"--proxy"}, description = "HTTP Proxy URL (optional)")
     private String proxyString;
 
+    @picocli.CommandLine.Option(names = {"-H", "--hpsm"}, description = "Use High Precision Snippet Matching algorithm")
+    private boolean enableHpsm = false;
+
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to scan")
     private String fileFolder;
 
@@ -160,7 +163,7 @@ class ScanCommandLine implements Runnable {
         scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
                 .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
-                .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy)
+                .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
                 .build();
         File f = new File(fileFolder);
         if (!f.exists()) {
