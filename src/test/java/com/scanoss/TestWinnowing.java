@@ -33,7 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
-
 import static org.junit.Assert.*;
 
 @Slf4j
@@ -88,6 +87,28 @@ public class TestWinnowing {
                 .skipSnippets(true).allExtensions(true).obfuscate(true).hpsm(true)
                 .build();
         assertTrue("All Extensions should be enabled", win2.getAllExtensions());
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestWinnowingContentsHPSM() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+        Winnowing winnowing = Winnowing.builder().hpsm(true).build();
+
+
+        byte[] contents = "sample c code with lots of code that we should analyse\nAnd even more code to get connected.\nAnd we need to get this as long as possible, in order to trigger snippet matching.\nHere comes more code to help get this working.\nPlease help get this across the line. We need all the help we can get.\n".getBytes();
+        String wfp = winnowing.wfpForContents("local-file.c", false, contents);
+        assertNotNull(wfp);
+        assertFalse(wfp.isEmpty());
+        assertEquals("file=609a24b6cd27ef8108792ca459db1b28,293,local-file.c\n" +
+                "hpsm=df13c104d4\n" +
+                "3=0ed5027a,a9442399,d019b836\n" +
+                "4=613d56c0\n" +
+                "5=828b5fe0\n",wfp);
+        log.info("TestWinnowingContents - WFP contents: {}", wfp);
 
         log.info("Finished {} -->", methodName);
     }

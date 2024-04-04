@@ -23,10 +23,9 @@
 package com.scanoss;
 
 import com.scanoss.exceptions.WinnowingException;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import com.scanoss.utils.Hpsm;
+import com.scanoss.utils.WinnowingUtils;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.tika.Tika;
@@ -66,7 +65,7 @@ public class Winnowing {
     @Builder.Default
     private Boolean obfuscate = Boolean.FALSE; // Obfuscate file path
     @Builder.Default
-    private Boolean hpsm = Boolean.FALSE; // Enable High Precision Snippet Matching data collection
+    private boolean hpsm = Boolean.FALSE; // Enable High Precision Snippet Matching data collection
     @Builder.Default
     private int snippetLimit = MAX_LONG_LINE_CHARS; // Enable limiting of size of a single line of snippet generation
 
@@ -98,7 +97,6 @@ public class Winnowing {
         }
     }
 
-
     /**
      * Generate a WFP for the given file contents
      *
@@ -119,7 +117,11 @@ public class Winnowing {
         if (binFile || this.skipSnippets || this.skipSnippets(filename, fileContents)) {
             return wfpBuilder.toString();
         }
-        // TODO add HPSM support here
+
+        if(this.isHpsm()){
+            wfpBuilder.append(String.format("hpsm=%s\n", Hpsm.calcHpsm(contents)));
+        }
+
         String gram = "";
         List<Long> window = new ArrayList<>();
         char normalized;
@@ -133,7 +135,7 @@ public class Winnowing {
                 line++;
                 normalized = 0;
             } else {
-                normalized = normalize(c);
+                normalized = WinnowingUtils.normalize(c);
             }
             if (normalized > 0) {
                 gram += normalized;
@@ -180,7 +182,6 @@ public class Winnowing {
 
     /**
      * Determine if a file/contents should be skipped for snippet generation or not
-     *
      * @param filename filename for the contents (optional)
      * @param contents file contents
      * @return <code>true</code> if we should skip snippets, <code>false</code> otherwise
@@ -300,7 +301,6 @@ public class Winnowing {
         return mediaTypes.stream().anyMatch(mt -> mt.getType().equals("text"));
     }
 
-
     /**
      * Convert the give number to a Little Endian encoded byte
      *
@@ -314,24 +314,6 @@ public class Winnowing {
         b[2] = (byte) ((number >> 16) & 0xFF);
         b[3] = (byte) ((number >> 24) & 0xFF);
         return b;
-    }
-
-    /**
-     * Normalise the given character
-     *
-     * @param c character to normalise
-     * @return normalised character
-     */
-    private char normalize(char c) {
-        if (c < '0' || c > 'z') {
-            return 0;
-        } else if (c <= '9' || c >= 'a') {
-            return c;
-        } else if (c >= 'A' && c <= 'Z') {
-            return (char) (c + 32);
-        } else {
-            return 0;
-        }
     }
 
     /**
