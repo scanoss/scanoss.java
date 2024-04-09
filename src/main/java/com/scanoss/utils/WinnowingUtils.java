@@ -1,5 +1,11 @@
 package com.scanoss.utils;
 
+/**
+ * SCANOSS Winnowing Utils Class
+ * <p>
+ *     This class provides methods for normalizing characters and other text processing utilities.
+ * </p>
+ */
 public class WinnowingUtils {
 
     /**
