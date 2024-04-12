@@ -36,7 +36,7 @@ public class ScanossConstants {
             ".o", ".a", ".so", ".obj", ".dll", ".lib", ".out", ".app", ".bin",
             ".lst", ".dat", ".json", ".htm", ".html", ".xml", ".md", ".txt",
             ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".odt", ".ods", ".odp", ".pages", ".key", ".numbers",
-            ".pdf", ".min.js", ".mf", ".sum", ".woff", ".woff2"
+            ".pdf", ".min.js", ".mf", ".sum", ".woff", ".woff2", ".xsd", ".pom"
     );
 
     // Folders to skip
