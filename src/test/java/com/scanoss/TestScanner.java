@@ -242,7 +242,7 @@ public class TestScanner {
         log.info("Finished {} -->", methodName);
     }
 
-        @Test
+    @Test
     public void TestScannerTemplate() {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
@@ -250,4 +250,22 @@ public class TestScanner {
 
         log.info("Finished {} -->", methodName);
     }
+
+    @Test
+    public void TestIgnoreFolderExtension() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Scanner scanner = Scanner.builder().build();
+        String folder = "testing/data/test-folder-ignore";
+        List<String> results = scanner.scanFolder(folder);
+        log.info("Received {} results", results.size());
+        assertFalse("Scan results should be empty", results.isEmpty());
+        assertEquals("Results should be one", results.size() , 1);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
 }
