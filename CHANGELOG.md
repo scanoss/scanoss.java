@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upcoming changes...
 
+## [0.7.1] - 2024-04-12
+### Changed
+- Update file and winnowing filters
+- Remove filter for '.whl' file extensions
+
 ## [0.7.0] - 2024-04-04
 ### Added
 - Add HPSM support
@@ -79,3 +84,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.0]: https://github.com/scanoss/scanoss.java/compare/v0.5.5...v0.6.0
 [0.6.1]: https://github.com/scanoss/scanoss.java/compare/v0.6.0...v0.6.1
 [0.7.0]: https://github.com/scanoss/scanoss.java/compare/v0.6.1...v0.7.0
+[0.7.1]: https://github.com/scanoss/scanoss.java/compare/v0.7.0...v0.7.1
