@@ -156,19 +156,29 @@ public class Scanner {
      * @return <code>true</code> if the folder should be skipped, <code>false</code> otherwise
      */
     private Boolean filterFolder(String name) {
+        String nameLower =  name.toLowerCase();
         if (!hiddenFilesFolders && name.startsWith(".") && !name.equals(".")) {
             log.trace("Skipping hidden folder: {}", name);
             return true;
         }
+        boolean ignore = false;
         if (!allFolders) { // skip this check if all folders is selected
             for (String ending : ScanossConstants.FILTERED_DIRS) {
-                if (name.endsWith(ending)) {
+                if (nameLower.endsWith(ending)) {
                     log.trace("Skipping folder due to ending: {} - {}", name, ending);
-                    return true;
+                    ignore = true;
+                }
+            }
+            if(!ignore){
+                for (String ending : ScanossConstants.FILTERED_DIR_EXT) {
+                    if (nameLower.endsWith(ending)) {
+                        log.trace("Skipping folder due to ending: {} - {}", name, ending);
+                        ignore = true;
+                    }
                 }
             }
         }
-        return false;
+        return ignore;
     }
 
     /**

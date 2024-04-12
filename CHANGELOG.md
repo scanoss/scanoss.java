@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Update file and winnowing filters
 - Remove filter for '.whl' file extensions
+- Added dir extension filter
 
 ## [0.7.0] - 2024-04-04
 ### Added
