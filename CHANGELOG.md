@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upcoming changes...
 
+## [0.7.2] - 2024-04-17
+### Added
+- Added [tagging workflow](.github/workflows/version-tag.yml) to aid release generation
+
 ## [0.7.1] - 2024-04-12
 ### Changed
 - Update file and winnowing filters
@@ -86,3 +90,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.1]: https://github.com/scanoss/scanoss.java/compare/v0.6.0...v0.6.1
 [0.7.0]: https://github.com/scanoss/scanoss.java/compare/v0.6.1...v0.7.0
 [0.7.1]: https://github.com/scanoss/scanoss.java/compare/v0.7.0...v0.7.1
+[0.7.2]: https://github.com/scanoss/scanoss.java/compare/v0.7.1...v0.7.2

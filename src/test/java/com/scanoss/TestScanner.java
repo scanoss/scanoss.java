@@ -201,7 +201,7 @@ public class TestScanner {
         List<String> fileList = Arrays.asList(
                 "src/test/java/com/scanoss/TestScanner.java",
                 "src/test/java/com/scanoss/TestWinnowing.java",
-                ".github/workflows/release.yml",
+                ".github/workflows/publish.yml",
                 ".gitignore",
                 "tmp/.gitignore"
         );

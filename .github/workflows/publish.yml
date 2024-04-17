@@ -1,4 +1,4 @@
-name: Release
+name: Publish
 # Build, deploy and attach supported artifacts and draft release tag
 
 on:
