@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.3] - 2024-09-12
 ### Added
-- Added variables `DEFAULT_SCAN_URL` and `DEFAULT_SCAN_URL2` to separate the scan URL from the scan path
+- Added variables `DEFAULT_BASE_URL` and `DEFAULT_BASE_URL2` to separate the scan URL from the scan path
 
 ## [0.7.2] - 2024-04-17
 ### Added
