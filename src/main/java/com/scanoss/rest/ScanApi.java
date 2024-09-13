@@ -69,12 +69,13 @@ public class ScanApi {
     private Map<String, String> headers; // custom REST client headers
     private String customCert; // Custom certificate
     private Proxy proxy; // Proxy configuration
+    private String baseUrl; // SCANOSS base API URI (to used instead of url)
 
     @SuppressWarnings("unused")
     private ScanApi(String scanType, Duration timeout, Integer retryLimit, String url, String apiKey, String flags,
                     String sbomType, String sbom,
                     OkHttpClient okHttpClient, Map<String, String> headers, String customCert,
-                    Proxy proxy) {
+                    Proxy proxy, String baseUrl) {
         this.scanType = scanType;
         this.timeout = timeout;
         this.retryLimit = retryLimit;
@@ -85,7 +86,9 @@ public class ScanApi {
         this.sbom = sbom;
         this.customCert = customCert;
         this.proxy = proxy;
-        if (this.apiKey != null && !this.apiKey.isEmpty() && (url == null || url.isEmpty())) {
+        if ((url == null || url.isEmpty()) && (baseUrl != null && ! baseUrl.isEmpty())) {
+            this.url = String.format( "%s/%s", baseUrl, DEFAULT_SCAN_URL);
+        } else if (this.apiKey != null && !this.apiKey.isEmpty() && (this.url == null || this.url.isEmpty())) {
             this.url = DEFAULT_SCAN_URL2;  // Default premium SCANOSS endpoint
         } else if (url == null || url.isEmpty()) {
             this.url = DEFAULT_SCAN_URL;  // Default free SCANOSS endpoint
@@ -235,7 +238,9 @@ public class ScanApi {
     }
 
     private static final int RETRY_FAIL_SLEEP_TIME = 5; // Time to sleep between failed scan requests
-    static final String DEFAULT_SCAN_URL = "https://api.osskb.org/scan/direct"; // Free OSS OSSKB URL
-    static final String DEFAULT_SCAN_URL2 = "https://api.scanoss.com/scan/direct"; // Standard SCANOSS Premium URL
-//    static final String SCANOSS_SCAN_URL = System.getenv("SCANOSS_SCAN_URL");
+    public static final String DEFAULT_BASE_URL = "https://api.osskb.org";
+    public static final String DEFAULT_BASE_URL2 = "https://api.scanoss.com";
+    static final String DEFAULT_SCAN_PATH = "scan/direct";
+    static final String DEFAULT_SCAN_URL = String.format( "%s/%s", DEFAULT_BASE_URL, DEFAULT_SCAN_PATH ); // Free OSS OSSKB URL
+    static final String DEFAULT_SCAN_URL2 = String.format( "%s/%s", DEFAULT_BASE_URL2, DEFAULT_SCAN_PATH ); // Standard SCANOSS Premium URL
 }

@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upcoming changes...
 
+## [0.7.3] - 2024-09-12
+### Added
+- Added variables `DEFAULT_BASE_URL` and `DEFAULT_BASE_URL2` to separate the scan URL from the scan path
+
 ## [0.7.2] - 2024-04-17
 ### Added
 - Added [tagging workflow](.github/workflows/version-tag.yml) to aid release generation
@@ -91,3 +95,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.0]: https://github.com/scanoss/scanoss.java/compare/v0.6.1...v0.7.0
 [0.7.1]: https://github.com/scanoss/scanoss.java/compare/v0.7.0...v0.7.1
 [0.7.2]: https://github.com/scanoss/scanoss.java/compare/v0.7.1...v0.7.2
+[0.7.3]: https://github.com/scanoss/scanoss.java/compare/v0.7.2...v0.7.3
