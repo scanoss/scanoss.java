@@ -1,6 +1,5 @@
 package com.scanoss.settings;
 
-import com.github.packageurl.PackageURL;
 import com.google.gson.annotations.SerializedName;
 import com.scanoss.dto.ScanFileResult;
 import lombok.Data;
@@ -14,27 +13,23 @@ public class BomConfiguration {
 
     @Data
     public static class Bom {
-        private List<Component> include;
-        private List<Component> remove;
-        private List<ReplaceComponent> replace;
+        private List<Rule> include;
+        private List<Rule> remove;
+        private List<ReplaceRule> replace;
     }
 
     @Data
-    public static class Component {
+    public static class Rule {
         private String path;
         private String purl;
-
-        public boolean doesMatchScanFileResult(ScanFileResult scanFileResult) {
-            //TODO: Implement matching logic here
-            return true;
-        }
     }
 
 
     @EqualsAndHashCode(callSuper = true)            //NOTE: This will check both 'replaceWith' AND the parent class fields (path and purl) when comparing objects
     @Data
-    public static class ReplaceComponent extends Component {
+    public static class ReplaceRule extends Rule {
         @SerializedName("replace_with")
         private String replaceWith;
+        private String license;
     }
 }

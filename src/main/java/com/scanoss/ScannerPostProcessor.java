@@ -1,15 +1,16 @@
 package com.scanoss;
 
+import com.scanoss.dto.ScanFileDetails;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerPostProcessorException;
 import com.scanoss.settings.BomConfiguration;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ScannerPostProcessor {
 
+    private Map<String, ScanFileDetails> indexPurlToScanFileDetails = new HashMap<>();
 
     /**
      * Processes scan results according to BOM configuration rules.
@@ -24,6 +25,8 @@ public class ScannerPostProcessor {
             throw new ScannerPostProcessorException("Scan results and BOM configuration cannot be null");
         }
 
+        createIndexPurlToScanFileDetails(scanFileResults);
+
         List<ScanFileResult> processedResults = new ArrayList<>(scanFileResults);
 
         // Apply remove rules
@@ -31,8 +34,76 @@ public class ScannerPostProcessor {
             processedResults = applyRemoveRules(processedResults, bomConfiguration.getBom().getRemove());
         }
 
+        //Apply replace rules. First loads the indexPurlToScanFileDetails
+        if (bomConfiguration.getBom().getReplace() != null && !bomConfiguration.getBom().getReplace().isEmpty()) {
+            processedResults = applyReplaceRules(processedResults, bomConfiguration.getBom().getReplace());
+        }
+
         return processedResults;
     }
+
+    /**
+     * Creates a map of PURL (Package URL) to ScanFileDetails from a list of scan results.
+     *
+     * @param scanFileResults List of scan results to process
+     * @return Map where keys are PURLs and values are corresponding ScanFileDetails
+     */
+    private void createIndexPurlToScanFileDetails(List<ScanFileResult> scanFileResults) {
+        if (scanFileResults == null) {
+            this.indexPurlToScanFileDetails = new HashMap<>();
+            return;
+        }
+
+        this.indexPurlToScanFileDetails = scanFileResults.stream()
+                .filter(result -> result != null && result.getFileDetails() != null)
+                .flatMap(result -> result.getFileDetails().stream())
+                .filter(details -> details != null && details.getPurls() != null)
+                .flatMap(details -> Arrays.stream(details.getPurls())
+                        .filter(purl -> purl != null && !purl.trim().isEmpty())
+                        .map(purl -> Map.entry(purl.trim(), details)))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (existing, replacement) -> existing,  // Keep first occurrence in case of duplicates
+                        HashMap::new
+                ));    }
+
+
+    /**
+     * Applies replacement rules to scan results, updating their PURLs (Package URLs) based on matching rules.
+     * If a cached component exists for a replacement PURL, it will be used instead of creating a new one.
+     *
+     * @param results The original list of scan results to process
+     * @param replaceRules The list of replacement rules to apply
+     * @return A new list containing the processed scan results with updated PURLs
+     */
+    private List<ScanFileResult> applyReplaceRules(List<ScanFileResult> results, List<BomConfiguration.ReplaceRule> replaceRules) {
+        if (results == null || replaceRules == null) {
+            return results;
+        }
+
+        List<ScanFileResult> resultsList = new ArrayList<>(results);
+
+        for (ScanFileResult result : resultsList) {
+            findMatchingRule(result, replaceRules).ifPresent(matchedRule -> {
+
+                String replacementPurl = matchedRule.getReplaceWith();
+                if (replacementPurl == null || replacementPurl.trim().isEmpty()) {
+                    return; //Empty replacement PURL found
+                }
+
+                // Try to get cached component first
+                ScanFileDetails cachedComponent = this.indexPurlToScanFileDetails.get(replacementPurl);
+                if (cachedComponent != null) {
+                    result.getFileDetails().set(0, cachedComponent); // Use cached component if available
+                } else {
+                    result.getFileDetails().get(0).setPurls(new String[] { replacementPurl.trim() }); // Create new PURL array if no cached component exists
+                }
+            });
+        }
+        return resultsList;
+    }
+
 
     /**
      * Applies remove rules to the scan results.
@@ -40,57 +111,52 @@ public class ScannerPostProcessor {
      * 1. The remove rule has both path and purl, and both match the result
      * 2. The remove rule has only purl (no path), and the purl matches the result
      */
-    private List<ScanFileResult> applyRemoveRules(List<ScanFileResult> results, List<BomConfiguration.Component> removeRules) {
+    private List<ScanFileResult> applyRemoveRules(List<ScanFileResult> results, List<BomConfiguration.Rule> removeRules) {
         if (results == null || removeRules == null) {
             return results;
         }
 
         List<ScanFileResult> resultsList = new ArrayList<>(results);
 
-        resultsList.removeIf(result -> shouldRemoveResult(result, removeRules));
+        resultsList.removeIf(result -> findMatchingRule(result, removeRules).isPresent());
         return resultsList;
     }
 
     /**
-     * Determines if a result should be removed based on the remove rules.
-     * Returns true if the result should be removed, false if it should be kept.
-     */
-    private boolean shouldRemoveResult(ScanFileResult result, List<BomConfiguration.Component> removeRules) {
-        for (BomConfiguration.Component rule : removeRules) {
-            if (isMatchingRule(rule, result)) {
-                return true; // Found a matching rule, remove the result
-            }
-        }
-
-        return false; // No matching remove rules found, keep the result
-    }
-
-    /**
-     * Checks if a rule matches a scan result.
+     * Finds and returns the first matching rule for a scan result.
      * A rule matches if:
      * 1. It has both path and purl, and both match the result
      * 2. It has only a purl (no path), and the purl matches the result
      * 3. It has only a path (no purl), and the path matches the result
+     *
+     * @param <T> The rule type. Must extend Rule class
+     * @param result The scan result to check
+     * @param rules List of rules to check against
+     * @return Optional containing the first matching rule, or empty if no match found
      */
-    private boolean isMatchingRule(BomConfiguration.Component rule, ScanFileResult result) {
-        boolean hasPath = rule.getPath() != null && !rule.getPath().isEmpty();
-        boolean hasPurl = rule.getPurl() != null && !rule.getPurl().isEmpty();
+    private <T extends BomConfiguration.Rule> Optional<T> findMatchingRule(ScanFileResult result, List<T> rules) {
+        return rules.stream()
+                .filter(rule -> {
+                    boolean hasPath = rule.getPath() != null && !rule.getPath().isEmpty();
+                    boolean hasPurl = rule.getPurl() != null && !rule.getPurl().isEmpty();
 
-        if (hasPath && hasPurl) {
-            return isPathAndPurlMatch(rule, result);
-        } else if (hasPath) {
-            return isPathOnlyMatch(rule, result);
-        } else if (hasPurl) {
-            return isPurlOnlyMatch(rule, result);
-        }
+                    if (hasPath && hasPurl) {
+                        return isPathAndPurlMatch(rule, result);
+                    } else if (hasPath) {
+                        return isPathOnlyMatch(rule, result);
+                    } else if (hasPurl) {
+                        return isPurlOnlyMatch(rule, result);
+                    }
 
-        return false; // Neither path nor purl specified
+                    return false; // Neither path nor purl specified
+                })
+                .findFirst();
     }
 
     /**
      * Checks if both path and purl of the rule match the result
      */
-    private boolean isPathAndPurlMatch(BomConfiguration.Component rule, ScanFileResult result) {
+    private boolean isPathAndPurlMatch(BomConfiguration.Rule rule, ScanFileResult result) {
         return Objects.equals(rule.getPath(), result.getFilePath()) &&
                 isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
@@ -99,14 +165,14 @@ public class ScannerPostProcessor {
     /**
      * Checks if the rule's path matches the result (ignoring purl)
      */
-    private boolean isPathOnlyMatch(BomConfiguration.Component rule, ScanFileResult result) {
+    private boolean isPathOnlyMatch(BomConfiguration.Rule rule, ScanFileResult result) {
         return Objects.equals(rule.getPath(), result.getFilePath());
     }
 
     /**
      * Checks if the rule's purl matches the result (ignoring path)
      */
-    private boolean isPurlOnlyMatch(BomConfiguration.Component rule, ScanFileResult result) {
+    private boolean isPurlOnlyMatch(BomConfiguration.Rule rule, ScanFileResult result) {
         return isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
 

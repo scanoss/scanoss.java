@@ -31,7 +31,7 @@ import lombok.Data;
 @Data
 public class ScanFileDetails {
     private final String id;
-    private final String component;
+    private String component;
     private final String vendor;
     private final String version;
     private final String latest;
@@ -53,7 +53,7 @@ public class ScanFileDetails {
     @SerializedName("source_hash")
     private final String sourceHash;
     @SerializedName("purl")
-    private final String[] purls;
+    private String[] purls;
     @SerializedName("server")
     private final ServerDetails serverDetails;
     @SerializedName("licenses")

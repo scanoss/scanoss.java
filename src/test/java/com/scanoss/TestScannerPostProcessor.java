@@ -31,9 +31,9 @@ import static com.scanoss.TestConstants.jsonResultsString;
 import static org.junit.Assert.assertFalse;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.settings.BomConfiguration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
+
 import static org.junit.Assert.*;
 
 @Slf4j
@@ -61,6 +61,7 @@ public class TestScannerPostProcessor {
         sampleScanResults = JsonUtils.toScanFileResultsFromObject(jsonObject);
     }
 
+    /** TESTING REMOVE RULES**/
     @Test
     public void TestNullParameters() {
         String methodName = new Object() {
@@ -91,7 +92,7 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup remove rule with both path and purl
-        BomConfiguration.Component removeRule = new BomConfiguration.Component();
+        BomConfiguration.Rule removeRule = new BomConfiguration.Rule();
         removeRule.setPath("CMSsite/admin/js/npm.js");
         removeRule.setPurl("pkg:github/twbs/bootstrap");
         bomConfiguration.getBom().setRemove(Collections.singletonList(removeRule));
@@ -111,7 +112,7 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup remove rule with only purl
-        BomConfiguration.Component removeRule = new BomConfiguration.Component();
+        BomConfiguration.Rule removeRule = new BomConfiguration.Rule();
         removeRule.setPurl("pkg:npm/mip-bootstrap");
         bomConfiguration.getBom().setRemove(Collections.singletonList(removeRule));
 
@@ -136,7 +137,7 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup non-matching remove rule
-        BomConfiguration.Component removeRule = new BomConfiguration.Component();
+        BomConfiguration.Rule removeRule = new BomConfiguration.Rule();
         removeRule.setPath("non/existing/path.c");
         removeRule.setPurl("pkg:github/non-existing/lib@1.0.0");
         bomConfiguration.getBom().setRemove(Collections.singletonList(removeRule));
@@ -157,16 +158,16 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup multiple remove rules
-        List<BomConfiguration.Component> removeRules = new ArrayList<>();
+        List<BomConfiguration.Rule> removeRules = new ArrayList<>();
 
-        BomConfiguration.Component rule1 = new BomConfiguration.Component();
+        BomConfiguration.Rule rule1 = new BomConfiguration.Rule();
         rule1.setPath("CMSsite/admin/js/npm.js");
         rule1.setPurl("pkg:npm/myoneui");
 
-        BomConfiguration.Component rule2 = new BomConfiguration.Component();
+        BomConfiguration.Rule rule2 = new BomConfiguration.Rule();
         rule2.setPurl("pkg:pypi/scanoss");
 
-        BomConfiguration.Component rule3 = new BomConfiguration.Component();
+        BomConfiguration.Rule rule3 = new BomConfiguration.Rule();
         rule3.setPath("scanoss/__init__.py");
 
         removeRules.add(rule1);
@@ -198,4 +199,45 @@ public class TestScannerPostProcessor {
 
         log.info("Finished {} -->", methodName);
     }
+
+
+    /** TESTING REPLACE RULES**/
+    @Test
+    public void TestReplaceRuleWithEmptyPurl() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        // Setup replace rule with empty PURL
+        BomConfiguration.ReplaceRule replaceRule = new BomConfiguration.ReplaceRule();
+        replaceRule.setPurl("pkg:github/scanoss/scanoss.py");
+        replaceRule.setReplaceWith("");
+        bomConfiguration.getBom().setReplace(Collections.singletonList(replaceRule));
+
+        // Find the specific result for scanoss.py
+        Optional<ScanFileResult> originalResult = sampleScanResults.stream()
+                .filter(r -> r.getFilePath().equals("scanoss/api/__init__.py"))
+                .findFirst();
+
+        assertTrue("Original result should exist", originalResult.isPresent());
+        String originalPurl = originalResult.get().getFileDetails().get(0).getPurls()[0];
+
+
+        // Process results
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+
+        Optional<ScanFileResult> processedResult = results.stream()
+                .filter(r -> r.getFilePath().equals("scanoss/api/__init__.py"))
+                .findFirst();
+
+        assertTrue("Processed result should exist", processedResult.isPresent());
+
+        // Verify original PURL remains unchanged
+        String resultPurl = processedResult.get().getFileDetails().get(0).getPurls()[0];
+        assertEquals("PURL should remain unchanged with empty replacement", originalPurl, resultPurl);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
+
 }
