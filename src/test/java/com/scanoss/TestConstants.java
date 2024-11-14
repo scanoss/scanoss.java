@@ -256,6 +256,34 @@ public class TestConstants {
             "  ]\n" +
             "}\n";
 
+
+    static final String BOM_CONFIGURATION_MOCK = "{\n" +
+            "  \"bom\": {\n" +
+            "    \"include\": [\n" +
+            "      {\n" +
+            "        \"path\": \"src/main.c\",\n" +
+            "        \"purl\": \"pkg:github/scanoss/scanner.c\"\n" +
+            "      }\n" +
+            "    ],\n" +
+            "    \"remove\": [\n" +
+            "      {\n" +
+            "        \"path\": \"src/spdx.h\",\n" +
+            "        \"purl\": \"pkg:github/scanoss/scanoss.py\"\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"purl\": \"pkg:github/scanoss/ldb\"\n" +
+            "      }\n" +
+            "    ],\n" +
+            "    \"replace\": [\n" +
+            "      {\n" +
+            "        \"path\": \"src/winnowing.c\",\n" +
+            "        \"purl\": \"pkg:github/scanoss/core\",\n" +
+            "        \"replace_with\": \"pkg:github/scanoss/\"\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}";
+
     // Custom self-signed certificate
     static final String customSelfSignedCertificate =
             "-----BEGIN CERTIFICATE-----\n" +

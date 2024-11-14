@@ -23,6 +23,7 @@
 package com.scanoss;
 
 import com.google.gson.JsonObject;
+import com.scanoss.settings.BomConfiguration;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.dto.ScanFileResult;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.scanoss.TestConstants.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @Slf4j
 public class TestJsonUtils {
@@ -86,5 +86,28 @@ public class TestJsonUtils {
         log.info("Scan File Results: {}", scanFileResults);
 
         log.info("Finished {} -->", methodName);
+    }
+
+    @Test()
+    public void TestBomConfiguration() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+
+        JsonObject jsonObject = JsonUtils.toJsonObject(BOM_CONFIGURATION_MOCK);
+        assertNotNull(jsonObject);
+        assertFalse("Should have decoded JSON Objects", jsonObject.isEmpty());
+        log.info("JSON Objects: {}", jsonObject);
+
+
+
+        BomConfiguration bomConfiguration = JsonUtils.toBomConfigurationFromObject(jsonObject);
+        assertNotNull(bomConfiguration);
+        log.info("Bom Configuration: {}", bomConfiguration);
+
+
+        log.info("Finished {} -->", methodName);
+
     }
 }

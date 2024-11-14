@@ -26,6 +26,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.scanoss.dto.ScanFileDetails;
 import com.scanoss.dto.ScanFileResult;
+import com.scanoss.settings.BomConfiguration;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -193,6 +194,18 @@ public class JsonUtils {
             results.add(new ScanFileResult(f, fileDetails));
         });
         return results;
+    }
+
+    /**
+     * Convert the given JSON Object to a Settings object
+     *
+     * @param jsonObject JSON Object
+     * @return Settings
+     */
+    public static BomConfiguration toBomConfigurationFromObject(@NonNull JsonObject jsonObject) {
+
+        Gson gson = new Gson();
+        return gson.fromJson(jsonObject, BomConfiguration.class);
     }
 
     /**
