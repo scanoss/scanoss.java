@@ -238,6 +238,36 @@ public class TestScannerPostProcessor {
         log.info("Finished {} -->", methodName);
     }
 
+    @Test()
+    public void TestReplaceRuleWithPurl() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+
+        // Setup replace rule
+        BomConfiguration.ReplaceRule replaceRule = new BomConfiguration.ReplaceRule();
+        replaceRule.setPurl("pkg:github/scanoss/scanoss.py");
+        replaceRule.setReplaceWith("pkg:github/scanoss/scanner.c");
+        bomConfiguration.getBom().setReplace(Collections.singletonList(replaceRule));
+
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+
+        Optional<ScanFileResult> processedResult = results.stream()
+                .filter(r -> r.getFilePath().equals("scanoss/api/__init__.py"))
+                .findFirst();
+
+        assertTrue("Processed result should exist", processedResult.isPresent());
+
+        // Verify exactly one PURL exists and it's the correct one
+        String[] processedPurls = processedResult.get().getFileDetails().get(0).getPurls();
+        assertEquals("Should have exactly one PURL", 1, processedPurls.length);
+        assertEquals("PURL should be scanner.c",
+                "pkg:github/scanoss/scanner.c", processedPurls[0]);
+
+        log.info("Finished {} -->", methodName);
+
+    }
+
 
 
 }
