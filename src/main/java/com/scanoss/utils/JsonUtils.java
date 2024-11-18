@@ -30,8 +30,11 @@ import com.scanoss.settings.BomConfiguration;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -180,6 +183,19 @@ public class JsonUtils {
         return scanFileResults;
     }
 
+    public static JsonObject toScanFileResultJsonObject(List<ScanFileResult> scanFileResults) {
+        JsonObject root = new JsonObject();
+        Gson gson = new Gson();
+
+        scanFileResults.forEach(result -> {
+            JsonElement detailsJson = gson.toJsonTree(result.getFileDetails());
+            root.add(result.getFilePath(), detailsJson);
+        });
+
+        return root;
+    }
+
+
     /**
      * Convert the given JSON Object to a list of Scan File Results
      *
@@ -203,9 +219,14 @@ public class JsonUtils {
      * @return Settings
      */
     public static BomConfiguration toBomConfigurationFromObject(@NonNull JsonObject jsonObject) {
-
         Gson gson = new Gson();
         return gson.fromJson(jsonObject, BomConfiguration.class);
+    }
+
+    public static BomConfiguration toBomConfigurationFromFilePath(@NonNull String path) throws IOException {
+        String settingsContent = Files.readString(Path.of(path));
+        JsonObject settingsJson = JsonUtils.toJsonObject(settingsContent);
+        return JsonUtils.toBomConfigurationFromObject(settingsJson);
     }
 
     /**

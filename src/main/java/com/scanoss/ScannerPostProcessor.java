@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class ScannerPostProcessor {
 
-    private Map<String, ScanFileDetails> indexPurlToScanFileDetails = new HashMap<>();
+    private Map<String, ScanFileDetails> componentIndex = new HashMap<>();
 
     /**
      * Processes scan results according to BOM configuration rules.
@@ -25,7 +25,7 @@ public class ScannerPostProcessor {
             throw new ScannerPostProcessorException("Scan results and BOM configuration cannot be null");
         }
 
-        createIndexPurlToScanFileDetails(scanFileResults);
+        createComponentIndex(scanFileResults);
 
         List<ScanFileResult> processedResults = new ArrayList<>(scanFileResults);
 
@@ -34,7 +34,7 @@ public class ScannerPostProcessor {
             processedResults = applyRemoveRules(processedResults, bomConfiguration.getBom().getRemove());
         }
 
-        //Apply replace rules. First loads the indexPurlToScanFileDetails
+        //Apply replace rules
         if (bomConfiguration.getBom().getReplace() != null && !bomConfiguration.getBom().getReplace().isEmpty()) {
             processedResults = applyReplaceRules(processedResults, bomConfiguration.getBom().getReplace());
         }
@@ -48,13 +48,13 @@ public class ScannerPostProcessor {
      * @param scanFileResults List of scan results to process
      * @return Map where keys are PURLs and values are corresponding ScanFileDetails
      */
-    private void createIndexPurlToScanFileDetails(List<ScanFileResult> scanFileResults) {
+    private void createComponentIndex(List<ScanFileResult> scanFileResults) {
         if (scanFileResults == null) {
-            this.indexPurlToScanFileDetails = new HashMap<>();
+            this.componentIndex = new HashMap<>();
             return;
         }
 
-        this.indexPurlToScanFileDetails = scanFileResults.stream()
+        this.componentIndex = scanFileResults.stream()
                 .filter(result -> result != null && result.getFileDetails() != null)
                 .flatMap(result -> result.getFileDetails().stream())
                 .filter(details -> details != null && details.getPurls() != null)
@@ -64,7 +64,7 @@ public class ScannerPostProcessor {
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
-                        (existing, replacement) -> existing,  // Keep first occurrence in case of duplicates
+                        (existing, replacement) -> existing,
                         HashMap::new
                 ));    }
 
@@ -93,7 +93,7 @@ public class ScannerPostProcessor {
                 }
 
                 // Try to get cached component first
-                ScanFileDetails cachedComponent = this.indexPurlToScanFileDetails.get(replacementPurl);
+                ScanFileDetails cachedComponent = this.componentIndex.get(replacementPurl);
                 if (cachedComponent != null) {
                     result.getFileDetails().set(0, cachedComponent); // Use cached component if available
                 } else {

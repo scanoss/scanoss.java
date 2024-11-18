@@ -23,6 +23,8 @@
 package com.scanoss.cli;
 
 import com.scanoss.Scanner;
+import com.scanoss.ScannerPostProcessor;
+import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
 import com.scanoss.utils.JsonUtils;
@@ -39,6 +41,7 @@ import java.util.List;
 import static com.scanoss.ScanossConstants.*;
 import static com.scanoss.cli.CommandLine.printDebug;
 import static com.scanoss.cli.CommandLine.printMsg;
+import static com.scanoss.utils.JsonUtils.toScanFileResultJsonObject;
 
 /**
  * Scan Command Line Processor Class
@@ -91,6 +94,9 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-n", "--ignore"}, description = "Ignore components specified in the SBOM file")
     private String ignoreSbom;
 
+    @picocli.CommandLine.Option(names = {"--settings"}, description = "Settings file to use for scanning (optional - default scanoss.json)")
+    private String settings;
+
     @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
     private int snippetLimit = 1000;
 
@@ -107,6 +113,8 @@ class ScanCommandLine implements Runnable {
     private String fileFolder;
 
     private Scanner scanner;
+
+    private List<ScanFileResult> scanFileResults;
 
     /**
      * Run the 'scan' command
@@ -165,6 +173,7 @@ class ScanCommandLine implements Runnable {
                 .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
                 .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
                 .build();
+
         File f = new File(fileFolder);
         if (!f.exists()) {
             throw new RuntimeException(String.format("Error: File or folder does not exist: %s\n", fileFolder));
@@ -176,6 +185,18 @@ class ScanCommandLine implements Runnable {
         } else {
             throw new RuntimeException(String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
         }
+
+        if (settings != null && !settings.isEmpty()) {
+            try {
+                ScannerPostProcessor scannerPostProcessor = new ScannerPostProcessor();
+                scanFileResults = scannerPostProcessor.process(scanFileResults, JsonUtils.toBomConfigurationFromFilePath(settings));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        var out = spec.commandLine().getOut();
+        JsonUtils.writeJsonPretty(toScanFileResultJsonObject(scanFileResults), null); // Uses System.out
     }
 
     /**
@@ -201,13 +222,12 @@ class ScanCommandLine implements Runnable {
      * @param file file to scan
      */
     private void scanFile(String file) {
-        var out = spec.commandLine().getOut();
         var err = spec.commandLine().getErr();
         try {
             printMsg(err, String.format("Scanning %s...", file));
             String result = scanner.scanFile(file);
             if (result != null && !result.isEmpty()) {
-                JsonUtils.writeJsonPretty(JsonUtils.toJsonObject(result), out);
+                scanFileResults = JsonUtils.toScanFileResultsFromObject(JsonUtils.toJsonObject(result));
                 return;
             } else {
                 err.println("Warning: No results returned.");
@@ -235,7 +255,7 @@ class ScanCommandLine implements Runnable {
             if (results != null && !results.isEmpty()) {
                 printMsg(err, String.format("Found %d results.", results.size()));
                 printDebug(err, "Converting to JSON...");
-                JsonUtils.writeJsonPretty(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)), out);
+                scanFileResults = JsonUtils.toScanFileResultsFromObject(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)));
                 return;
             } else {
                 err.println("Error: No results return.");
