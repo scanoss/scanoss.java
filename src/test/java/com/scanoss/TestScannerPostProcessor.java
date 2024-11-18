@@ -22,15 +22,15 @@
  */
 package com.scanoss;
 import com.google.gson.JsonObject;
-import com.scanoss.exceptions.ScannerPostProcessorException;
+import com.scanoss.settings.Bom;
+import com.scanoss.settings.ReplaceRule;
+import com.scanoss.settings.Rule;
 import com.scanoss.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import static com.scanoss.TestConstants.jsonResultsString;
-import static org.junit.Assert.assertFalse;
 import com.scanoss.dto.ScanFileResult;
-import com.scanoss.settings.BomConfiguration;
 
 import java.util.*;
 
@@ -39,51 +39,20 @@ import static org.junit.Assert.*;
 @Slf4j
 public class TestScannerPostProcessor {
     private ScannerPostProcessor scannerPostProcessor;
-    private BomConfiguration bomConfiguration;
     private List<ScanFileResult> sampleScanResults;
 
     @Before
     public void Setup() {
         log.info("Starting ScannerPostProcessor test cases...");
         scannerPostProcessor = new ScannerPostProcessor();
-        setupBomConfiguration();
-        setupSampleScanResults();
-    }
 
-    private void setupBomConfiguration() {
-        bomConfiguration = new BomConfiguration();
-        BomConfiguration.Bom bom = new BomConfiguration.Bom();
-        bomConfiguration.setBom(bom);
-    }
-
-    private void setupSampleScanResults() {
         JsonObject jsonObject = JsonUtils.toJsonObject(jsonResultsString);
         sampleScanResults = JsonUtils.toScanFileResultsFromObject(jsonObject);
+
     }
+
 
     /** TESTING REMOVE RULES**/
-    @Test
-    public void TestNullParameters() {
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        log.info("<-- Starting {}", methodName);
-
-        try {
-            scannerPostProcessor.process(null, bomConfiguration);
-            fail("Should throw ScannerPostProcessorException when scan results is null");
-        } catch (Exception e) {
-            assertTrue("Wrong exception type thrown: " + e.getClass().getSimpleName(), e instanceof ScannerPostProcessorException);
-        }
-
-        try {
-            scannerPostProcessor.process(sampleScanResults, null);
-            fail("Should throw ScannerPostProcessorException when BOM configuration is null");
-        } catch (Exception e) {
-            assertTrue("Wrong exception type thrown: " + e.getClass().getSimpleName(), e instanceof ScannerPostProcessorException);
-        }
-
-        log.info("Finished {} -->", methodName);
-    }
 
     @Test
     public void TestRemoveRuleWithPathAndPurl() {
@@ -91,14 +60,18 @@ public class TestScannerPostProcessor {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        // Setup remove rule with both path and purl
-        BomConfiguration.Rule removeRule = new BomConfiguration.Rule();
-        removeRule.setPath("CMSsite/admin/js/npm.js");
-        removeRule.setPurl("pkg:github/twbs/bootstrap");
-        bomConfiguration.getBom().setRemove(Collections.singletonList(removeRule));
+        Rule removeRule = Rule.builder()
+                .purl("pkg:github/twbs/bootstrap")
+                .path("CMSsite/admin/js/npm.js")
+                .build();
+
+        Bom bom = Bom.builder().
+                remove(Arrays.asList(removeRule))
+                .build();
+
 
         // Process results
-        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify
         assertEquals("Should have one result less after removal", sampleScanResults.size()-1, results.size());
@@ -112,12 +85,17 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup remove rule with only purl
-        BomConfiguration.Rule removeRule = new BomConfiguration.Rule();
-        removeRule.setPurl("pkg:npm/mip-bootstrap");
-        bomConfiguration.getBom().setRemove(Collections.singletonList(removeRule));
+        Rule removeRule = Rule.builder()
+                .purl("pkg:npm/mip-bootstrap")
+                .path("CMSsite/admin/js/npm.js")
+                .build();
+
+        Bom bom = Bom.builder().
+                remove(Arrays.asList(removeRule))
+                .build();
 
         // Process results
-        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify
         assertEquals("Size should decrease by 1 after removal",
@@ -136,14 +114,20 @@ public class TestScannerPostProcessor {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
+
         // Setup non-matching remove rule
-        BomConfiguration.Rule removeRule = new BomConfiguration.Rule();
-        removeRule.setPath("non/existing/path.c");
-        removeRule.setPurl("pkg:github/non-existing/lib@1.0.0");
-        bomConfiguration.getBom().setRemove(Collections.singletonList(removeRule));
+        Rule removeRule = Rule.builder()
+                .purl("pkg:github/non-existing/lib@1.0.0")
+                .path("non/existing/path.c")
+                .build();
+
+        Bom bom = Bom.builder().
+                remove(Arrays.asList(removeRule))
+                .build();
+
 
         // Process results
-        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify
         assertEquals("Should keep all results", sampleScanResults.size(), results.size());
@@ -158,25 +142,28 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup multiple remove rules
-        List<BomConfiguration.Rule> removeRules = new ArrayList<>();
 
-        BomConfiguration.Rule rule1 = new BomConfiguration.Rule();
-        rule1.setPath("CMSsite/admin/js/npm.js");
-        rule1.setPurl("pkg:npm/myoneui");
+        Rule removeRule1 = Rule.builder()
+                .purl("pkg:npm/myoneui")
+                .path("CMSsite/admin/js/npm.js")
+                .build();
 
-        BomConfiguration.Rule rule2 = new BomConfiguration.Rule();
-        rule2.setPurl("pkg:pypi/scanoss");
+        Rule removeRule2 = Rule.builder()
+                .purl("pkg:pypi/scanoss")
+                .build();
 
-        BomConfiguration.Rule rule3 = new BomConfiguration.Rule();
-        rule3.setPath("scanoss/__init__.py");
+        Rule removeRule3 = Rule.builder()
+                .path("scanoss/__init__.py")
+                .build();
 
-        removeRules.add(rule1);
-        removeRules.add(rule2);
-        removeRules.add(rule3);
-        bomConfiguration.getBom().setRemove(removeRules);
+
+        Bom bom = Bom.builder().
+                remove(Arrays.asList(removeRule1, removeRule2, removeRule3))
+                .build();
+
 
         // Process results
-        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify
         assertTrue("Should remove all results", results.isEmpty());
@@ -190,8 +177,11 @@ public class TestScannerPostProcessor {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
+        Bom bom = Bom.builder()
+                .build();
+
         // Process results with empty remove rules
-        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify
         assertEquals("Should keep all results", sampleScanResults.size(), results.size());
@@ -208,10 +198,15 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup replace rule with empty PURL
-        BomConfiguration.ReplaceRule replaceRule = new BomConfiguration.ReplaceRule();
-        replaceRule.setPurl("pkg:github/scanoss/scanoss.py");
-        replaceRule.setReplaceWith("");
-        bomConfiguration.getBom().setReplace(Collections.singletonList(replaceRule));
+        ReplaceRule replace = ReplaceRule.builder()
+                .purl("pkg:github/scanoss/scanoss.py")
+                .replaceWith("")
+                .build();
+
+        Bom bom = Bom.builder()
+                .replace(Arrays.asList(replace))
+                .build();
+
 
         // Find the specific result for scanoss.py
         Optional<ScanFileResult> originalResult = sampleScanResults.stream()
@@ -223,7 +218,7 @@ public class TestScannerPostProcessor {
 
 
         // Process results
-        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         Optional<ScanFileResult> processedResult = results.stream()
                 .filter(r -> r.getFilePath().equals("scanoss/api/__init__.py"))
@@ -244,13 +239,18 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
 
-        // Setup replace rule
-        BomConfiguration.ReplaceRule replaceRule = new BomConfiguration.ReplaceRule();
-        replaceRule.setPurl("pkg:github/scanoss/scanoss.py");
-        replaceRule.setReplaceWith("pkg:github/scanoss/scanner.c");
-        bomConfiguration.getBom().setReplace(Collections.singletonList(replaceRule));
+        // Setup replace rule with empty PURL
+        ReplaceRule replace = ReplaceRule.builder()
+                .purl("pkg:github/scanoss/scanoss.py")
+                .replaceWith("pkg:github/scanoss/scanner.c")
+                .build();
 
-        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bomConfiguration);
+        Bom bom = Bom.builder()
+                .replace(Arrays.asList(replace))
+                .build();
+
+
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         Optional<ScanFileResult> processedResult = results.stream()
                 .filter(r -> r.getFilePath().equals("scanoss/api/__init__.py"))

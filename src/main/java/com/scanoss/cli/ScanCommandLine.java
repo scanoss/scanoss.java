@@ -187,12 +187,12 @@ class ScanCommandLine implements Runnable {
         }
 
         if (settings != null && !settings.isEmpty()) {
-            try {
-                ScannerPostProcessor scannerPostProcessor = new ScannerPostProcessor();
-                scanFileResults = scannerPostProcessor.process(scanFileResults, JsonUtils.toBomConfigurationFromFilePath(settings));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+//            try {
+//                ScannerPostProcessor scannerPostProcessor = new ScannerPostProcessor();
+//                scanFileResults = scannerPostProcessor.process(scanFileResults, JsonUtils.toBomConfigurationFromFilePath(settings));
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
         }
 
         var out = spec.commandLine().getOut();

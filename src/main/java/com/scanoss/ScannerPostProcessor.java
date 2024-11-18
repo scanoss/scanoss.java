@@ -2,8 +2,11 @@ package com.scanoss;
 
 import com.scanoss.dto.ScanFileDetails;
 import com.scanoss.dto.ScanFileResult;
-import com.scanoss.exceptions.ScannerPostProcessorException;
-import com.scanoss.settings.BomConfiguration;
+import com.scanoss.settings.Bom;
+import com.scanoss.settings.ReplaceRule;
+import com.scanoss.settings.Rule;
+import com.scanoss.settings.Settings;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,26 +20,22 @@ public class ScannerPostProcessor {
      * Applies remove, and replace rules as specified in the configuration.
      *
      * @param scanFileResults List of scan results to process
-     * @param bomConfiguration Configuration containing BOM rules
+     * @param bom Bom containing BOM rules
      * @return List of processed scan results
      */
-    public List<ScanFileResult> process(List<ScanFileResult> scanFileResults, BomConfiguration bomConfiguration) {
-        if (scanFileResults == null || bomConfiguration == null) {
-            throw new ScannerPostProcessorException("Scan results and BOM configuration cannot be null");
-        }
-
+    public List<ScanFileResult> process(@NotNull List<ScanFileResult> scanFileResults, @NotNull Bom bom) {
         createComponentIndex(scanFileResults);
 
         List<ScanFileResult> processedResults = new ArrayList<>(scanFileResults);
 
         // Apply remove rules
-        if (bomConfiguration.getBom().getRemove() != null && !bomConfiguration.getBom().getRemove().isEmpty()) {
-            processedResults = applyRemoveRules(processedResults, bomConfiguration.getBom().getRemove());
+        if (bom.getRemove() != null && !bom.getRemove().isEmpty()) {
+            processedResults = applyRemoveRules(processedResults, bom.getRemove());
         }
 
         //Apply replace rules
-        if (bomConfiguration.getBom().getReplace() != null && !bomConfiguration.getBom().getReplace().isEmpty()) {
-            processedResults = applyReplaceRules(processedResults, bomConfiguration.getBom().getReplace());
+        if (bom.getReplace() != null && !bom.getReplace().isEmpty()) {
+            processedResults = applyReplaceRules(processedResults, bom.getReplace());
         }
 
         return processedResults;
@@ -77,7 +76,7 @@ public class ScannerPostProcessor {
      * @param replaceRules The list of replacement rules to apply
      * @return A new list containing the processed scan results with updated PURLs
      */
-    private List<ScanFileResult> applyReplaceRules(List<ScanFileResult> results, List<BomConfiguration.ReplaceRule> replaceRules) {
+    private List<ScanFileResult> applyReplaceRules(List<ScanFileResult> results, List<ReplaceRule> replaceRules) {
         if (results == null || replaceRules == null) {
             return results;
         }
@@ -111,11 +110,7 @@ public class ScannerPostProcessor {
      * 1. The remove rule has both path and purl, and both match the result
      * 2. The remove rule has only purl (no path), and the purl matches the result
      */
-    private List<ScanFileResult> applyRemoveRules(List<ScanFileResult> results, List<BomConfiguration.Rule> removeRules) {
-        if (results == null || removeRules == null) {
-            return results;
-        }
-
+    private List<ScanFileResult> applyRemoveRules(@NotNull List<ScanFileResult> results, @NotNull List<Rule> removeRules) {
         List<ScanFileResult> resultsList = new ArrayList<>(results);
 
         resultsList.removeIf(result -> findMatchingRule(result, removeRules).isPresent());
@@ -134,7 +129,7 @@ public class ScannerPostProcessor {
      * @param rules List of rules to check against
      * @return Optional containing the first matching rule, or empty if no match found
      */
-    private <T extends BomConfiguration.Rule> Optional<T> findMatchingRule(ScanFileResult result, List<T> rules) {
+    private <T extends Rule> Optional<T> findMatchingRule(ScanFileResult result, List<T> rules) {
         return rules.stream()
                 .filter(rule -> {
                     boolean hasPath = rule.getPath() != null && !rule.getPath().isEmpty();
@@ -156,7 +151,7 @@ public class ScannerPostProcessor {
     /**
      * Checks if both path and purl of the rule match the result
      */
-    private boolean isPathAndPurlMatch(BomConfiguration.Rule rule, ScanFileResult result) {
+    private boolean isPathAndPurlMatch(Rule rule, ScanFileResult result) {
         return Objects.equals(rule.getPath(), result.getFilePath()) &&
                 isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
@@ -165,14 +160,14 @@ public class ScannerPostProcessor {
     /**
      * Checks if the rule's path matches the result (ignoring purl)
      */
-    private boolean isPathOnlyMatch(BomConfiguration.Rule rule, ScanFileResult result) {
+    private boolean isPathOnlyMatch(Rule rule, ScanFileResult result) {
         return Objects.equals(rule.getPath(), result.getFilePath());
     }
 
     /**
      * Checks if the rule's purl matches the result (ignoring path)
      */
-    private boolean isPurlOnlyMatch(BomConfiguration.Rule rule, ScanFileResult result) {
+    private boolean isPurlOnlyMatch(Rule rule, ScanFileResult result) {
         return isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
 

@@ -26,15 +26,11 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.scanoss.dto.ScanFileDetails;
 import com.scanoss.dto.ScanFileResult;
-import com.scanoss.settings.BomConfiguration;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -212,22 +208,7 @@ public class JsonUtils {
         return results;
     }
 
-    /**
-     * Convert the given JSON Object to a Settings object
-     *
-     * @param jsonObject JSON Object
-     * @return Settings
-     */
-    public static BomConfiguration toBomConfigurationFromObject(@NonNull JsonObject jsonObject) {
-        Gson gson = new Gson();
-        return gson.fromJson(jsonObject, BomConfiguration.class);
-    }
 
-    public static BomConfiguration toBomConfigurationFromFilePath(@NonNull String path) throws IOException {
-        String settingsContent = Files.readString(Path.of(path));
-        JsonObject settingsJson = JsonUtils.toJsonObject(settingsContent);
-        return JsonUtils.toBomConfigurationFromObject(settingsJson);
-    }
 
     /**
      * Determine if the given string is a boolean true/false
