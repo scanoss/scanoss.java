@@ -32,7 +32,14 @@ import org.junit.Test;
 import static com.scanoss.TestConstants.jsonResultsString;
 import com.scanoss.dto.ScanFileResult;
 
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -40,35 +47,45 @@ import static org.junit.Assert.*;
 public class TestScannerPostProcessor {
     private ScannerPostProcessor scannerPostProcessor;
     private List<ScanFileResult> sampleScanResults;
+    private List<ScanFileResult> longScanResults;
 
     @Before
-    public void Setup() {
+    public void Setup() throws URISyntaxException, IOException {
         log.info("Starting ScannerPostProcessor test cases...");
         scannerPostProcessor = new ScannerPostProcessor();
-
         JsonObject jsonObject = JsonUtils.toJsonObject(jsonResultsString);
         sampleScanResults = JsonUtils.toScanFileResultsFromObject(jsonObject);
+
+
+        var resource = getClass().getClassLoader().getResource("results.json");
+        if (resource == null) {
+            throw new IllegalStateException(
+                    "Required test resource 'results.json' not found. Please ensure it exists in src/test/resources/data/"
+            );
+        }
+
+
+        String json = Files.readString(Paths.get(resource.toURI()), StandardCharsets.UTF_8);
+        longScanResults = JsonUtils.toScanFileResultsFromObject(JsonUtils.toJsonObject(json));
 
     }
 
 
-    /** TESTING REMOVE RULES**/
 
+
+    /** TESTING REMOVE RULES**/
     @Test
     public void TestRemoveRuleWithPathAndPurl() {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        Rule removeRule = Rule.builder()
+        Rule rule = Rule.builder()
                 .purl("pkg:github/twbs/bootstrap")
                 .path("CMSsite/admin/js/npm.js")
                 .build();
 
-        Bom bom = Bom.builder().
-                remove(Arrays.asList(removeRule))
-                .build();
-
+        Bom bom = Bom.builder().remove(rule).build();
 
         // Process results
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
@@ -127,10 +144,10 @@ public class TestScannerPostProcessor {
 
 
         // Process results
-        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
+        List<ScanFileResult> results = scannerPostProcessor.process(longScanResults, bom);
 
         // Verify
-        assertEquals("Should keep all results", sampleScanResults.size(), results.size());
+        assertEquals("Should keep all results", longScanResults.size(), results.size());
 
         log.info("Finished {} -->", methodName);
     }
@@ -267,6 +284,89 @@ public class TestScannerPostProcessor {
         log.info("Finished {} -->", methodName);
 
     }
+
+
+
+    @Test()
+    public void TestOriginalPurlExistsWhenNoReplacementRule() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String originalPurl = "pkg:github/scanoss/scanner.c";
+
+        // Setup BOM without replace rule - expecting original PURL to exist
+        Bom bom = Bom.builder()
+                .build();
+
+        List<ScanFileResult> results = scannerPostProcessor.process(longScanResults, bom);
+
+        assertNotNull("Results should not be null", results);
+        assertFalse("Results should not be empty", results.isEmpty());
+
+        List<String> allPurls = results.stream()
+                .map(result -> result.getFileDetails().get(0).getPurls())
+                .flatMap(Arrays::stream)
+                .collect(Collectors.toList());
+
+        log.info("All PURLs found: {}", allPurls);
+        log.info("Original PURL we're looking for: '{}'", originalPurl);
+
+
+        boolean hasOriginalPurl = results.stream()
+                .map(result -> result.getFileDetails().get(0).getPurls())
+                .flatMap(Arrays::stream)
+                .anyMatch(purl -> {
+                    log.info("Comparing: '{}' with '{}' = {}",
+                            purl, originalPurl, purl.equals(originalPurl));
+                    return purl.equals(originalPurl);
+                });
+
+        assertTrue("Original PURL should exist since no replacement rule was set", hasOriginalPurl);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
+    @Test
+    public void TestOriginalPurlNotExistsWhenReplacementRuleDefined() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String originalPurl = "pkg:github/scanoss/scanner.c";
+        String replacementPurl = "pkg:maven/com.scanoss/scanoss";
+
+        // Setup replace rule
+        ReplaceRule replace = ReplaceRule.builder()
+                .purl(originalPurl)
+                .replaceWith(replacementPurl)
+                .build();
+
+        Bom bom = Bom.builder()
+                .replace(Arrays.asList(replace))
+                .build();
+
+        List<ScanFileResult> results = scannerPostProcessor.process(longScanResults, bom);
+
+        assertNotNull("Results should not be null", results);
+        assertFalse("Results should not be empty", results.isEmpty());
+
+        boolean hasOriginalPurl = results.stream()
+                .map(result -> result.getFileDetails().get(0).getPurls())
+                .flatMap(Arrays::stream)
+                .anyMatch(purl -> purl.equals(originalPurl));
+
+        assertFalse("Original PURL should not exist when replacement rule is set", hasOriginalPurl);
+
+        boolean hasReplacementPurl = results.stream()
+                .map(result -> result.getFileDetails().get(0).getPurls())
+                .flatMap(Arrays::stream)
+                .anyMatch(purl -> purl.equals(replacementPurl));
+
+        assertTrue("Replacement PURL should exist", hasReplacementPurl);
+
+        log.info("Finished {} -->", methodName);
+    }
+
 
 
 

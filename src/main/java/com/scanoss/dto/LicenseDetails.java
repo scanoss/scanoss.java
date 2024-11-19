@@ -23,7 +23,10 @@
 package com.scanoss.dto;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import static com.scanoss.utils.JsonUtils.checkBooleanString;
 
@@ -31,17 +34,20 @@ import static com.scanoss.utils.JsonUtils.checkBooleanString;
  * Scan Results Match License Details
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class LicenseDetails {
-    private final String name;
-    private final String source;
-    private final String copyleft;
+    private String name;
+    private String source;
+    private String copyleft;
     @SerializedName("patent_hints")
-    private final String patentHints;
-    private final String url;
+    private String patentHints;
+    private String url;
     @SerializedName("checklist_url")
-    private final String checklistUrl;
+    private String checklistUrl;
     @SerializedName("osadl_updated")
-    private final String osadlUpdated;
+    private String osadlUpdated;
 
     /**
      * Determine if the license is Copyleft or not

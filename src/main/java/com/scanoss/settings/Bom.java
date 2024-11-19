@@ -2,27 +2,17 @@ package com.scanoss.settings;
 
 import lombok.Builder;
 import lombok.Data;
-import org.jetbrains.annotations.NotNull;
+import lombok.Singular;
 
 import java.util.List;
 
 @Data
 @Builder
 public class Bom {
-        private List<Rule> include;
-        private List<Rule> remove;
-        private List<ReplaceRule> replace;
-
-
-        public void addInclude(@NotNull Rule rule) {
-            this.include.add(rule);
-        }
-
-        public void addRemove(@NotNull Rule rule) {
-            this.include.add(rule);
-        }
-
-
+    private @Singular("include") List<Rule> include;
+    private @Singular("ignore") List<Rule> ignore;
+    private @Singular("remove") List<Rule> remove;
+    private @Singular("replace") List<ReplaceRule> replace;
 }
 
 

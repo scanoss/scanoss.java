@@ -23,45 +23,51 @@
 package com.scanoss.dto;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Scan File Result Detailed Information
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ScanFileDetails {
-    private final String id;
+    private String id;
     private String component;
-    private final String vendor;
-    private final String version;
-    private final String latest;
-    private final String url;
-    private final String status;
-    private final String matched;
-    private final String file;
-    private final String lines;
+    private String vendor;
+    private String version;
+    private String latest;
+    private String url;
+    private String status;
+    private String matched;
+    private String file;
+    private String lines;
     @SerializedName("oss_lines")
-    private final String ossLines;
+    private String ossLines;
     @SerializedName("file_hash")
-    private final String fileHash;
+    private String fileHash;
     @SerializedName("file_url")
-    private final String fileUrl;
+    private String fileUrl;
     @SerializedName("url_hash")
-    private final String urlHash;
+    private String urlHash;
     @SerializedName("release_date")
-    private final String releaseDate;
+    private String releaseDate;
     @SerializedName("source_hash")
-    private final String sourceHash;
+    private String sourceHash;
     @SerializedName("purl")
     private String[] purls;
     @SerializedName("server")
-    private final ServerDetails serverDetails;
+    private ServerDetails serverDetails;
     @SerializedName("licenses")
-    private final LicenseDetails[] licenseDetails;
+    private LicenseDetails[] licenseDetails;
     @SerializedName("quality")
-    private final QualityDetails[] qualityDetails;
+    private QualityDetails[] qualityDetails;
     @SerializedName("vulnerabilities")
-    private final VulnerabilityDetails[] vulnerabilityDetails;
+    private VulnerabilityDetails[] vulnerabilityDetails;
     @SerializedName("copyrights")
-    private final CopyrightDetails[] copyrightDetails;
+    private CopyrightDetails[] copyrightDetails;
 }

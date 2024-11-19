@@ -1,5 +1,6 @@
 package com.scanoss.settings;
 
+import com.github.packageurl.PackageURL;
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

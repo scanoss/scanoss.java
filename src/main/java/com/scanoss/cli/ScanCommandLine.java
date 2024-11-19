@@ -27,6 +27,7 @@ import com.scanoss.ScannerPostProcessor;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.settings.Settings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
@@ -35,6 +36,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 
@@ -187,12 +190,13 @@ class ScanCommandLine implements Runnable {
         }
 
         if (settings != null && !settings.isEmpty()) {
-//            try {
-//                ScannerPostProcessor scannerPostProcessor = new ScannerPostProcessor();
-//                scanFileResults = scannerPostProcessor.process(scanFileResults, JsonUtils.toBomConfigurationFromFilePath(settings));
-//            } catch (Exception e) {
-//                throw new RuntimeException(e);
-//            }
+            try {
+                Path path = Paths.get(settings);
+                ScannerPostProcessor scannerPostProcessor = new ScannerPostProcessor();
+                scanFileResults = scannerPostProcessor.process(scanFileResults, Settings.fromPath(path).getBom());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
         var out = spec.commandLine().getOut();
