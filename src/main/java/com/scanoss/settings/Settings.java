@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,50 +20,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.dto;
+package com.scanoss.settings;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
+import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
-import static com.scanoss.utils.JsonUtils.checkBooleanString;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-/**
- * Scan Results Match License Details
- */
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class LicenseDetails {
-    private String name;
-    private String source;
-    private String copyleft;
-    @SerializedName("patent_hints")
-    private String patentHints;
-    private String url;
-    @SerializedName("checklist_url")
-    private String checklistUrl;
-    @SerializedName("osadl_updated")
-    private String osadlUpdated;
+public class Settings {
+    private Bom bom;
+
 
     /**
-     * Determine if the license is Copyleft or not
+     * Creates a Settings object from a JSON string
      *
-     * @return <code>true</code> if copyleft, <code>false</code> otherwise
+     * @param json The JSON string to parse
+     * @return A new Settings object
      */
-    public boolean isCopyleft() {
-        return checkBooleanString(copyleft);
+    public static Settings fromJSON(@NotNull String json) {
+        Gson gson = new Gson();
+        return gson.fromJson(json, Settings.class);
     }
 
     /**
-     * Determine if the license is Copyleft or not
+     * Creates a Settings object from a JSON file
      *
-     * @return <code>true</code> if copyleft, <code>false</code> otherwise
+     * @param path The path to the JSON file
+     * @return A new Settings object
+     * @throws IOException If there's an error reading the file
      */
-    public boolean hasPatentHints() {
-        return checkBooleanString(patentHints);
+    public static Settings fromPath(@NotNull Path path) throws IOException {
+        try {
+            String json = Files.readString(path, StandardCharsets.UTF_8);
+            return fromJSON(json);
+        } catch (IOException e) {
+            throw new IOException("Failed to read settings file: " + path, e);
+        }
     }
 }
+

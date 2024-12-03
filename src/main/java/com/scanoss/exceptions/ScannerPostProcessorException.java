@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,50 +20,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.dto;
-
-import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import static com.scanoss.utils.JsonUtils.checkBooleanString;
+package com.scanoss.exceptions;
 
 /**
- * Scan Results Match License Details
+ * SCANOSS Post Processor Exception Class
+ * <p>
+ * This exception will be used by the ScannerPostProcessor class to alert processing issues
+ * </p>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class LicenseDetails {
-    private String name;
-    private String source;
-    private String copyleft;
-    @SerializedName("patent_hints")
-    private String patentHints;
-    private String url;
-    @SerializedName("checklist_url")
-    private String checklistUrl;
-    @SerializedName("osadl_updated")
-    private String osadlUpdated;
+public class ScannerPostProcessorException extends RuntimeException {
 
     /**
-     * Determine if the license is Copyleft or not
+     * Winnowing Exception
      *
-     * @return <code>true</code> if copyleft, <code>false</code> otherwise
+     * @param errorMessage error message
      */
-    public boolean isCopyleft() {
-        return checkBooleanString(copyleft);
+    public ScannerPostProcessorException(String errorMessage) {
+        super(errorMessage);
     }
 
     /**
-     * Determine if the license is Copyleft or not
+     * Nested Winnowing Exception
      *
-     * @return <code>true</code> if copyleft, <code>false</code> otherwise
+     * @param errorMessage error message
+     * @param err          nested exception
      */
-    public boolean hasPatentHints() {
-        return checkBooleanString(patentHints);
+    public ScannerPostProcessorException(String errorMessage, Throwable err) {
+        super(errorMessage, err);
     }
 }

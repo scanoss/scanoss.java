@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,18 +20,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.dto;
+package com.scanoss.settings;
 
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-
-/**
- * Scan File Results Details
- */
 @Data
-public class ScanFileResult {
-    private final String filePath;
-    private final List<ScanFileDetails> fileDetails;
+@Slf4j
+@SuperBuilder()
+public class Rule {
+    private String path;
+    private String purl;    //TODO: Add validation with PackageURL
 }
+
 

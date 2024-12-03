@@ -1,0 +1,12 @@
+{
+  "bom": {
+    "include": [],
+    "remove": [
+      {
+        "path": "scanner.c",
+        "purl": "pkg:github/scanoss/scanner.c"
+      }
+    ]
+  }
+}
+

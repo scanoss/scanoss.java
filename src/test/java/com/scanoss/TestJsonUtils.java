@@ -34,8 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.scanoss.TestConstants.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @Slf4j
 public class TestJsonUtils {
@@ -87,4 +86,5 @@ public class TestJsonUtils {
 
         log.info("Finished {} -->", methodName);
     }
+
 }
