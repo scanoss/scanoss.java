@@ -11,7 +11,7 @@ import java.util.List;
 public class Bom {
     private @Singular("include") List<Rule> include;
     private @Singular("ignore") List<Rule> ignore;
-    private @Singular("remove") List<Rule> remove;
+    private @Singular("remove") List<RemoveRule> remove;
     private @Singular("replace") List<ReplaceRule> replace;
 }
 

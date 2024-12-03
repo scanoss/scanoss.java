@@ -23,6 +23,7 @@
 package com.scanoss.dto;
 
 import com.google.gson.annotations.SerializedName;
+import com.scanoss.dto.enums.MatchType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,7 +37,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ScanFileDetails {
-    private String id;
+    @SerializedName("id")
+    private MatchType matchType;
     private String component;
     private String vendor;
     private String version;

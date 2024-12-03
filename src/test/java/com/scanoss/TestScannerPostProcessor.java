@@ -23,8 +23,8 @@
 package com.scanoss;
 import com.google.gson.JsonObject;
 import com.scanoss.settings.Bom;
+import com.scanoss.settings.RemoveRule;
 import com.scanoss.settings.ReplaceRule;
-import com.scanoss.settings.Rule;
 import com.scanoss.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -54,7 +54,7 @@ public class TestScannerPostProcessor {
         log.info("Starting ScannerPostProcessor test cases...");
         scannerPostProcessor = new ScannerPostProcessor();
         JsonObject jsonObject = JsonUtils.toJsonObject(jsonResultsString);
-        sampleScanResults = JsonUtils.toScanFileResultsFromObject(jsonObject);
+        sampleScanResults = JsonUtils.toScanFileResultsFromObject(jsonObject);      //TODO: Create sampleScanResults with a helper function
 
 
         var resource = getClass().getClassLoader().getResource("results.json");
@@ -71,16 +71,16 @@ public class TestScannerPostProcessor {
     }
 
 
-
-
-    /** TESTING REMOVE RULES**/
+    /**
+     * TESTING REMOVE RULES
+     **/
     @Test
     public void TestRemoveRuleWithPathAndPurl() {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        Rule rule = Rule.builder()
+        RemoveRule rule = RemoveRule.builder()
                 .purl("pkg:github/twbs/bootstrap")
                 .path("CMSsite/admin/js/npm.js")
                 .build();
@@ -91,7 +91,7 @@ public class TestScannerPostProcessor {
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify
-        assertEquals("Should have one result less after removal", sampleScanResults.size()-1, results.size());
+        assertEquals("Should have one result less after removal", sampleScanResults.size() - 1, results.size());
         log.info("Finished {} -->", methodName);
     }
 
@@ -102,9 +102,8 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup remove rule with only purl
-        Rule removeRule = Rule.builder()
+        RemoveRule removeRule = RemoveRule.builder()
                 .purl("pkg:npm/mip-bootstrap")
-                .path("CMSsite/admin/js/npm.js")
                 .build();
 
         Bom bom = Bom.builder().
@@ -116,7 +115,7 @@ public class TestScannerPostProcessor {
 
         // Verify
         assertEquals("Size should decrease by 1 after removal",
-                sampleScanResults.size()-1,
+                sampleScanResults.size() - 1,
                 results.size());
 
         assertFalse("Should remove file CMSsite/admin/js/npm.js",
@@ -133,7 +132,7 @@ public class TestScannerPostProcessor {
 
 
         // Setup non-matching remove rule
-        Rule removeRule = Rule.builder()
+        RemoveRule removeRule = RemoveRule.builder()
                 .purl("pkg:github/non-existing/lib@1.0.0")
                 .path("non/existing/path.c")
                 .build();
@@ -159,25 +158,26 @@ public class TestScannerPostProcessor {
         log.info("<-- Starting {}", methodName);
 
         // Setup multiple remove rules
-
-        Rule removeRule1 = Rule.builder()
-                .purl("pkg:npm/myoneui")
-                .path("CMSsite/admin/js/npm.js")
-                .build();
-
-        Rule removeRule2 = Rule.builder()
-                .purl("pkg:pypi/scanoss")
-                .build();
-
-        Rule removeRule3 = Rule.builder()
-                .path("scanoss/__init__.py")
-                .build();
-
-
         Bom bom = Bom.builder().
-                remove(Arrays.asList(removeRule1, removeRule2, removeRule3))
-                .build();
+                remove(Arrays.asList(
+                        RemoveRule.builder()
+                                .purl("pkg:npm/myoneui")
+                                .path("CMSsite/admin/js/npm.js")
+                                .build(),
 
+                        RemoveRule.builder()
+                                .purl("pkg:pypi/scanoss")
+                                .build(),
+
+                        RemoveRule.builder()
+                                .path("scanoss/__init__.py")
+                                .build(),
+
+                        RemoveRule.builder()
+                                .path("src/spdx.c")
+                                .build()
+                ))
+                .build();
 
         // Process results
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
@@ -207,11 +207,95 @@ public class TestScannerPostProcessor {
         log.info("Finished {} -->", methodName);
     }
 
+    @Test
+    public void testRemoveRuleWithNonOverlappingLineRanges() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
 
-    /** TESTING REPLACE RULES**/
+        // Setup remove rule with non-overlapping line ranges
+        Bom bom = Bom.builder()
+                .remove(Collections.singletonList(
+                        RemoveRule.builder()
+                                .path("src/spdx.c")
+                                .startLine(1)
+                                .endLine(10)  // Before the first range
+                                .build()
+                ))
+                .build();
+
+
+        // Process results
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
+
+        // Verify - should keep because lines don't overlap
+        assertEquals("Results should match original", sampleScanResults, results);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void testRemoveRuleWithOverlappingLineRanges() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        // Setup remove rule with overlapping line ranges
+        Bom bom = Bom.builder()
+                .remove(Collections.singletonList(
+                        RemoveRule.builder()
+                                .path("src/spdx.c")
+                                .startLine(40)
+                                .endLine(60)  // Overlaps with 11-52
+                                .build()
+                ))
+                .build();
+
+        // Process results
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
+
+        // Verify - should remove because lines overlap
+        assertEquals("Should have one result less after removal", sampleScanResults.size() - 1, results.size());
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void testMultipleRemoveRulesWithMixedLineRanges() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        // Setup multiple remove rules with different line range configurations
+        Bom bom = Bom.builder()
+                .remove(Arrays.asList(
+                        RemoveRule.builder()
+                                .path("src/spdx.c")
+                                .startLine(1)
+                                .endLine(10)  // Non-overlapping
+                                .build(),
+                        RemoveRule.builder()
+                                .path("src/spdx.c")
+                                .startLine(40)
+                                .endLine(60)  // Overlapping
+                                .build()
+                ))
+                .build();
+
+
+        // Process results
+        List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
+
+        assertEquals("Should have one result less after removal", sampleScanResults.size() - 1, results.size());
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
+    /**
+     * TESTING REPLACE RULES
+     **/
     @Test
     public void TestReplaceRuleWithEmptyPurl() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         // Setup replace rule with empty PURL
@@ -252,7 +336,8 @@ public class TestScannerPostProcessor {
 
     @Test()
     public void TestReplaceRuleWithPurl() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
 
@@ -286,10 +371,10 @@ public class TestScannerPostProcessor {
     }
 
 
-
     @Test()
     public void TestOriginalPurlExistsWhenNoReplacementRule() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         String originalPurl = "pkg:github/scanoss/scanner.c";
@@ -329,7 +414,8 @@ public class TestScannerPostProcessor {
 
     @Test
     public void TestOriginalPurlNotExistsWhenReplacementRuleDefined() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         String originalPurl = "pkg:github/scanoss/scanner.c";

@@ -4,12 +4,14 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.scanoss.dto.*;
 import com.scanoss.settings.Bom;
+import com.scanoss.settings.RemoveRule;
 import com.scanoss.settings.ReplaceRule;
 import com.scanoss.settings.Rule;
+import com.scanoss.utils.LineRange;
+import com.scanoss.utils.LineRangeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -86,7 +88,6 @@ public class ScannerPostProcessor {
             for (ReplaceRule rule : this.findMatchingRules(result, rules)) {
 
 
-
                 PackageURL newPurl;
                 try {
                     newPurl = new PackageURL(rule.getReplaceWith());
@@ -104,7 +105,7 @@ public class ScannerPostProcessor {
                 if (cachedFileDetails != null) {
 
                     newFileDetails = ScanFileDetails.builder()
-                            .id(currentFileDetails.getId())
+                            .matchType(currentFileDetails.getMatchType())
                             .file(currentFileDetails.getFile())
                             .fileHash(currentFileDetails.getFileHash())
                             .fileUrl(currentFileDetails.getFileUrl())
@@ -141,23 +142,49 @@ public class ScannerPostProcessor {
 
 
     /**
-     * Applies remove rules to the scan results.
-     * A result will be removed if:
-     * 1. The remove rule has both path and purl, and both match the result
-     * 2. The remove rule has only purl (no path), and the purl matches the result
-     * 3. The remove rule has only path (no purl), and the path matches the result
+     * Applies remove rules to scan results, filtering out matches based on certain criteria.
      *
-     * @param results     The list of scan results to process
-     * @param removeRules The list of remove rules to apply
-     * @return A new list with matching results removed
+     * First, matches are found based on path and/or purl:
+     * - Rule must match either both path and purl, just the path, or just the purl
+     *
+     * Then, for each matched result:
+     * 1. If none of the matching rules define line ranges -> Remove the result
+     * 2. If any matching rules define line ranges -> Only remove if the result's lines overlap with any rule's line range
+     *
+     * @param results The list of scan results to process
+     * @param rules   The list of remove rules to apply
+     * @return A filtered list with matching results removed based on the above criteria
      */
-    private List<ScanFileResult> applyRemoveRules(@NotNull List<ScanFileResult> results, @NotNull List<Rule> removeRules) {
+    private List<ScanFileResult> applyRemoveRules(@NotNull List<ScanFileResult> results, @NotNull List<RemoveRule> rules) {
         List<ScanFileResult> resultsList = new ArrayList<>(results);
 
-        resultsList.removeIf(result -> !findMatchingRules(result, removeRules).isEmpty());
+        resultsList.removeIf(result -> {
+            List<RemoveRule> matchingRules = findMatchingRules(result, rules);
+            if (matchingRules.isEmpty()) {
+                return false;
+            }
+
+            // Check if any matching rules have line ranges defined
+            List<RemoveRule> rulesWithLineRanges = matchingRules.stream()
+                    .filter(rule -> rule.getStartLine() != null && rule.getEndLine() != null)
+                    .collect(Collectors.toList());
+
+            // If no rules have line ranges, remove the result
+            if (rulesWithLineRanges.isEmpty()) {
+                return true;
+            }
+
+            // If we have line ranges, check for overlaps
+            String resultLineRangesString = result.getFileDetails().get(0).getLines();
+            List<LineRange> resultLineRanges = LineRangeUtils.parseLineRanges(resultLineRangesString);
+
+            return rulesWithLineRanges.stream()
+                    .map(rule -> new LineRange(rule.getStartLine(), rule.getEndLine()))
+                    .anyMatch(ruleLineRange -> LineRangeUtils.hasOverlappingRanges(resultLineRanges, ruleLineRange));
+        });
+
         return resultsList;
     }
-
     /**
      * Finds and returns a list of matching rules for a scan result.
      * A rule matches if:
@@ -187,6 +214,7 @@ public class ScannerPostProcessor {
                     return false; // Neither path nor purl specified
                 }).collect(Collectors.toList());
     }
+
 
     /**
      * Checks if both path and purl of the rule match the result
