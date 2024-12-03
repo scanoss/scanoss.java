@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,9 @@
  * THE SOFTWARE.
  */
 package com.scanoss;
+
 import com.google.gson.JsonObject;
+import com.scanoss.dto.ScanFileResult;
 import com.scanoss.settings.Bom;
 import com.scanoss.settings.RemoveRule;
 import com.scanoss.settings.ReplaceRule;
@@ -29,18 +31,19 @@ import com.scanoss.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import static com.scanoss.TestConstants.jsonResultsString;
-import com.scanoss.dto.ScanFileResult;
-
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.scanoss.TestConstants.jsonResultsString;
 import static org.junit.Assert.*;
 
 @Slf4j
@@ -107,7 +110,7 @@ public class TestScannerPostProcessor {
                 .build();
 
         Bom bom = Bom.builder().
-                remove(Arrays.asList(removeRule))
+                remove(Collections.singletonList(removeRule))
                 .build();
 
         // Process results
@@ -138,7 +141,7 @@ public class TestScannerPostProcessor {
                 .build();
 
         Bom bom = Bom.builder().
-                remove(Arrays.asList(removeRule))
+                remove(Collections.singletonList(removeRule))
                 .build();
 
 
@@ -209,7 +212,8 @@ public class TestScannerPostProcessor {
 
     @Test
     public void testRemoveRuleWithNonOverlappingLineRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         // Setup remove rule with non-overlapping line ranges
@@ -235,7 +239,8 @@ public class TestScannerPostProcessor {
 
     @Test
     public void testRemoveRuleWithOverlappingLineRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         // Setup remove rule with overlapping line ranges
@@ -260,7 +265,8 @@ public class TestScannerPostProcessor {
 
     @Test
     public void testMultipleRemoveRulesWithMixedLineRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         // Setup multiple remove rules with different line range configurations
@@ -305,7 +311,7 @@ public class TestScannerPostProcessor {
                 .build();
 
         Bom bom = Bom.builder()
-                .replace(Arrays.asList(replace))
+                .replace(Collections.singletonList(replace))
                 .build();
 
 
@@ -348,7 +354,7 @@ public class TestScannerPostProcessor {
                 .build();
 
         Bom bom = Bom.builder()
-                .replace(Arrays.asList(replace))
+                .replace(Collections.singletonList(replace))
                 .build();
 
 
@@ -428,7 +434,7 @@ public class TestScannerPostProcessor {
                 .build();
 
         Bom bom = Bom.builder()
-                .replace(Arrays.asList(replace))
+                .replace(Collections.singletonList(replace))
                 .build();
 
         List<ScanFileResult> results = scannerPostProcessor.process(longScanResults, bom);
@@ -452,8 +458,6 @@ public class TestScannerPostProcessor {
 
         log.info("Finished {} -->", methodName);
     }
-
-
 
 
 }

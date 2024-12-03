@@ -205,6 +205,7 @@ class ScanCommandLine implements Runnable {
 
     /**
      * Load the specified file into a string
+     *
      * @param filename filename to load
      * @return loaded string
      */

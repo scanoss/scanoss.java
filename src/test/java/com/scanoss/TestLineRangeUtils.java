@@ -22,7 +22,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testSingleRangeOverlap() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         LineRange range1 = new LineRange(1, 10);
@@ -36,7 +37,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testNonOverlappingRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         LineRange range1 = new LineRange(1, 5);
@@ -50,7 +52,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testAdjacentRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         LineRange range1 = new LineRange(1, 5);
@@ -64,7 +67,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testParseValidLineRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         String rangesStr = "11-52,81-123";
@@ -81,7 +85,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testParseEmptyInput() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         List<LineRange> ranges = LineRangeUtils.parseLineRanges("");
@@ -95,7 +100,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testParseInvalidFormat() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         List<LineRange> ranges = LineRangeUtils.parseLineRanges("11-52-81");
@@ -112,7 +118,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testHasOverlappingRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         String ranges1Str = "1-10,20-30";
@@ -129,7 +136,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testNoOverlappingRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         String ranges1Str = "1-10,20-30";
@@ -146,7 +154,8 @@ public class TestLineRangeUtils {
 
     @Test
     public void testSingleLineRanges() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         String rangesStr = "5-5,10-10";

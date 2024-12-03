@@ -143,10 +143,10 @@ public class ScannerPostProcessor {
 
     /**
      * Applies remove rules to scan results, filtering out matches based on certain criteria.
-     *
+     * <p>
      * First, matches are found based on path and/or purl:
      * - Rule must match either both path and purl, just the path, or just the purl
-     *
+     * <p>
      * Then, for each matched result:
      * 1. If none of the matching rules define line ranges -> Remove the result
      * 2. If any matching rules define line ranges -> Only remove if the result's lines overlap with any rule's line range
@@ -185,6 +185,7 @@ public class ScannerPostProcessor {
 
         return resultsList;
     }
+
     /**
      * Finds and returns a list of matching rules for a scan result.
      * A rule matches if:

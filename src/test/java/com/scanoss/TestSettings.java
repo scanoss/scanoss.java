@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,15 @@
 package com.scanoss;
 
 import com.scanoss.settings.Settings;
-import com.scanoss.utils.ProxyUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.Proxy;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 import static org.junit.Assert.*;
 
@@ -42,6 +39,7 @@ import static org.junit.Assert.*;
 public class TestSettings {
     private Path existingSettingsPath;
     private Path nonExistentSettingsPath;
+
     @Before
     public void Setup() throws URISyntaxException {
         log.info("Starting Settings test cases...");
@@ -71,7 +69,8 @@ public class TestSettings {
 
     @Test
     public void testSettingsFromExistingFile() {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         try {
@@ -90,7 +89,8 @@ public class TestSettings {
 
     @Test(expected = IOException.class)
     public void testSettingsFromNonExistentFile() throws IOException {
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
         Settings.fromPath(nonExistentSettingsPath);
