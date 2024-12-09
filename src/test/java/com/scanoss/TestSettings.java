@@ -73,28 +73,27 @@ public class TestSettings {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        try {
-            Settings settings = Settings.fromPath(existingSettingsPath);
-            assertNotNull("Settings should not be null", settings);
 
-            assertEquals("scanner.c", settings.getBom().getRemove().get(0).getPath());
-            assertEquals("pkg:github/scanoss/scanner.c", settings.getBom().getRemove().get(0).getPurl());
+        Settings settings = Settings.createFromPath(existingSettingsPath);
+        assertNotNull("Settings should not be null", settings);
 
-        } catch (IOException e) {
-            fail("Should not throw IOException for existing file: " + e.getMessage());
-        }
+        assertEquals("scanner.c", settings.getBom().getRemove().get(0).getPath());
+        assertEquals("pkg:github/scanoss/scanner.c", settings.getBom().getRemove().get(0).getPurl());
+
+
 
         log.info("Finished {} -->", methodName);
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testSettingsFromNonExistentFile() throws IOException {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        Settings.fromPath(nonExistentSettingsPath);
-        // Should throw IOException before reaching this point
+        Settings settings = Settings.createFromPath(nonExistentSettingsPath);
+
+        assertNull("Settings should be null", settings);
 
         log.info("Finished {} -->", methodName);
     }

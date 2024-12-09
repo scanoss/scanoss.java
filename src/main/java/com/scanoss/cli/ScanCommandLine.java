@@ -98,7 +98,7 @@ class ScanCommandLine implements Runnable {
     private String ignoreSbom;
 
     @picocli.CommandLine.Option(names = {"--settings"}, description = "Settings file to use for scanning (optional - default scanoss.json)")
-    private String settings;
+    private String settingsPath;
 
     @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
     private int snippetLimit = 1000;
@@ -119,6 +119,7 @@ class ScanCommandLine implements Runnable {
 
     private List<ScanFileResult> scanFileResults;
 
+    private Settings settings;
     /**
      * Run the 'scan' command
      */
@@ -151,6 +152,12 @@ class ScanCommandLine implements Runnable {
                 throw new RuntimeException("Error: Failed to setup proxy config");
             }
         }
+
+        if(settingsPath != null && !settingsPath.isEmpty()) {
+            settings = Settings.createFromPath(Paths.get(settingsPath));
+            if (settings == null) throw new RuntimeException("Error: Failed to read settings file");
+        }
+
         if (com.scanoss.cli.CommandLine.debug) {
             if (numThreads != DEFAULT_WORKER_THREADS) {
                 printMsg(err, String.format("Running with %d threads.", numThreads));
@@ -189,11 +196,11 @@ class ScanCommandLine implements Runnable {
             throw new RuntimeException(String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
         }
 
-        if (settings != null && !settings.isEmpty()) {
-                Path path = Paths.get(settings);
-                ScannerPostProcessor scannerPostProcessor = ScannerPostProcessor.builder().build();
-                scanFileResults = scannerPostProcessor.process(scanFileResults, Settings.fromPath(path).getBom());
+        if (settings != null && settings.getBom() != null) {
+            ScannerPostProcessor scannerPostProcessor = ScannerPostProcessor.builder().build();
+            scanFileResults = scannerPostProcessor.process(scanFileResults, settings.getBom());
         }
+
 
         var out = spec.commandLine().getOut();
         JsonUtils.writeJsonPretty(toScanFileResultJsonObject(scanFileResults), null); // Uses System.out
