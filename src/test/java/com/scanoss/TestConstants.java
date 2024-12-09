@@ -165,6 +165,84 @@ public class TestConstants {
             "      ]\n" +
             "    }\n" +
             "  ],\n" +
+            "  \"src/spdx.c\": [\n" +
+            "    {\n" +
+            "      \"component\": \"scanner.c\",\n" +
+            "      \"file\": \"scanner.c-1.3.3/src/spdx.c\",\n" +
+            "      \"file_hash\": \"00693585177fc51a8d16b2b890f39277\",\n" +
+            "      \"file_url\": \"https://api.osskb.org/file_contents/00693585177fc51a8d16b2b890f39277\",\n" +
+            "      \"id\": \"snippet\",\n" +
+            "      \"latest\": \"1.3.4\",\n" +
+            "      \"licenses\": [\n" +
+            "        {\n" +
+            "          \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-1.0-or-later.txt\",\n" +
+            "          \"copyleft\": \"yes\",\n" +
+            "          \"incompatible_with\": \"Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, BSD-4.3TAHOE, ECL-2.0, FTL, IJG, LicenseRef-scancode-bsla-no-advert, Minpack, OpenSSL, PHP-3.01, Python-2.0, zlib-acknowledgement, XFree86-1.1\",\n" +
+            "          \"name\": \"GPL-1.0-or-later\",\n" +
+            "          \"osadl_updated\": \"2024-11-29T15:09:00+0000\",\n" +
+            "          \"patent_hints\": \"no\",\n" +
+            "          \"source\": \"scancode\",\n" +
+            "          \"url\": \"https://spdx.org/licenses/GPL-1.0-or-later.html\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-or-later.txt\",\n" +
+            "          \"copyleft\": \"yes\",\n" +
+            "          \"incompatible_with\": \"Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, BSD-4.3TAHOE, ECL-2.0, FTL, IJG, LicenseRef-scancode-bsla-no-advert, Minpack, OpenSSL, PHP-3.01, Python-2.0, zlib-acknowledgement, XFree86-1.1\",\n" +
+            "          \"name\": \"GPL-2.0-or-later\",\n" +
+            "          \"osadl_updated\": \"2024-11-29T15:09:00+0000\",\n" +
+            "          \"patent_hints\": \"yes\",\n" +
+            "          \"source\": \"scancode\",\n" +
+            "          \"url\": \"https://spdx.org/licenses/GPL-2.0-or-later.html\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"name\": \"CC0-1.0\",\n" +
+            "          \"source\": \"scancode\",\n" +
+            "          \"url\": \"https://spdx.org/licenses/CC0-1.0.html\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-or-later.txt\",\n" +
+            "          \"copyleft\": \"yes\",\n" +
+            "          \"incompatible_with\": \"Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, BSD-4.3TAHOE, ECL-2.0, FTL, IJG, LicenseRef-scancode-bsla-no-advert, Minpack, OpenSSL, PHP-3.01, Python-2.0, zlib-acknowledgement, XFree86-1.1\",\n" +
+            "          \"name\": \"GPL-2.0-or-later\",\n" +
+            "          \"osadl_updated\": \"2024-11-29T15:09:00+0000\",\n" +
+            "          \"patent_hints\": \"yes\",\n" +
+            "          \"source\": \"file_spdx_tag\",\n" +
+            "          \"url\": \"https://spdx.org/licenses/GPL-2.0-or-later.html\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"checklist_url\": \"https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-only.txt\",\n" +
+            "          \"copyleft\": \"yes\",\n" +
+            "          \"incompatible_with\": \"Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, BSD-4.3TAHOE, ECL-2.0, FTL, IJG, LicenseRef-scancode-bsla-no-advert, Minpack, OpenSSL, PHP-3.01, Python-2.0, zlib-acknowledgement, XFree86-1.1\",\n" +
+            "          \"name\": \"GPL-2.0-only\",\n" +
+            "          \"osadl_updated\": \"2024-11-29T15:09:00+0000\",\n" +
+            "          \"patent_hints\": \"yes\",\n" +
+            "          \"source\": \"component_declared\",\n" +
+            "          \"url\": \"https://spdx.org/licenses/GPL-2.0-only.html\"\n" +
+            "        }\n" +
+            "      ],\n" +
+            "      \"lines\": \"11-52,81-123\",\n" +
+            "      \"matched\": \"63%\",\n" +
+            "      \"oss_lines\": \"28-69,28-70\",\n" +
+            "      \"purl\": [\n" +
+            "        \"pkg:github/scanoss/scanner.c\"\n" +
+            "      ],\n" +
+            "      \"release_date\": \"2021-05-26\",\n" +
+            "      \"server\": {\n" +
+            "        \"kb_version\": {\n" +
+            "          \"daily\": \"24.12.03\",\n" +
+            "          \"monthly\": \"24.11\"\n" +
+            "        },\n" +
+            "        \"version\": \"5.4.8\"\n" +
+            "      },\n" +
+            "      \"source_hash\": \"0bcee0405fbf27bc6a9fc6eb8fb58642\",\n" +
+            "      \"status\": \"pending\",\n" +
+            "      \"url\": \"https://github.com/scanoss/scanner.c\",\n" +
+            "      \"url_hash\": \"2d1700ba496453d779d4987255feb5f2\",\n" +
+            "      \"url_stats\": {},\n" +
+            "      \"vendor\": \"scanoss\",\n" +
+            "      \"version\": \"1.3.3\"\n" +
+            "    }\n" +
+            "  ],\n" +
             "  \"scanoss/api/__init__.py\": [\n" +
             "    {\n" +
             "      \"component\": \"scanoss.py\",\n" +
@@ -255,6 +333,8 @@ public class TestConstants {
             "    }\n" +
             "  ]\n" +
             "}\n";
+
+
 
     // Custom self-signed certificate
     static final String customSelfSignedCertificate =

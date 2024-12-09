@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,18 +20,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.dto;
+package com.scanoss.utils;
 
-import lombok.Data;
-
-import java.util.List;
+import lombok.Getter;
 
 /**
- * Scan File Results Details
+ * Represents a line range with start and end lines
  */
-@Data
-public class ScanFileResult {
-    private final String filePath;
-    private final List<ScanFileDetails> fileDetails;
-}
+@Getter
+public class LineRange {
+    private final int start;
+    private final int end;
 
+    public LineRange(int start, int end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    /**
+     * Checks if this interval overlaps with another interval
+     */
+    public boolean overlaps(LineRange other) {
+        return this.start <= other.end && this.end >= other.start;
+    }
+}

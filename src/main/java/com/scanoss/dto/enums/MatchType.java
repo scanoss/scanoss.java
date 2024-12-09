@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,18 +20,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.dto;
+package com.scanoss.dto.enums;
 
-import lombok.Data;
-
-import java.util.List;
-
-/**
- * Scan File Results Details
- */
-@Data
-public class ScanFileResult {
-    private final String filePath;
-    private final List<ScanFileDetails> fileDetails;
+public enum MatchType {
+    file,
+    snippet,
+    none
 }
-

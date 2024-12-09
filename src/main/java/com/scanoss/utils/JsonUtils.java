@@ -179,6 +179,19 @@ public class JsonUtils {
         return scanFileResults;
     }
 
+    public static JsonObject toScanFileResultJsonObject(List<ScanFileResult> scanFileResults) {
+        JsonObject root = new JsonObject();
+        Gson gson = new Gson();
+
+        scanFileResults.forEach(result -> {
+            JsonElement detailsJson = gson.toJsonTree(result.getFileDetails());
+            root.add(result.getFilePath(), detailsJson);
+        });
+
+        return root;
+    }
+
+
     /**
      * Convert the given JSON Object to a list of Scan File Results
      *
@@ -194,6 +207,8 @@ public class JsonUtils {
         });
         return results;
     }
+
+
 
     /**
      * Determine if the given string is a boolean true/false

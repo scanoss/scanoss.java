@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,50 +20,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.dto;
+package com.scanoss.settings;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Singular;
 
-import static com.scanoss.utils.JsonUtils.checkBooleanString;
+import java.util.List;
 
-/**
- * Scan Results Match License Details
- */
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class LicenseDetails {
-    private String name;
-    private String source;
-    private String copyleft;
-    @SerializedName("patent_hints")
-    private String patentHints;
-    private String url;
-    @SerializedName("checklist_url")
-    private String checklistUrl;
-    @SerializedName("osadl_updated")
-    private String osadlUpdated;
-
-    /**
-     * Determine if the license is Copyleft or not
-     *
-     * @return <code>true</code> if copyleft, <code>false</code> otherwise
-     */
-    public boolean isCopyleft() {
-        return checkBooleanString(copyleft);
-    }
-
-    /**
-     * Determine if the license is Copyleft or not
-     *
-     * @return <code>true</code> if copyleft, <code>false</code> otherwise
-     */
-    public boolean hasPatentHints() {
-        return checkBooleanString(patentHints);
-    }
+public class Bom {
+    private final @Singular("include") List<Rule> include;
+    private final @Singular("ignore") List<Rule> ignore;
+    private final @Singular("remove") List<RemoveRule> remove;
+    private final @Singular("replace") List<ReplaceRule> replace;
 }
+
+
