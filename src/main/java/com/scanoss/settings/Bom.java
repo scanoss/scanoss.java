@@ -31,10 +31,10 @@ import java.util.List;
 @Data
 @Builder
 public class Bom {
-    private @Singular("include") List<Rule> include;
-    private @Singular("ignore") List<Rule> ignore;
-    private @Singular("remove") List<RemoveRule> remove;
-    private @Singular("replace") List<ReplaceRule> replace;
+    private final @Singular("include") List<Rule> include;
+    private final @Singular("ignore") List<Rule> ignore;
+    private final @Singular("remove") List<RemoveRule> remove;
+    private final @Singular("replace") List<ReplaceRule> replace;
 }
 
 

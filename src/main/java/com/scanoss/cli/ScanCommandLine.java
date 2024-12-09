@@ -190,13 +190,9 @@ class ScanCommandLine implements Runnable {
         }
 
         if (settings != null && !settings.isEmpty()) {
-            try {
                 Path path = Paths.get(settings);
-                ScannerPostProcessor scannerPostProcessor = new ScannerPostProcessor();
+                ScannerPostProcessor scannerPostProcessor = ScannerPostProcessor.builder().build();
                 scanFileResults = scannerPostProcessor.process(scanFileResults, Settings.fromPath(path).getBom());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
         }
 
         var out = spec.commandLine().getOut();

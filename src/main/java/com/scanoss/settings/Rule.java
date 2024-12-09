@@ -30,8 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SuperBuilder()
 public class Rule {
-    private String path;
-    private String purl;    //TODO: Add validation with PackageURL
+    private final String path;
+    private final String purl;    //TODO: Add validation with PackageURL
 }
 
 

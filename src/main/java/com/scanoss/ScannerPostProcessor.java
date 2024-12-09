@@ -9,6 +9,7 @@ import com.scanoss.settings.ReplaceRule;
 import com.scanoss.settings.Rule;
 import com.scanoss.utils.LineRange;
 import com.scanoss.utils.LineRangeUtils;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,9 +17,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Builder
 public class ScannerPostProcessor {
 
-    private Map<String, ScanFileDetails> componentIndex = new HashMap<>();
+    private Map<String, ScanFileDetails> componentIndex;
 
     /**
      * Processes scan results according to BOM configuration rules.
@@ -29,18 +31,27 @@ public class ScannerPostProcessor {
      * @return List of processed scan results
      */
     public List<ScanFileResult> process(@NotNull List<ScanFileResult> scanFileResults, @NotNull Bom bom) {
+        log.info("Starting scan results processing with {} results", scanFileResults.size());
+        log.debug("BOM configuration - Remove rules: {}, Replace rules: {}",
+                bom.getRemove() != null ? bom.getRemove().size() : 0,
+                bom.getReplace() != null ? bom.getReplace().size() : 0);
+
         createComponentIndex(scanFileResults);
 
         List<ScanFileResult> processedResults = new ArrayList<>(scanFileResults);
 
         if (bom.getRemove() != null && !bom.getRemove().isEmpty()) {
+            log.info("Applying {} remove rules to scan results", bom.getRemove().size());
             processedResults = applyRemoveRules(processedResults, bom.getRemove());
         }
 
         if (bom.getReplace() != null && !bom.getReplace().isEmpty()) {
+            log.info("Applying {} replace rules to scan results", bom.getReplace().size());
             processedResults = applyReplaceRules(processedResults, bom.getReplace());
         }
 
+        log.info("Scan results processing completed. Original results: {}, Processed results: {}",
+                scanFileResults.size(), processedResults.size());
         return processedResults;
     }
 
@@ -51,7 +62,10 @@ public class ScannerPostProcessor {
      * @return Map where keys are PURLs and values are corresponding ScanFileDetails
      */
     private void createComponentIndex(List<ScanFileResult> scanFileResults) {
+        log.debug("Creating component index from scan results");
+
         if (scanFileResults == null) {
+            log.warn("Received null scan results, creating empty component index");
             this.componentIndex = new HashMap<>();
             return;
         }
@@ -69,6 +83,7 @@ public class ScannerPostProcessor {
                         (existing, replacement) -> existing,
                         HashMap::new
                 ));
+        log.debug("Component index created with {} entries", componentIndex.size());
     }
 
 
@@ -81,18 +96,18 @@ public class ScannerPostProcessor {
      * @return A new list containing the processed scan results with updated PURLs
      */
     private List<ScanFileResult> applyReplaceRules(@NotNull List<ScanFileResult> results, @NotNull List<ReplaceRule> rules) {
+        log.debug("Starting replace rules application");
         List<ScanFileResult> resultsList = new ArrayList<>(results);
 
         for (ScanFileResult result : resultsList) {
-
             for (ReplaceRule rule : this.findMatchingRules(result, rules)) {
-
+                log.debug("Applying replace rule: {} to file: {}", rule, result.getFilePath());
 
                 PackageURL newPurl;
                 try {
                     newPurl = new PackageURL(rule.getReplaceWith());
                 } catch (MalformedPackageURLException e) {
-                    log.error("ERROR: Parsing purl from rule: {} - {}", rule, e.getMessage());
+                    log.warn("Failed to parse PURL from replace rule: {}. Skipping", rule);
                     continue;
                 }
 
@@ -102,8 +117,13 @@ public class ScannerPostProcessor {
                 ScanFileDetails currentFileDetails = result.getFileDetails().get(0);
                 ScanFileDetails newFileDetails;
 
-                if (cachedFileDetails != null) {
+                log.trace("Processing replacement - Cached details found: {}, Current PURL: {}, New PURL: {}",
+                        cachedFileDetails != null,
+                        currentFileDetails.getPurls()[0],
+                        newPurl);
 
+                if (cachedFileDetails != null) {
+                    log.debug("Using cached component details for PURL: {}", newPurl);
                     newFileDetails = ScanFileDetails.builder()
                             .matchType(currentFileDetails.getMatchType())
                             .file(currentFileDetails.getFile())
@@ -121,17 +141,16 @@ public class ScannerPostProcessor {
 
                     result.getFileDetails().set(0, cachedFileDetails);
                 } else {
-
-                    newFileDetails = currentFileDetails;
-
-                    newFileDetails.setCopyrightDetails(new CopyrightDetails[]{});
-                    newFileDetails.setLicenseDetails(new LicenseDetails[]{});
-                    newFileDetails.setVulnerabilityDetails(new VulnerabilityDetails[]{});
-                    newFileDetails.setPurls(new String[]{newPurl.toString()});
-                    newFileDetails.setUrl("");
-
-                    newFileDetails.setComponent(newPurl.getName());
-                    newFileDetails.setVendor(newPurl.getNamespace());
+                    log.debug("Creating new component details for PURL: {}", newPurl);
+                    newFileDetails = currentFileDetails.toBuilder()
+                            .copyrightDetails(new CopyrightDetails[]{})
+                            .licenseDetails(new LicenseDetails[]{})
+                            .vulnerabilityDetails(new VulnerabilityDetails[]{})
+                            .purls(new String[]{newPurl.toString()})
+                            .url("")
+                            .component(newPurl.getName())
+                            .vendor(newPurl.getNamespace())
+                            .build();
                 }
 
                 result.getFileDetails().set(0, newFileDetails);
@@ -156,10 +175,12 @@ public class ScannerPostProcessor {
      * @return A filtered list with matching results removed based on the above criteria
      */
     private List<ScanFileResult> applyRemoveRules(@NotNull List<ScanFileResult> results, @NotNull List<RemoveRule> rules) {
+        log.debug("Starting remove rules application to {} results", results.size());
         List<ScanFileResult> resultsList = new ArrayList<>(results);
 
         resultsList.removeIf(result -> {
             List<RemoveRule> matchingRules = findMatchingRules(result, rules);
+            log.trace("Found {} matching remove rules for file: {}", matchingRules.size(), result.getFilePath());
             if (matchingRules.isEmpty()) {
                 return false;
             }
@@ -171,6 +192,7 @@ public class ScannerPostProcessor {
 
             // If no rules have line ranges, remove the result
             if (rulesWithLineRanges.isEmpty()) {
+                log.debug("Removing entire file - no line ranges specified in rules for file {}", result.getFilePath());
                 return true;
             }
 
@@ -178,11 +200,18 @@ public class ScannerPostProcessor {
             String resultLineRangesString = result.getFileDetails().get(0).getLines();
             List<LineRange> resultLineRanges = LineRangeUtils.parseLineRanges(resultLineRangesString);
 
-            return rulesWithLineRanges.stream()
+            boolean shouldRemove = rulesWithLineRanges.stream()
                     .map(rule -> new LineRange(rule.getStartLine(), rule.getEndLine()))
                     .anyMatch(ruleLineRange -> LineRangeUtils.hasOverlappingRanges(resultLineRanges, ruleLineRange));
+
+            if (shouldRemove) {
+                log.debug("Removing file {} due to overlapping line ranges", result.getFilePath());
+            }
+
+            return shouldRemove;
         });
 
+        log.debug("Remove rules application completed. Results remaining: {}", resultsList.size());
         return resultsList;
     }
 
@@ -199,6 +228,7 @@ public class ScannerPostProcessor {
      * @return List of matching rules, empty list if no matches found
      */
     private <T extends Rule> List<T> findMatchingRules(@NotNull ScanFileResult result, @NotNull List<T> rules) {
+        log.trace("Finding matching rules for file: {}", result.getFilePath());
         return rules.stream()
                 .filter(rule -> {
                     boolean hasPath = rule.getPath() != null && !rule.getPath().isEmpty();
@@ -212,6 +242,7 @@ public class ScannerPostProcessor {
                         return isPurlOnlyMatch(rule, result);
                     }
 
+                    log.warn("Rule {} has neither path nor PURL specified", rule);
                     return false; // Neither path nor purl specified
                 }).collect(Collectors.toList());
     }

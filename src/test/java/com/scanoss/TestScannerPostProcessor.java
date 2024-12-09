@@ -55,7 +55,7 @@ public class TestScannerPostProcessor {
     @Before
     public void Setup() throws URISyntaxException, IOException {
         log.info("Starting ScannerPostProcessor test cases...");
-        scannerPostProcessor = new ScannerPostProcessor();
+        scannerPostProcessor = ScannerPostProcessor.builder().build();
         JsonObject jsonObject = JsonUtils.toJsonObject(jsonResultsString);
         sampleScanResults = JsonUtils.toScanFileResultsFromObject(jsonObject);      //TODO: Create sampleScanResults with a helper function
 

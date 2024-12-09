@@ -32,6 +32,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class ReplaceRule extends Rule {
     @SerializedName("replace_with")
-    private String replaceWith;
-    private String license;
+    private final String replaceWith;
+    private final String license;
 }

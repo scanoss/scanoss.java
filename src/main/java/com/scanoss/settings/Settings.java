@@ -35,7 +35,7 @@ import java.nio.file.Path;
 @Data
 @Builder
 public class Settings {
-    private Bom bom;
+    private final Bom bom;
 
 
     /**
@@ -56,13 +56,9 @@ public class Settings {
      * @return A new Settings object
      * @throws IOException If there's an error reading the file
      */
-    public static Settings fromPath(@NotNull Path path) throws IOException {
-        try {
+    public static Settings fromPath(@NotNull Path path) {
             String json = Files.readString(path, StandardCharsets.UTF_8);
             return fromJSON(json);
-        } catch (IOException e) {
-            throw new IOException("Failed to read settings file: " + path, e);
-        }
     }
 }
 
