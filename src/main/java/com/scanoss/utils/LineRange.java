@@ -38,9 +38,15 @@ public class LineRange {
     }
 
     /**
-     * Checks if this interval overlaps with another interval
-     * @param other object to compare with
-     * @return true if overlaps
+     * Determines if this line range overlaps with another line range.
+     * Two ranges overlap if any line numbers are shared between them.
+     * For example:
+     * - LineRange(1,5) overlaps with LineRange(3,7)
+     * - LineRange(1,3) overlaps with LineRange(3,5)
+     * - LineRange(1,3) does not overlap with LineRange(4,6)
+     *
+     * @param other the LineRange to check for overlap with this range
+     * @return true if the ranges share any line numbers, false otherwise
      */
     public boolean overlaps(LineRange other) {
         return this.start <= other.end && this.end >= other.start;

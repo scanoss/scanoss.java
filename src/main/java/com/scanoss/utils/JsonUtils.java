@@ -179,6 +179,13 @@ public class JsonUtils {
         return scanFileResults;
     }
 
+    /**
+     * Converts a list of ScanFileResult objects into a JSON object where the file paths are keys
+     * and the corresponding file details are the values
+     *
+     * @param scanFileResults List of ScanFileResult objects to convert
+     * @return JsonObject containing file paths as keys and file details as JSON elements
+     */
     public static JsonObject toScanFileResultJsonObject(List<ScanFileResult> scanFileResults) {
         JsonObject root = new JsonObject();
         Gson gson = new Gson();

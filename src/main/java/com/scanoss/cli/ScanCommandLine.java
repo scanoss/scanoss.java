@@ -36,7 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
@@ -200,7 +199,6 @@ class ScanCommandLine implements Runnable {
             ScannerPostProcessor scannerPostProcessor = ScannerPostProcessor.builder().build();
             scanFileResults = scannerPostProcessor.process(scanFileResults, settings.getBom());
         }
-
 
         var out = spec.commandLine().getOut();
         JsonUtils.writeJsonPretty(toScanFileResultJsonObject(scanFileResults), null); // Uses System.out

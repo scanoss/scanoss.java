@@ -23,6 +23,9 @@
 package com.scanoss.utils;
 
 
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +33,7 @@ import java.util.List;
 /**
  * Utility class for handling line range operations
  */
+@Slf4j
 public class LineRangeUtils {
     /**
      * Parses a line range string into a list of intervals
@@ -42,8 +46,8 @@ public class LineRangeUtils {
             return Collections.emptyList();
         }
 
-        List<LineRange> intervals = new ArrayList<>();
         String[] ranges = lineRanges.split(",");
+        List<LineRange> intervals = new ArrayList<>(ranges.length);
 
         for (String range : ranges) {
             String[] bounds = range.trim().split("-");
@@ -54,7 +58,7 @@ public class LineRangeUtils {
                     intervals.add(new LineRange(start, end));
                 } catch (NumberFormatException e) {
                     // Skip invalid intervals
-                    continue;
+                    log.debug("Invalid interval format: {} in range {}", range, e.getMessage());
                 }
             }
         }
@@ -69,7 +73,7 @@ public class LineRangeUtils {
      * @param ranges2 Second set of line ranges
      * @return true if any intervals overlap
      */
-    public static boolean hasOverlappingRanges(List<LineRange> ranges1, List<LineRange> ranges2) {
+    public static boolean hasOverlappingRanges(@NotNull List<LineRange> ranges1, @NotNull List<LineRange> ranges2) {
         for (LineRange interval1 : ranges1) {
             for (LineRange interval2 : ranges2) {
                 if (interval1.overlaps(interval2)) {
@@ -80,7 +84,7 @@ public class LineRangeUtils {
         return false;
     }
 
-    public static boolean hasOverlappingRanges(List<LineRange> ranges, LineRange range) {
+    public static boolean hasOverlappingRanges(@NotNull List<LineRange> ranges, @NotNull LineRange range) {
         for (LineRange interval1 : ranges) {
             if (interval1.overlaps(range)) {
                 return true;
