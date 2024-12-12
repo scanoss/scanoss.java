@@ -39,6 +39,8 @@ public class LineRange {
 
     /**
      * Checks if this interval overlaps with another interval
+     * @param other object to compare with
+     * @return true if overlaps
      */
     public boolean overlaps(LineRange other) {
         return this.start <= other.end && this.end >= other.start;

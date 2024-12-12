@@ -56,7 +56,6 @@ public class Settings {
      *
      * @param path The path to the JSON file
      * @return A new Settings object
-     * @throws IOException If there's an error reading the file
      */
     public static Settings createFromPath(@NotNull Path path) {
         try {
