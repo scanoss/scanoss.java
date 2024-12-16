@@ -22,8 +22,22 @@
  */
 package com.scanoss.dto.enums;
 
+/**
+ * Represents the type of match found during SCANOSS scanning.
+ */
 public enum MatchType {
+    /**
+     * Indicates a complete file match
+     */
     file,
+
+    /**
+     * Indicates a partial code snippet match
+     */
     snippet,
+
+    /**
+     * Indicates no match was found
+     */
     none
 }

@@ -26,6 +26,15 @@ import lombok.Data;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Base class for SCANOSS BOM rules. Rules are used to modify scan results
+ * based on file paths and Package URLs (PURLs).
+ * <p>
+ * Rules support two types of matching:
+ * - Full match: Both path and PURL match
+ * - Partial match: Either path or PURL matches
+ * </p>
+ */
 @Data
 @Slf4j
 @SuperBuilder()
@@ -33,5 +42,3 @@ public class Rule {
     private final String path;
     private final String purl;    //TODO: Add validation with PackageURL
 }
-
-

@@ -32,6 +32,13 @@ public class LineRange {
     private final int start;
     private final int end;
 
+
+    /**
+     * Creates a new line range with the specified start and end lines.
+     *
+     * @param start the starting line number (inclusive)
+     * @param end the ending line number (inclusive)
+     */
     public LineRange(int start, int end) {
         this.start = start;
         this.end = end;

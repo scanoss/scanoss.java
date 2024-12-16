@@ -28,13 +28,42 @@ import lombok.Singular;
 
 import java.util.List;
 
+
+/**
+ * Represents the Bill of Materials (BOM) rules configuration for the SCANOSS scanner.
+ * This class defines rules for modifying the scan results through include,
+ * ignore, remove, and replace operations.
+ */
 @Data
 @Builder
 public class Bom {
+
+    /**
+     * List of include rules for adding context when scanning.
+     * These rules are sent to the SCANOSS API and have a higher chance of being
+     * considered part of the resulting scan.
+     */
     private final @Singular("include") List<Rule> include;
+
+    /**
+     * List of ignore rules for excluding certain components .
+     * These rules are sent to the SCANOSS API.
+     */
     private final @Singular("ignore") List<Rule> ignore;
+
+    /**
+     * List of remove rules for excluding components from results after scanning.
+     * These rules are applied to the results file after scanning and are processed
+     * on the client side.
+     */
     private final @Singular("remove") List<RemoveRule> remove;
+
+    /**
+     * List of replace rules for substituting components after scanning.
+     * These rules are applied to the results file after scanning and are processed
+     * on the client side. Each rule can specify a new PURL and license for the
+     * replacement component.
+     */
     private final @Singular("replace") List<ReplaceRule> replace;
 }
-
 

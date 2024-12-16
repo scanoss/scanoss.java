@@ -33,12 +33,23 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+
+/**
+ * Represents the SCANOSS scanner settings configuration.
+ * Provides functionality to load and manage scanner settings from JSON files or strings.
+ * Settings include BOM (Bill of Materials) rules for modifying components before and after scanning.
+ */
 @Slf4j
 @Data
 @Builder
 public class Settings {
-    private final Bom bom;
 
+    /**
+     * The Bill of Materials (BOM) configuration containing rules for component handling.
+     * Includes rules for including, ignoring, removing, and replacing components
+     * during and after the scanning process.
+     */
+    private final Bom bom;
 
     /**
      * Creates a Settings object from a JSON string

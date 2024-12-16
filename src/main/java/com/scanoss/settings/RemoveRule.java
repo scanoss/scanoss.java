@@ -27,6 +27,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Rule for removing specific components from scan results.
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder

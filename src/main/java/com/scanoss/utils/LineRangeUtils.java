@@ -84,6 +84,14 @@ public class LineRangeUtils {
         return false;
     }
 
+    /**
+     * Checks if a list of line ranges overlaps with a single range
+     *
+     * @param ranges List of line ranges to check against
+     * @param range Single line range to check for overlap
+     * @return true if any interval from the list overlaps with the given range
+     * @throws NullPointerException if either parameter is null
+     */
     public static boolean hasOverlappingRanges(@NotNull List<LineRange> ranges, @NotNull LineRange range) {
         for (LineRange interval1 : ranges) {
             if (interval1.overlaps(range)) {

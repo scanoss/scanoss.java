@@ -38,6 +38,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Post-processor for SCANOSS scanner results that applies BOM (Bill of Materials) rules
+ * to modify scan results after the scanning process. This processor handles two main
+ * operations:
+ * <p>
+ * 1. Removing components based on remove rules
+ * 2. Replacing components based on replace rules
+ * </p>
+ *
+ * The processor maintains an internal component index for efficient lookup and
+ * transformation of components during the post-processing phase.
+ * @see Bom
+ * @see ScanFileResult
+ * @see ReplaceRule
+ */
 @Slf4j
 @Builder
 public class ScannerPostProcessor {
