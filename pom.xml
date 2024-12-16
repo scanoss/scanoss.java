@@ -153,9 +153,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.7.1</version>
                 <executions>
                     <execution>
+                        <id>with-all-dependencies</id>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
@@ -169,6 +170,40 @@
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>without-slf4j</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${exec.mainClass}</mainClass>
+                                </manifest>
+                            </archive>
+                            <inlineDescriptors>
+                                <inlineDescriptor>
+                                    <id>with-dependencies-slf4j-excluded</id>
+                                    <formats>
+                                        <format>jar</format>
+                                    </formats>
+                                    <includeBaseDirectory>false</includeBaseDirectory>
+                                    <dependencySets>
+                                        <dependencySet>
+                                            <outputDirectory>/</outputDirectory>
+                                            <useProjectArtifact>true</useProjectArtifact>
+                                            <unpack>true</unpack>
+                                            <excludes>
+                                                <exclude>org.slf4j:slf4j-api</exclude>
+                                                <exclude>org.slf4j:slf4j-simple</exclude>
+                                            </excludes>
+                                        </dependencySet>
+                                    </dependencySets>
+                                </inlineDescriptor>
+                            </inlineDescriptors>
                         </configuration>
                     </execution>
                 </executions>
