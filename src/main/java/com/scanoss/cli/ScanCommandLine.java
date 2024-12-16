@@ -23,8 +23,11 @@
 package com.scanoss.cli;
 
 import com.scanoss.Scanner;
+import com.scanoss.ScannerPostProcessor;
+import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.settings.Settings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
@@ -33,12 +36,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 
 import static com.scanoss.ScanossConstants.*;
 import static com.scanoss.cli.CommandLine.printDebug;
 import static com.scanoss.cli.CommandLine.printMsg;
+import static com.scanoss.utils.JsonUtils.toScanFileResultJsonObject;
 
 /**
  * Scan Command Line Processor Class
@@ -91,6 +96,9 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-n", "--ignore"}, description = "Ignore components specified in the SBOM file")
     private String ignoreSbom;
 
+    @picocli.CommandLine.Option(names = {"--settings"}, description = "Settings file to use for scanning (optional - default scanoss.json)")
+    private String settingsPath;
+
     @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
     private int snippetLimit = 1000;
 
@@ -108,6 +116,9 @@ class ScanCommandLine implements Runnable {
 
     private Scanner scanner;
 
+    private List<ScanFileResult> scanFileResults;
+
+    private Settings settings;
     /**
      * Run the 'scan' command
      */
@@ -140,6 +151,12 @@ class ScanCommandLine implements Runnable {
                 throw new RuntimeException("Error: Failed to setup proxy config");
             }
         }
+
+        if(settingsPath != null && !settingsPath.isEmpty()) {
+            settings = Settings.createFromPath(Paths.get(settingsPath));
+            if (settings == null) throw new RuntimeException("Error: Failed to read settings file");
+        }
+
         if (com.scanoss.cli.CommandLine.debug) {
             if (numThreads != DEFAULT_WORKER_THREADS) {
                 printMsg(err, String.format("Running with %d threads.", numThreads));
@@ -165,6 +182,7 @@ class ScanCommandLine implements Runnable {
                 .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
                 .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
                 .build();
+
         File f = new File(fileFolder);
         if (!f.exists()) {
             throw new RuntimeException(String.format("Error: File or folder does not exist: %s\n", fileFolder));
@@ -176,10 +194,19 @@ class ScanCommandLine implements Runnable {
         } else {
             throw new RuntimeException(String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
         }
+
+        if (settings != null && settings.getBom() != null) {
+            ScannerPostProcessor scannerPostProcessor = ScannerPostProcessor.builder().build();
+            scanFileResults = scannerPostProcessor.process(scanFileResults, settings.getBom());
+        }
+
+        var out = spec.commandLine().getOut();
+        JsonUtils.writeJsonPretty(toScanFileResultJsonObject(scanFileResults), null); // Uses System.out
     }
 
     /**
      * Load the specified file into a string
+     *
      * @param filename filename to load
      * @return loaded string
      */
@@ -201,13 +228,12 @@ class ScanCommandLine implements Runnable {
      * @param file file to scan
      */
     private void scanFile(String file) {
-        var out = spec.commandLine().getOut();
         var err = spec.commandLine().getErr();
         try {
             printMsg(err, String.format("Scanning %s...", file));
             String result = scanner.scanFile(file);
             if (result != null && !result.isEmpty()) {
-                JsonUtils.writeJsonPretty(JsonUtils.toJsonObject(result), out);
+                scanFileResults = JsonUtils.toScanFileResultsFromObject(JsonUtils.toJsonObject(result));
                 return;
             } else {
                 err.println("Warning: No results returned.");
@@ -235,7 +261,7 @@ class ScanCommandLine implements Runnable {
             if (results != null && !results.isEmpty()) {
                 printMsg(err, String.format("Found %d results.", results.size()));
                 printDebug(err, "Converting to JSON...");
-                JsonUtils.writeJsonPretty(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)), out);
+                scanFileResults = JsonUtils.toScanFileResultsFromObject(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)));
                 return;
             } else {
                 err.println("Error: No results return.");

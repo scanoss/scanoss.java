@@ -23,14 +23,21 @@
 package com.scanoss.dto;
 
 import com.google.gson.annotations.SerializedName;
+import com.scanoss.dto.enums.MatchType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Scan File Result Detailed Information
  */
 @Data
+@Builder(toBuilder = true)
+@AllArgsConstructor
 public class ScanFileDetails {
-    private final String id;
+    @SerializedName("id")
+    private final MatchType matchType;
     private final String component;
     private final String vendor;
     private final String version;

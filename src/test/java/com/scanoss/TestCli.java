@@ -138,8 +138,14 @@ public class TestCli {
         exitCode = new picocli.CommandLine(new CommandLine()).execute(args2);
         assertEquals("command should not fail", 0, exitCode);
 
+
+        String[] args3 = new String[]{"-d", "scan", "src/test/java/com", "--settings", "src/test/resources/scanoss.json"
+        };
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args3);
+        assertEquals("command should not fail", 0, exitCode);
         log.info("Finished {} -->", methodName);
     }
+
 
     @Test
     public void TestScanCommandNegative() {
@@ -167,6 +173,16 @@ public class TestCli {
         String[] args5 = new String[]{"-d", "scan", "src/test/java/com", "--ignore", "does-not-exist.json"};
         exitCode = new picocli.CommandLine(new CommandLine()).execute(args5);
         assertTrue("command should fail", exitCode != 0);
+
+        String[] args6 = new String[]{"-d", "scan", "src/test/java/com", "--settings", "does-not-exist.json"};
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args6);
+        assertTrue("command should fail", exitCode != 0);
+
+
+        String[] args7 = new String[]{"-d", "scan", "src/test/java/com", "--settings", "src/test/resources/scanoss-broken.json"};
+        exitCode = new picocli.CommandLine(new CommandLine()).execute(args7);
+        assertTrue("command should fail", exitCode != 0);
+
 
         log.info("Finished {} -->", methodName);
     }
