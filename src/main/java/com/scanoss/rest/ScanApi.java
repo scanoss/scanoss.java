@@ -238,8 +238,19 @@ public class ScanApi {
     }
 
     private static final int RETRY_FAIL_SLEEP_TIME = 5; // Time to sleep between failed scan requests
+
+    /**
+     * Base URL for the SCANOSS OSSKB (Open Source Knowledge Base) free API.
+     * This endpoint provides access to the free tier of SCANOSS scanning services.
+     */
     public static final String DEFAULT_BASE_URL = "https://api.osskb.org";
+
+    /**
+     * Base URL for the SCANOSS Premium API.
+     * This endpoint is used for premium/enterprise level scanning services.
+     */
     public static final String DEFAULT_BASE_URL2 = "https://api.scanoss.com";
+
     static final String DEFAULT_SCAN_PATH = "scan/direct";
     static final String DEFAULT_SCAN_URL = String.format( "%s/%s", DEFAULT_BASE_URL, DEFAULT_SCAN_PATH ); // Free OSS OSSKB URL
     static final String DEFAULT_SCAN_URL2 = String.format( "%s/%s", DEFAULT_BASE_URL2, DEFAULT_SCAN_PATH ); // Standard SCANOSS Premium URL

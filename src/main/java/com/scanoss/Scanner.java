@@ -399,6 +399,7 @@ public class Scanner {
      * @param folder folder to scan
      * @return List of scan result strings (in JSON format)
      */
+    //TODO: Include postProcessing stage
     public List<String> scanFolder(@NonNull String folder) {
         return processFolder(folder, scanFileProcessor);
     }
