@@ -26,6 +26,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -65,5 +66,34 @@ public class Bom {
      * replacement component.
      */
     private final @Singular("replace") List<ReplaceRule> replace;
+
+
+    /**
+     * Cached list of replace rules sorted by priority.
+     * This list is lazily initialized when first accessed through
+     * getReplaceRulesByPriority().
+     *
+     * @see #getReplaceRulesByPriority()
+     */
+    private final List<ReplaceRule> sortedReplace;
+
+
+    /**
+     * Sorts replace rules by priority from highest to lowest:
+     * 1. Rules with both purl/path (most specific)
+     * 3. Rules with only purl
+     * 4. Rules with only path (least specific)
+     *
+     * @return A new list containing the sorted replace rules
+     */
+    public List<ReplaceRule> getReplaceRulesByPriority() {
+        if (sortedReplace == null) {
+            List<ReplaceRule> sortedReplace = new ArrayList<>(replace);
+            sortedReplace.sort(new RuleComparator());
+            return sortedReplace;
+        }
+        return sortedReplace;
+    }
+
 }
 
