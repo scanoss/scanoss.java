@@ -31,6 +31,7 @@ import com.scanoss.settings.ReplaceRule;
 import com.scanoss.settings.Rule;
 import com.scanoss.utils.LineRange;
 import com.scanoss.utils.LineRangeUtils;
+import com.scanoss.utils.Purl2Url;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -197,7 +198,7 @@ public class ScannerPostProcessor {
                 continue;
             }
 
-            ScanFileDetails newFileDetails = createUpdatedResultDetails(componentDetail, newPurl);
+            ScanFileDetails newFileDetails = createUpdatedResultDetails(componentDetail, newPurl, rule);
             result.getFileDetails().set(0, newFileDetails);
 
             log.debug("Updated package URL from {} to {} for file: {}",
@@ -233,44 +234,65 @@ public class ScannerPostProcessor {
      * in the replacement rule.
      *
      * @param existingComponent The current component details to use as a base
-     * @param newPurl The new package URL containing updated package information
+     * @param newPackageUrl The new package URL containing updated package information
+     * @param replacementRule The rule to extract the license, if exist
      * @return Updated component details with specific fields overridden
      */
     private ScanFileDetails createUpdatedResultDetails(ScanFileDetails existingComponent,
-                                                     PackageURL newPurl) {
-
-        // Check for cached component
-        ScanFileDetails cached = purl2ComponentDetailsMap.get(newPurl.toString());
-
-        if (cached != null) {
-            //TODO: Clarification on copyright, Vulns, etc
-            //currentComponent.toBuilder().component().vendor().purls().licenseDetails()
+                                                     PackageURL newPackageUrl,
+                                                       @NotNull ReplaceRule replacementRule) {
 
 
-             //Version if we have a package url with version
-            //pkg:github/scanoss@1.0.0
+        // Check if we already have processed this package URL
+        ScanFileDetails cachedComponent = purl2ComponentDetailsMap.get(newPackageUrl.toString());
 
+        // Extract license information from the replacement rule
+        String definedLicenseName = replacementRule.getLicense();
+        LicenseDetails newLicense = definedLicenseName != null
+                ? LicenseDetails.builder().name(definedLicenseName).build()
+                : null;
 
-            return cached.toBuilder()
-                    .file(existingComponent.getFile())
-                    .fileHash(existingComponent.getFileHash())
-                    .fileUrl(existingComponent.getFileUrl())
-                    .purls(new String[]{newPurl.toString()})
-                    .component(newPurl.getName())
-                    .vendor(newPurl.getNamespace())
+        if (cachedComponent != null) {
+            // Update existing component with cached information
+            return existingComponent.toBuilder()
+                    .copyrightDetails(null)
+                    .licenseDetails(definedLicenseName != null
+                            ? new LicenseDetails[]{ newLicense }
+                            : cachedComponent.getLicenseDetails())
+                    .version(newPackageUrl.getVersion() != null
+                            ? newPackageUrl.getVersion()
+                            : existingComponent.getVersion())
+                    .purls(new String[]{ newPackageUrl.toString() })
+                    .component(newPackageUrl.getName())
+                    .vendor(newPackageUrl.getNamespace())
                     .build();
         }
 
-        // If no cached info, create minimal version
-        return existingComponent.toBuilder()
-                .copyrightDetails(new CopyrightDetails[]{})     //TODO: Check if we need the empty Object
-                .licenseDetails(new LicenseDetails[]{})
-                .vulnerabilityDetails(new VulnerabilityDetails[]{})
-                .purls(new String[]{newPurl.toString()})
-                .url("")  // TODO: Implement purl2Url in PackageURL upstream library
-                .component(newPurl.getName())
-                .vendor(newPurl.getNamespace())
+        // Create new component when no cached version exists
+        return ScanFileDetails.builder()
+                .licenseDetails(newLicense != null
+                        ? new LicenseDetails[]{ newLicense }
+                        : null)
+                .purls(new String[]{ newPackageUrl.toString() })
+                .url(Purl2Url.convert(newPackageUrl))
+                .version(determineVersion(newPackageUrl, existingComponent))
+                .component(newPackageUrl.getName())
+                .vendor(newPackageUrl.getNamespace())
                 .build();
+    }
+
+    /**
+     * Determines the version to use by checking if the new PURL has a version specified.
+     * If the new PURL has no version, falls back to the existing component's version.
+     *
+     * @param newPurl The new PURL containing potential version information
+     * @param existingComponent The existing component with fallback version information
+     * @return The determined version string
+     */
+    private String determineVersion(PackageURL newPurl, ScanFileDetails existingComponent) {
+        return newPurl.getVersion() != null
+                ? newPurl.getVersion()
+                : existingComponent.getVersion();
     }
 
 
