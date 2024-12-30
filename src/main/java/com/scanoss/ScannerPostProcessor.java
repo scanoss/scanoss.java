@@ -33,6 +33,7 @@ import com.scanoss.utils.LineRange;
 import com.scanoss.utils.LineRangeUtils;
 import com.scanoss.utils.Purl2Url;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +57,6 @@ import java.util.*;
 @Slf4j
 @Builder
 public class ScannerPostProcessor {
-
     /**
      * Maps purl to Component (ScanFileDetail)
      */
@@ -70,28 +70,22 @@ public class ScannerPostProcessor {
      * @param bom             Bom containing BOM rules
      * @return List of processed scan results
      */
-    public List<ScanFileResult> process(@NotNull List<ScanFileResult> scanFileResults, @NotNull Bom bom) {
-        List<ScanFileResult> processedResults = new ArrayList<>(scanFileResults);
-
+    public List<ScanFileResult> process(@NonNull List<ScanFileResult> scanFileResults, @NonNull Bom bom) {
+        int removeSize = bom.getRemoveSize();
+        int replaceSize = bom.getReplaceSize();
         log.info("Starting scan results processing with {} results", scanFileResults.size());
-        log.debug("BOM configuration - Remove rules: {}, Replace rules: {}",
-                bom.getRemove() != null ? bom.getRemove().size() : 0,
-                bom.getReplace() != null ? bom.getReplace().size() : 0);
+        log.debug("BOM configuration - Remove rules: {}, Replace rules: {}", removeSize, replaceSize);
 
-
-        purl2ComponentDetailsMap = buildPurl2ComponentDetailsMap(scanFileResults);
-
-
-        if (bom.getRemove() != null && !bom.getRemove().isEmpty()) {
-            log.info("Applying {} remove rules to scan results", bom.getRemove().size());
-            processedResults = applyRemoveRules(processedResults, bom.getRemove());
+        buildPurl2ComponentDetailsMap(scanFileResults);
+        List<ScanFileResult> processedResults = new ArrayList<>(scanFileResults);
+        if (removeSize > 0) {
+            log.info("Applying {} remove rules to scan results", removeSize);
+            applyRemoveRules(processedResults, bom.getRemove());
         }
-
-        if (bom.getReplace() != null && !bom.getReplace().isEmpty()) {
-            log.info("Applying {} replace rules to scan results", bom.getReplace().size());
-            processedResults = applyReplaceRules(processedResults, bom.getReplaceRulesByPriority());
+        if (replaceSize > 0) {
+            log.info("Applying {} replace rules to scan results", replaceSize);
+            applyReplaceRules(processedResults, bom.getReplaceRulesByPriority());
         }
-
         log.info("Scan results processing completed. Original results: {}, Processed results: {}",
                 scanFileResults.size(), processedResults.size());
         return processedResults;
@@ -102,41 +96,38 @@ public class ScannerPostProcessor {
      * This map enables efficient component lookup during the replacement process.
      *
      * @param scanFileResults List of scan results to process
-     * @return Map where keys are PURLs and values are their associated component details
      */
-    private Map<String, ScanFileDetails> buildPurl2ComponentDetailsMap(@NotNull List<ScanFileResult> scanFileResults) {
+    private void buildPurl2ComponentDetailsMap(@NonNull List<ScanFileResult> scanFileResults) {
         log.debug("Creating Purl Component Map from scan results");
-
-        Map<String, ScanFileDetails> index = new HashMap<>();
-
+        purl2ComponentDetailsMap = new HashMap<>();
         for (ScanFileResult result : scanFileResults) {
-            if (result == null || result.getFileDetails() == null) {
+            List<ScanFileDetails> fileDetails = result != null ? result.getFileDetails() : null;
+            if (fileDetails == null) {
+                log.warn("Null result or empty scan file result. Skipping: {}", result);
                 continue;
             }
-
             // Iterate through file details
-            for (ScanFileDetails details : result.getFileDetails()) {
-                if (details == null || details.getPurls() == null) {
+            for (ScanFileDetails details : fileDetails) {
+                String[] purls = details != null ? details.getPurls() : null;
+                if (purls == null) {
+                    log.warn("Null details or empty scan file result details. Skipping: {}", details);
                     continue;
                 }
-
                 // Iterate through purls for each detail
-                for (String purl : details.getPurls()) {
-                    if (purl == null || purl.trim().isEmpty()) {
+                for (String purl : purls) {
+                    String trimmedPurl = purl != null ? purl.trim() : "";
+                    if (trimmedPurl.isEmpty()) {
+                        log.warn("Empty purl details found. Skipping: {}", details);
                         continue;
                     }
-
                     // Only store if purl not already in map
-                    String trimmedPurl = purl.trim();
-                    if (!index.containsKey(trimmedPurl)) {
-                        index.put(trimmedPurl, details);
+                    if (!purl2ComponentDetailsMap.containsKey(trimmedPurl)) {
+                        purl2ComponentDetailsMap.put(trimmedPurl, details);
                     }
                 }
             }
         }
-
-        log.debug("Purl Component Map created with {} entries", index.size());
-        return index;
+        log.debug("Purl Component Map created with {} entries", purl2ComponentDetailsMap.size());
     }
 
 
@@ -148,12 +139,10 @@ public class ScannerPostProcessor {
      * @param rules   The list of replacement rules to apply
      * @return The modified input list of scan results with updated PURLs
      */
-    private List<ScanFileResult> applyReplaceRules(@NotNull List<ScanFileResult> results, @NotNull List<ReplaceRule> rules) {
+    private void applyReplaceRules(@NonNull List<ScanFileResult> results, @NonNull List<ReplaceRule> rules) {
         log.debug("Starting replace rules application for {} results with {} rules", results.size(), rules.size());
         results.forEach(result -> applyReplaceRulesOnResult(result, rules));
-        return results;
     }
-
 
 
     /**
@@ -163,13 +152,12 @@ public class ScannerPostProcessor {
      * @param result The scan result to process
      * @param rules List of replacement rules to check against
      */
-    private void applyReplaceRulesOnResult(@NotNull ScanFileResult result, @NotNull List<ReplaceRule> rules) {
-        if (!isValidScanResult(result)) {
-            log.warn("Invalid scan result structure for file: {}", result.getFilePath());
+    private void applyReplaceRulesOnResult(@NonNull ScanFileResult result, @NonNull List<ReplaceRule> rules) {
+        // Check if this result is processable
+        if (isInvalidScanResult(result)) {
+            log.warn("Invalid scan result structure. Cannot apply replace rules for file: {}", result);
             return;
         }
-
-
         // Find the first matching rule and apply its replacement
         // This ensures only one rule is applied per result, maintaining consistency
         rules.stream()
@@ -186,44 +174,42 @@ public class ScannerPostProcessor {
      * @param result The scan result to update
      * @param rule The replacement rule containing the new package URL
      */
-    private void updateResultWithReplaceRule(@NotNull ScanFileResult result, @NotNull ReplaceRule rule) {
+    private void updateResultWithReplaceRule(@NonNull ScanFileResult result, @NonNull ReplaceRule rule) {
         PackageURL newPurl = createPackageUrl(rule);
-        if (newPurl == null) return;
-
-
+        if (newPurl == null)
+            return;
         List<ScanFileDetails> componentDetails = result.getFileDetails();
+        if (componentDetails == null) {
+            log.warn("Null scan file details found. Skipping: {}", result);
+            return;
+        }
         for (ScanFileDetails componentDetail : componentDetails ) {
-
             if (componentDetail == null) {
+                log.warn("Null scan file component details found. Skipping: {}", result);
                 continue;
             }
-
-            ScanFileDetails newFileDetails = createUpdatedResultDetails(componentDetail, newPurl, rule);
+            ScanFileDetails newFileDetails = createUpdatedResultDetails(componentDetail, newPurl);
             result.getFileDetails().set(0, newFileDetails);
-
             log.debug("Updated package URL from {} to {} for file: {}",
                     componentDetail.getPurls()[0],
                     newPurl,
                     result.getFilePath());
         }
-
-
     }
-
 
     /**
      * Creates a PackageURL object from a replacement rule's target URL.
      *
      * @param rule The replacement rule containing the new package URL
-     * @return A new PackageURL object, or null if the URL is malformed
+     * @return A new PackageURL object, or <code>null</code> if the URL is malformed
      */
-    private PackageURL createPackageUrl(ReplaceRule rule) {
+    private PackageURL createPackageUrl(@NonNull ReplaceRule rule) {
         try {
             return new PackageURL(rule.getReplaceWith());
         } catch (MalformedPackageURLException e) {
             log.warn("Failed to parse PURL from replace rule: {}. Skipping", rule);
-            return null;
         }
+        return null;
     }
 
 
@@ -234,65 +220,38 @@ public class ScannerPostProcessor {
      * in the replacement rule.
      *
      * @param existingComponent The current component details to use as a base
-     * @param newPackageUrl The new package URL containing updated package information
-     * @param replacementRule The rule to extract the license, if exist
+     * @param newPurl The new package URL containing updated package information
      * @return Updated component details with specific fields overridden
      */
     private ScanFileDetails createUpdatedResultDetails(ScanFileDetails existingComponent,
-                                                     PackageURL newPackageUrl,
-                                                       @NotNull ReplaceRule replacementRule) {
+                                                     PackageURL newPurl) {
+        // Check for cached component
+        ScanFileDetails cached = purl2ComponentDetailsMap.get(newPurl.toString());
 
-
-        // Check if we already have processed this package URL
-        ScanFileDetails cachedComponent = purl2ComponentDetailsMap.get(newPackageUrl.toString());
-
-        // Extract license information from the replacement rule
-        String definedLicenseName = replacementRule.getLicense();
-        LicenseDetails newLicense = definedLicenseName != null
-                ? LicenseDetails.builder().name(definedLicenseName).build()
-                : null;
-
-        if (cachedComponent != null) {
-            // Update existing component with cached information
-            return existingComponent.toBuilder()
-                    .copyrightDetails(null)
-                    .licenseDetails(definedLicenseName != null
-                            ? new LicenseDetails[]{ newLicense }
-                            : cachedComponent.getLicenseDetails())
-                    .version(newPackageUrl.getVersion() != null
-                            ? newPackageUrl.getVersion()
-                            : existingComponent.getVersion())
-                    .purls(new String[]{ newPackageUrl.toString() })
-                    .component(newPackageUrl.getName())
-                    .vendor(newPackageUrl.getNamespace())
+        if (cached != null) {
+            //TODO: Clarification on copyright, Vulns, etc
+            //currentComponent.toBuilder().component().vendor().purls().licenseDetails()
+             //Version if we have a package url with version
+            //pkg:github/scanoss@1.0.0
+            return cached.toBuilder()
+                    .file(existingComponent.getFile())
+                    .fileHash(existingComponent.getFileHash())
+                    .fileUrl(existingComponent.getFileUrl())
+                    .purls(new String[]{newPurl.toString()})
+                    .component(newPurl.getName())
+                    .vendor(newPurl.getNamespace())
                     .build();
         }
-
-        // Create new component when no cached version exists
-        return ScanFileDetails.builder()
-                .licenseDetails(newLicense != null
-                        ? new LicenseDetails[]{ newLicense }
-                        : null)
-                .purls(new String[]{ newPackageUrl.toString() })
-                .url(Purl2Url.convert(newPackageUrl))
-                .version(determineVersion(newPackageUrl, existingComponent))
-                .component(newPackageUrl.getName())
-                .vendor(newPackageUrl.getNamespace())
+        // If no cached info, create minimal version
+        return existingComponent.toBuilder()
+                .copyrightDetails(new CopyrightDetails[]{})     //TODO: Check if we need the empty Object
+                .licenseDetails(new LicenseDetails[]{})
+                .vulnerabilityDetails(new VulnerabilityDetails[]{})
+                .purls(new String[]{newPurl.toString()})
+                .url("")  // TODO: Implement purl2Url in PackageURL upstream library
+                .component(newPurl.getName())
+                .vendor(newPurl.getNamespace())
                 .build();
-    }
-
-    /**
-     * Determines the version to use by checking if the new PURL has a version specified.
-     * If the new PURL has no version, falls back to the existing component's version.
-     *
-     * @param newPurl The new PURL containing potential version information
-     * @param existingComponent The existing component with fallback version information
-     * @return The determined version string
-     */
-    private String determineVersion(PackageURL newPurl, ScanFileDetails existingComponent) {
-        return newPurl.getVersion() != null
-                ? newPurl.getVersion()
-                : existingComponent.getVersion();
     }
 
 
@@ -308,16 +267,12 @@ public class ScannerPostProcessor {
      *
      * @param results The list of scan results to process
      * @param rules   The list of remove rules to apply
-     * @return A filtered list with matching results removed based on the above criteria
      */
-    public List<ScanFileResult> applyRemoveRules(@NotNull List<ScanFileResult> results, @NotNull List<RemoveRule> rules) {
+    public void applyRemoveRules(@NonNull List<ScanFileResult> results, @NonNull List<RemoveRule> rules) {
         log.debug("Starting remove rules application to {} results", results.size());
-        List<ScanFileResult> resultsList = new ArrayList<>(results);
-        resultsList.removeIf(result -> matchesRemovalCriteria(result, rules));
-        log.debug("Remove rules application completed. Results remaining: {}", resultsList.size());
-        return resultsList;
+        results.removeIf(result -> matchesRemovalCriteria(result, rules));
+        log.debug("Remove rules application completed. Results remaining: {}", results.size());
     }
-
 
     /**
      * Determines if a scan result should be excluded based on the removal rules.
@@ -332,13 +287,13 @@ public class ScannerPostProcessor {
      * @param rules List of removal rules to check against
      * @return true if the result should be removed, false otherwise
      */
-    private Boolean matchesRemovalCriteria(@NotNull ScanFileResult result, @NotNull List<RemoveRule> rules) {
-
-        if (!isValidScanResult(result)) {
+    private Boolean matchesRemovalCriteria(@NonNull ScanFileResult result, @NonNull List<RemoveRule> rules) {
+        // Make sure it's a valid result before processing
+        if (isInvalidScanResult(result)) {
             log.warn("Invalid scan result structure for file: {}", result.getFilePath());
             return false;
         }
-
+        // TODO. Should only apply the first matching rule also. No need to iterate over them all
         return rules.stream()
                 .filter(rule -> isMatchingRule(result, rule))
                 .anyMatch(rule -> {
@@ -347,25 +302,23 @@ public class ScannerPostProcessor {
                     // - returns true if rule has line range AND result overlaps with it
                     // - returns false otherwise (continue checking remaining rules)
                     boolean ruleHasLineRange = rule.getStartLine() != null && rule.getEndLine() != null;
-                    return !ruleHasLineRange || isLineRangeMatch(rule, result);
+                    return !ruleHasLineRange || isRemoveLineRangeMatch(rule, result);
                 });
     }
 
-
     /**
      * Checks if a scan result matches the path and/or PURL patterns defined in a rule.
-     *
      * The match is considered successful if any of these conditions are met:
-     * 1. Rule has both path and PURL defined: Both must match the result
-     * 2. Rule has only PURL defined: PURL must match the result
-     * 3. Rule has only path defined: Path must match the result
+     * 1. Rule has both a path and PURL defined: Both must match the result
+     * 2. Rule has only a PURL defined: PURL must match the result
+     * 3. Rule has only a path defined: Path must match the result
      *
      * @param result The scan result to check
      * @param rule The rule containing the patterns to match against
      * @param <T> Type parameter extending Rule class
      * @return true if the result matches the rule's patterns according to above conditions
      */
-    private <T extends Rule> Boolean isMatchingRule(@NotNull ScanFileResult result, @NotNull T rule) {
+    private <T extends Rule> Boolean isMatchingRule(@NonNull ScanFileResult result, @NonNull T rule) {
         // Check if rule has valid path and/or PURL patterns
         boolean hasPath = rule.getPath() != null && !rule.getPath().isEmpty();
         boolean hasPurl = rule.getPurl() != null && !rule.getPurl().isEmpty();
@@ -374,22 +327,26 @@ public class ScannerPostProcessor {
         // 1. Both path and PURL match
         if (hasPath && hasPurl && isPathAndPurlMatch(rule, result)) {
             return true;
+        }
         // 2. Only PURL match required and matches
-        } else if (hasPurl && isPurlOnlyMatch(rule, result)) {
-            return true;
-        // 3. Only path match required and matches
-        } if (hasPath && isPathOnlyMatch(rule, result)) {
+        if (hasPurl && isPurlOnlyMatch(rule, result)) {
             return true;
         }
-
+        // 3. Only path match required and matches
+        if (hasPath && isPathOnlyMatch(rule, result)) {
+            return true;
+        }
         return false;
     }
 
-
     /**
-     * Checks if line range of the remove rule match the result
+     * Checks if the line range of the remove rule match the result
+     *
+     * @param rule Remove Rule
+     * @param result Scan file Result
+     * @return <code>true</code> if remove rule is in range, <code>false</code> otherwise
      */
-    private boolean isLineRangeMatch(RemoveRule rule, ScanFileResult result) {
+    private boolean isRemoveLineRangeMatch(@NonNull RemoveRule rule, @NonNull ScanFileResult result) {
         LineRange ruleLineRange = new LineRange(rule.getStartLine(), rule.getEndLine());
 
         String lines = result.getFileDetails().get(0).getLines();
@@ -400,8 +357,13 @@ public class ScannerPostProcessor {
 
     /**
      * Checks if both path and purl of the rule match the result
+     *
+     * @param rule BOM Rule
+     * @param result Scan file Result
+     * @return <code>true</code> if it matches, <code>false</code> otherwise
      */
-    private boolean isPathAndPurlMatch(Rule rule, ScanFileResult result) {
+    private boolean isPathAndPurlMatch(@NonNull Rule rule, @NonNull ScanFileResult result) {
+        // TODO. Path needs to 'startWith', it does not need to be an exact match
         return Objects.equals(rule.getPath(), result.getFilePath()) &&
                 isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
@@ -409,26 +371,39 @@ public class ScannerPostProcessor {
 
     /**
      * Checks if the rule's path matches the result (ignoring purl)
+     *
+     * @param rule BOM Rule
+     * @param result Scan file Results
+     * @return <code>true</code> if it matches, <code>false</code> otherwise
      */
-    private boolean isPathOnlyMatch(Rule rule, ScanFileResult result) {
+    private boolean isPathOnlyMatch(@NonNull Rule rule, @NonNull ScanFileResult result) {
+        // TODO. Path needs to 'startWith', it does not need to be an exact match
         return Objects.equals(rule.getPath(), result.getFilePath());
     }
 
     /**
      * Checks if the rule's purl matches the result (ignoring path)
+     *
+     * @param rule BOM Rule
+     * @param result Scan file Result
+     * @return <code>true</code> if it matches, <code>false</code> otherwise
      */
-    private boolean isPurlOnlyMatch(Rule rule, ScanFileResult result) {
+    private boolean isPurlOnlyMatch(@NonNull Rule rule, @NonNull ScanFileResult result) {
+        // TODO what happens if there is no purl in the result tree?
         return isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
 
     /**
      * Checks if a specific purl exists in an array of purls
+     *
+     * @param rulePurl PURL from Rule
+     * @param resultPurls List of Scan file Result PURLs
+     * @return <code>true</code> if it matches, <code>false</code> otherwise
      */
     private boolean isPurlMatch(String rulePurl, String[] resultPurls) {
         if (rulePurl == null || resultPurls == null) {
             return false;
         }
-
         for (String resultPurl : resultPurls) {
             if (Objects.equals(rulePurl, resultPurl)) {
                 return true;
@@ -441,11 +416,10 @@ public class ScannerPostProcessor {
      * Validates if a scan result has the required fields for rule processing.
      *
      * @param result The scan result to validate
-     * @return true if the result has valid file details and PURLs
+     * @return <code>true</code> if the result has invalid file details or PURLs
      */
-    private boolean isValidScanResult(@NotNull ScanFileResult result) {
-        return result.getFileDetails() != null
-                && !result.getFileDetails().isEmpty()
-                && result.getFileDetails().get(0) != null;
+    private boolean isInvalidScanResult(@NonNull ScanFileResult result) {
+        List<ScanFileDetails> details = result.getFileDetails();
+        return details == null || details.isEmpty() || details.get(0) == null;
     }
 }
