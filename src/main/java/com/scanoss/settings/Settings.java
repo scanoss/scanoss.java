@@ -25,14 +25,13 @@ package com.scanoss.settings;
 import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 
 /**
  * Represents the SCANOSS scanner settings configuration.
@@ -43,7 +42,6 @@ import java.nio.file.Path;
 @Data
 @Builder
 public class Settings {
-
     /**
      * The Bill of Materials (BOM) configuration containing rules for component handling.
      * Includes rules for including, ignoring, removing, and replacing components
@@ -57,7 +55,7 @@ public class Settings {
      * @param json The JSON string to parse
      * @return A new Settings object
      */
-    public static Settings createFromJsonString(@NotNull String json) {
+    public static Settings createFromJsonString(@NonNull String json) {
         Gson gson = new Gson();
         return gson.fromJson(json, Settings.class);
     }
@@ -68,7 +66,7 @@ public class Settings {
      * @param path The path to the JSON file
      * @return A new Settings object
      */
-    public static Settings createFromPath(@NotNull Path path) {
+    public static Settings createFromPath(@NonNull Path path) {
         try {
             String json = Files.readString(path, StandardCharsets.UTF_8);
             return createFromJsonString(json);

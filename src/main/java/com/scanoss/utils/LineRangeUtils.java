@@ -23,8 +23,8 @@
 package com.scanoss.utils;
 
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +73,7 @@ public class LineRangeUtils {
      * @param ranges2 Second set of line ranges
      * @return true if any intervals overlap
      */
-    public static boolean hasOverlappingRanges(@NotNull List<LineRange> ranges1, @NotNull List<LineRange> ranges2) {
+    public static boolean hasOverlappingRanges(@NonNull List<LineRange> ranges1, @NonNull List<LineRange> ranges2) {
         for (LineRange interval1 : ranges1) {
             for (LineRange interval2 : ranges2) {
                 if (interval1.overlaps(interval2)) {
@@ -92,7 +92,7 @@ public class LineRangeUtils {
      * @return true if any interval from the list overlaps with the given range
      * @throws NullPointerException if either parameter is null
      */
-    public static boolean hasOverlappingRanges(@NotNull List<LineRange> ranges, @NotNull LineRange range) {
+    public static boolean hasOverlappingRanges(@NonNull List<LineRange> ranges, @NonNull LineRange range) {
         for (LineRange interval1 : ranges) {
             if (interval1.overlaps(range)) {
                 return true;
