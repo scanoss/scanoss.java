@@ -38,27 +38,23 @@ import java.util.List;
 @Data
 @Builder
 public class Bom {
-
     /**
      * List of include rules for adding context when scanning.
      * These rules are sent to the SCANOSS API and have a higher chance of being
      * considered part of the resulting scan.
      */
     private final @Singular("include") List<Rule> include;
-
     /**
      * List of ignore rules for excluding certain components .
      * These rules are sent to the SCANOSS API.
      */
     private final @Singular("ignore") List<Rule> ignore;
-
     /**
      * List of remove rules for excluding components from results after scanning.
      * These rules are applied to the results file after scanning and are processed
      * on the client side.
      */
     private final @Singular("remove") List<RemoveRule> remove;
-
     /**
      * List of replace rules for substituting components after scanning.
      * These rules are applied to the results file after scanning and are processed
@@ -66,7 +62,6 @@ public class Bom {
      * replacement component.
      */
     private final @Singular("replace") List<ReplaceRule> replace;
-
 
     /**
      * Cached list of replace rules sorted by priority.
@@ -77,14 +72,13 @@ public class Bom {
      */
     private final List<ReplaceRule> sortedReplace;
 
-
     /**
      * Sorts replace rules by priority from highest to lowest:
      * 1. Rules with both purl/path (most specific)
      * 3. Rules with only purl
      * 4. Rules with only path (least specific)
      *
-     * @return A new list containing the sorted replace rules
+     * @return A new list containing the sorted replacement rules
      */
     public List<ReplaceRule> getReplaceRulesByPriority() {
         if (sortedReplace == null) {
@@ -95,5 +89,22 @@ public class Bom {
         return sortedReplace;
     }
 
+    /**
+     * Get the size of the Remove rules
+     *
+     * @return size of remove list or zero
+     */
+    public int getRemoveSize() {
+        return remove != null ? remove.size() : 0;
+    }
+
+    /**
+     * Get the size of the Replace rules
+     *
+     * @return size of replace rules or zero
+     */
+    public int getReplaceSize() {
+        return replace != null ? replace.size() : 0;
+    }
 }
 
