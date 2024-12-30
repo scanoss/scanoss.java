@@ -22,7 +22,6 @@
  */
 package com.scanoss.utils;
 
-
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,10 +44,8 @@ public class LineRangeUtils {
         if (lineRanges == null || lineRanges.trim().isEmpty()) {
             return Collections.emptyList();
         }
-
         String[] ranges = lineRanges.split(",");
         List<LineRange> intervals = new ArrayList<>(ranges.length);
-
         for (String range : ranges) {
             String[] bounds = range.trim().split("-");
             if (bounds.length == 2) {
@@ -58,11 +55,10 @@ public class LineRangeUtils {
                     intervals.add(new LineRange(start, end));
                 } catch (NumberFormatException e) {
                     // Skip invalid intervals
-                    log.debug("Invalid interval format: {} in range {}", range, e.getMessage());
+                    log.debug("Skipping invalid interval format: {} in range ({}): {}", range, bounds, e.getMessage());
                 }
             }
         }
-
         return intervals;
     }
 
@@ -74,6 +70,7 @@ public class LineRangeUtils {
      * @return true if any intervals overlap
      */
     public static boolean hasOverlappingRanges(@NonNull List<LineRange> ranges1, @NonNull List<LineRange> ranges2) {
+        // TODO is this required. It only seems to be used in tests?
         for (LineRange interval1 : ranges1) {
             for (LineRange interval2 : ranges2) {
                 if (interval1.overlaps(interval2)) {

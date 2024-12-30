@@ -34,4 +34,3 @@ public class ScanFileResult {
     private final String filePath;
     private final List<ScanFileDetails> fileDetails;
 }
-
