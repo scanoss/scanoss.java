@@ -411,6 +411,7 @@ public class Scanner {
      * @param files list of files to scan
      * @return List of scan result strings (in JSON format)
      */
+    //TODO: Include postProcessing stage
     public List<String> scanFileList(@NonNull String folder, @NonNull List<String> files) {
         return processFileList(folder, files, scanFileProcessor);
     }

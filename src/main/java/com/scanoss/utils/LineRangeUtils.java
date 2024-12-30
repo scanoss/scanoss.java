@@ -90,6 +90,7 @@ public class LineRangeUtils {
      * @throws NullPointerException if either parameter is null
      */
     public static boolean hasOverlappingRanges(@NonNull List<LineRange> ranges, @NonNull LineRange range) {
+        // TODO add test case
         for (LineRange interval1 : ranges) {
             if (interval1.overlaps(range)) {
                 return true;
