@@ -63,25 +63,6 @@ public class LineRangeUtils {
     }
 
     /**
-     * Checks if two sets of line ranges overlap
-     *
-     * @param ranges1 First set of line ranges
-     * @param ranges2 Second set of line ranges
-     * @return true if any intervals overlap
-     */
-    public static boolean hasOverlappingRanges(@NonNull List<LineRange> ranges1, @NonNull List<LineRange> ranges2) {
-        // TODO is this required. It only seems to be used in tests?
-        for (LineRange interval1 : ranges1) {
-            for (LineRange interval2 : ranges2) {
-                if (interval1.overlaps(interval2)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * Checks if a list of line ranges overlaps with a single range
      *
      * @param ranges List of line ranges to check against
@@ -90,7 +71,6 @@ public class LineRangeUtils {
      * @throws NullPointerException if either parameter is null
      */
     public static boolean hasOverlappingRanges(@NonNull List<LineRange> ranges, @NonNull LineRange range) {
-        // TODO add test case
         for (LineRange interval1 : ranges) {
             if (interval1.overlaps(range)) {
                 return true;

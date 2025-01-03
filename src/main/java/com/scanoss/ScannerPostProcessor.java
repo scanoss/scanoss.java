@@ -250,9 +250,6 @@ public class ScannerPostProcessor {
         }
         // If no cached info, create minimal version
         return existingComponent.toBuilder()
-                .copyrightDetails(new CopyrightDetails[]{})     //TODO: Check if we need the empty Object
-                .licenseDetails(new LicenseDetails[]{})
-                .vulnerabilityDetails(new VulnerabilityDetails[]{})
                 .purls(new String[]{newPurl.toString()})
                 .url(Purl2Url.isSupported(newPurl) ? Purl2Url.convert(newPurl) : "")
                 .component(newPurl.getName())
@@ -398,8 +395,6 @@ public class ScannerPostProcessor {
      * @return <code>true</code> if it matches, <code>false</code> otherwise
      */
     private boolean isPurlOnlyMatch(@NonNull Rule rule, @NonNull ScanFileResult result) {
-        // TODO what happens if there is no purl in the result tree? (DONE)
-        // I won't happen since the invalid results are skipped upstream within isInvalidScanResult()
         return isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
 

@@ -125,14 +125,15 @@ public class TestLineRangeUtils {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        String ranges1Str = "1-10,20-30";
-        String ranges2Str = "5-15,25-35";
+        String rangesStr = "1-10,20-30";
+        int range_start = 8;
+        int range_end = 15;
 
-        List<LineRange> ranges1 = LineRangeUtils.parseLineRanges(ranges1Str);
-        List<LineRange> ranges2 = LineRangeUtils.parseLineRanges(ranges2Str);
+        List<LineRange> ranges = LineRangeUtils.parseLineRanges(rangesStr);
+        LineRange range = new LineRange(range_start, range_end);
 
         assertTrue("Should detect overlapping ranges",
-                LineRangeUtils.hasOverlappingRanges(ranges1, ranges2));
+                LineRangeUtils.hasOverlappingRanges(ranges, range));
 
         log.info("Finished {} -->", methodName);
     }
@@ -143,14 +144,15 @@ public class TestLineRangeUtils {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        String ranges1Str = "1-10,20-30";
-        String ranges2Str = "40-50,60-70";
+        String rangesStr = "1-10,20-30";
+        int range_start = 11;
+        int range_end = 15;
 
-        List<LineRange> ranges1 = LineRangeUtils.parseLineRanges(ranges1Str);
-        List<LineRange> ranges2 = LineRangeUtils.parseLineRanges(ranges2Str);
+        List<LineRange> ranges = LineRangeUtils.parseLineRanges(rangesStr);
+        LineRange range = new LineRange(range_start, range_end);
 
         assertFalse("Should not detect overlapping ranges",
-                LineRangeUtils.hasOverlappingRanges(ranges1, ranges2));
+                LineRangeUtils.hasOverlappingRanges(ranges, range));
 
         log.info("Finished {} -->", methodName);
     }
