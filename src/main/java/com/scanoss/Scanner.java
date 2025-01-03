@@ -22,12 +22,15 @@
  */
 package com.scanoss;
 
+import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
 import com.scanoss.processor.FileProcessor;
 import com.scanoss.processor.ScanFileProcessor;
 import com.scanoss.processor.WfpFileProcessor;
 import com.scanoss.rest.ScanApi;
+import com.scanoss.settings.Settings;
+import com.scanoss.utils.JsonUtils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
@@ -89,6 +92,8 @@ public class Scanner {
     private ScanApi scanApi;
     private ScanFileProcessor scanFileProcessor;
     private WfpFileProcessor wfpFileProcessor;
+    private Settings settings;
+    private ScannerPostProcessor postProcessor;
 
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
@@ -96,7 +101,8 @@ public class Scanner {
                     Integer retryLimit, String url, String apiKey, String scanFlags, String sbomType, String sbom,
                     Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
-                    ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor
+                    ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
+                    Settings settings, ScannerPostProcessor postProcessor
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
@@ -128,7 +134,9 @@ public class Scanner {
         this.wfpFileProcessor = Objects.requireNonNullElseGet(wfpFileProcessor, () -> WfpFileProcessor.builder()
                 .winnowing(this.winnowing)
                 .build());
-    }
+        this.settings = Objects.requireNonNullElseGet(settings, () -> Settings.builder().build());
+        this.postProcessor = Objects.requireNonNullElseGet(postProcessor, () ->
+                ScannerPostProcessor.builder().build());    }
 
     /**
      * Generate a WFP/Fingerprint for the given file
@@ -399,9 +407,9 @@ public class Scanner {
      * @param folder folder to scan
      * @return List of scan result strings (in JSON format)
      */
-    //TODO: Include postProcessing stage
     public List<String> scanFolder(@NonNull String folder) {
-        return processFolder(folder, scanFileProcessor);
+        List<String> results = processFolder(folder, scanFileProcessor);
+        return postProcessResults(results);
     }
 
     /**
@@ -411,9 +419,23 @@ public class Scanner {
      * @param files list of files to scan
      * @return List of scan result strings (in JSON format)
      */
-    //TODO: Include postProcessing stage
     public List<String> scanFileList(@NonNull String folder, @NonNull List<String> files) {
-        return processFileList(folder, files, scanFileProcessor);
+        List<String> results = processFileList(folder, files, scanFileProcessor);
+        return postProcessResults(results);
+    }
+
+    /**
+     * Post-processes scan results based on BOM (Bill of Materials) settings if available.
+     * @param results List of raw scan results in JSON string format
+     * @return Processed results, either modified based on BOM or original results if no BOM exists
+     */
+    private List<String> postProcessResults(List<String> results) {
+        if (settings.getBom() != null) {
+            List<ScanFileResult> scanFileResults = JsonUtils.toScanFileResults(results);
+            List <ScanFileResult>  newScanFileResults = this.postProcessor.process(scanFileResults, this.settings.getBom());
+            return JsonUtils.toRawJsonString(newScanFileResults);
+        }
+        return results;
     }
 
 }

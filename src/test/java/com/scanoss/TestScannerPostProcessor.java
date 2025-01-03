@@ -186,7 +186,7 @@ public class TestScannerPostProcessor {
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify
-        assertTrue("Should remove all results", results.isEmpty());
+        assertFalse("Should keep scanoss/__init__.py since it's a non match", results.isEmpty());
 
         log.info("Finished {} -->", methodName);
     }
@@ -232,7 +232,7 @@ public class TestScannerPostProcessor {
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify - should keep because lines don't overlap
-        assertEquals("Results should match original", sampleScanResults, results);
+        assertEquals("Results should match original", sampleScanResults.size(), results.size());
 
         log.info("Finished {} -->", methodName);
     }

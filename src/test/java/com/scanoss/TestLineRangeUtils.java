@@ -107,6 +107,9 @@ public class TestLineRangeUtils {
         List<LineRange> ranges = LineRangeUtils.parseLineRanges("11-52-81");
         assertTrue("Invalid format should be skipped", ranges.isEmpty());
 
+        ranges = LineRangeUtils.parseLineRanges(",,,");
+        assertTrue("Invalid format should be skipped", ranges.isEmpty());
+
         ranges = LineRangeUtils.parseLineRanges("abc-def");
         assertTrue("Non-numeric ranges should be skipped", ranges.isEmpty());
 

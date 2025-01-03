@@ -25,6 +25,7 @@ package com.scanoss;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.scanoss.dto.*;
+import com.scanoss.dto.enums.MatchType;
 import com.scanoss.settings.Bom;
 import com.scanoss.settings.RemoveRule;
 import com.scanoss.settings.ReplaceRule;
@@ -153,9 +154,14 @@ public class ScannerPostProcessor {
      * @param rules List of replacement rules to check against
      */
     private void applyReplaceRulesOnResult(@NonNull ScanFileResult result, @NonNull List<ReplaceRule> rules) {
-        // Check if this result is processable
-        if (isInvalidScanResult(result)) {
-            log.warn("Invalid scan result structure. Cannot apply replace rules for file: {}", result);
+        // Make sure it's a valid result before processing
+        if (hasInvalidStructure(result)) {
+            log.warn("Scan result has invalid structure - missing required fields for file: {}", result.getFilePath());
+            return;
+        }
+
+        if (hasNoValidMatch(result)) {
+            log.debug("Scan result has no valid matches for file: {}", result.getFilePath());
             return;
         }
         // Find the first matching rule and apply its replacement
@@ -248,7 +254,7 @@ public class ScannerPostProcessor {
                 .licenseDetails(new LicenseDetails[]{})
                 .vulnerabilityDetails(new VulnerabilityDetails[]{})
                 .purls(new String[]{newPurl.toString()})
-                .url("")  // TODO: Implement purl2Url in PackageURL upstream library
+                .url(Purl2Url.isSupported(newPurl) ? Purl2Url.convert(newPurl) : "")
                 .component(newPurl.getName())
                 .vendor(newPurl.getNamespace())
                 .build();
@@ -289,11 +295,16 @@ public class ScannerPostProcessor {
      */
     private Boolean matchesRemovalCriteria(@NonNull ScanFileResult result, @NonNull List<RemoveRule> rules) {
         // Make sure it's a valid result before processing
-        if (isInvalidScanResult(result)) {
-            log.warn("Invalid scan result structure for file: {}", result.getFilePath());
+        if (hasInvalidStructure(result)) {
+            log.warn("Scan result has invalid structure - missing required fields for file: {}", result.getFilePath());
             return false;
         }
-        // TODO. Should only apply the first matching rule also. No need to iterate over them all
+
+        if (hasNoValidMatch(result)) {
+            log.debug("Scan result has no valid matches for file: {}", result.getFilePath());
+            return false;
+        }
+
         return rules.stream()
                 .filter(rule -> isMatchingRule(result, rule))
                 .anyMatch(rule -> {
@@ -363,8 +374,7 @@ public class ScannerPostProcessor {
      * @return <code>true</code> if it matches, <code>false</code> otherwise
      */
     private boolean isPathAndPurlMatch(@NonNull Rule rule, @NonNull ScanFileResult result) {
-        // TODO. Path needs to 'startWith', it does not need to be an exact match
-        return Objects.equals(rule.getPath(), result.getFilePath()) &&
+        return result.getFilePath().startsWith(rule.getPath()) &&
                 isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
 
@@ -377,8 +387,7 @@ public class ScannerPostProcessor {
      * @return <code>true</code> if it matches, <code>false</code> otherwise
      */
     private boolean isPathOnlyMatch(@NonNull Rule rule, @NonNull ScanFileResult result) {
-        // TODO. Path needs to 'startWith', it does not need to be an exact match
-        return Objects.equals(rule.getPath(), result.getFilePath());
+        return result.getFilePath().startsWith(rule.getPath());
     }
 
     /**
@@ -389,7 +398,8 @@ public class ScannerPostProcessor {
      * @return <code>true</code> if it matches, <code>false</code> otherwise
      */
     private boolean isPurlOnlyMatch(@NonNull Rule rule, @NonNull ScanFileResult result) {
-        // TODO what happens if there is no purl in the result tree?
+        // TODO what happens if there is no purl in the result tree? (DONE)
+        // I won't happen since the invalid results are skipped upstream within isInvalidScanResult()
         return isPurlMatch(rule.getPurl(), result.getFileDetails().get(0).getPurls());
     }
 
@@ -413,13 +423,48 @@ public class ScannerPostProcessor {
     }
 
     /**
-     * Validates if a scan result has the required fields for rule processing.
+     * Checks if a scan result contains the minimum required data structure for processing.
+     * This validation ensures that:
+     * 1. The result has a valid file path identifier
+     * 2. The result contains a non-empty list of scan details
+     * 3. The primary scan detail entry (first in the list) exists
+     *
+     * This structural validation is a prerequisite for any further processing of scan results,
+     * such as match analysis or rule processing. Without these basic elements, the scan result
+     * cannot be meaningfully processed.
      *
      * @param result The scan result to validate
-     * @return <code>true</code> if the result has invalid file details or PURLs
+     * @return true if the basic structure is invalid, false if valid
      */
-    private boolean isInvalidScanResult(@NonNull ScanFileResult result) {
+    private boolean hasInvalidStructure(@NonNull ScanFileResult result) {
+        String filepath = result.getFilePath();
         List<ScanFileDetails> details = result.getFileDetails();
-        return details == null || details.isEmpty() || details.get(0) == null;
+        return filepath == null ||
+                details == null ||
+                details.isEmpty() ||
+                details.get(0) == null;
     }
+
+    /**
+     * Checks if the scan result has a valid match.
+     * A result is considered to have no valid match if:
+     * - Match type is 'none'
+     * - Lines array is null
+     * - PURLs array is null or empty
+     *
+     * @param result The scan result to validate
+     * @return true if there's no valid match, false if there is a valid match
+     */
+    private boolean hasNoValidMatch(@NonNull ScanFileResult result) {
+        if (hasInvalidStructure(result)) {
+            return true;
+        }
+
+        ScanFileDetails firstDetail = result.getFileDetails().get(0);
+        return firstDetail.getMatchType() == MatchType.none ||
+                firstDetail.getLines() == null ||
+                firstDetail.getPurls() == null ||
+                firstDetail.getPurls().length == 0;
+    }
+
 }

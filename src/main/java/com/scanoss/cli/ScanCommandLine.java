@@ -116,8 +116,6 @@ class ScanCommandLine implements Runnable {
 
     private Scanner scanner;
 
-    private List<ScanFileResult> scanFileResults;
-
     private Settings settings;
     /**
      * Run the 'scan' command
@@ -181,6 +179,7 @@ class ScanCommandLine implements Runnable {
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
                 .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
                 .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
+                .settings(this.settings)
                 .build();
 
         File f = new File(fileFolder);
@@ -194,14 +193,6 @@ class ScanCommandLine implements Runnable {
         } else {
             throw new RuntimeException(String.format("Error: Specified path is not a file or a folder: %s\n", fileFolder));
         }
-
-        if (settings != null && settings.getBom() != null) {
-            ScannerPostProcessor scannerPostProcessor = ScannerPostProcessor.builder().build();
-            scanFileResults = scannerPostProcessor.process(scanFileResults, settings.getBom());
-        }
-
-        var out = spec.commandLine().getOut();
-        JsonUtils.writeJsonPretty(toScanFileResultJsonObject(scanFileResults), null); // Uses System.out
     }
 
     /**
@@ -228,12 +219,13 @@ class ScanCommandLine implements Runnable {
      * @param file file to scan
      */
     private void scanFile(String file) {
+        var out = spec.commandLine().getOut();
         var err = spec.commandLine().getErr();
         try {
             printMsg(err, String.format("Scanning %s...", file));
             String result = scanner.scanFile(file);
             if (result != null && !result.isEmpty()) {
-                scanFileResults = JsonUtils.toScanFileResultsFromObject(JsonUtils.toJsonObject(result));
+                JsonUtils.writeJsonPretty(JsonUtils.toJsonObject(result), out);
                 return;
             } else {
                 err.println("Warning: No results returned.");
@@ -246,7 +238,6 @@ class ScanCommandLine implements Runnable {
         }
         throw new RuntimeException(String.format("Something went wrong while scanning %s", file));
     }
-
     /**
      * Scan the specified folder/directory and return the results
      *
@@ -261,7 +252,7 @@ class ScanCommandLine implements Runnable {
             if (results != null && !results.isEmpty()) {
                 printMsg(err, String.format("Found %d results.", results.size()));
                 printDebug(err, "Converting to JSON...");
-                scanFileResults = JsonUtils.toScanFileResultsFromObject(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)));
+                JsonUtils.writeJsonPretty(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)), out);
                 return;
             } else {
                 err.println("Error: No results return.");
