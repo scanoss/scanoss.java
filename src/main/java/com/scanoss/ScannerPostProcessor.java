@@ -236,9 +236,6 @@ public class ScannerPostProcessor {
 
         if (cached != null) {
             //TODO: Clarification on copyright, Vulns, etc
-            //currentComponent.toBuilder().component().vendor().purls().licenseDetails()
-             //Version if we have a package url with version
-            //pkg:github/scanoss@1.0.0
             return cached.toBuilder()
                     .file(existingComponent.getFile())
                     .fileHash(existingComponent.getFileHash())
@@ -332,18 +329,20 @@ public class ScannerPostProcessor {
         boolean hasPurl = rule.getPurl() != null && !rule.getPurl().isEmpty();
 
         // Check three possible matching conditions:
+
         // 1. Both path and PURL match
-        if (hasPath && hasPurl && isPathAndPurlMatch(rule, result)) {
-            return true;
+        if (hasPath && hasPurl) {
+            return isPathAndPurlMatch(rule, result);
         }
         // 2. Only PURL match required and matches
-        if (hasPurl && isPurlOnlyMatch(rule, result)) {
-            return true;
+        if (hasPurl) {
+            return isPurlOnlyMatch(rule, result);
         }
         // 3. Only path match required and matches
-        if (hasPath && isPathOnlyMatch(rule, result)) {
-            return true;
+        if (hasPath) {
+            return isPathOnlyMatch(rule, result);
         }
+
         return false;
     }
 
