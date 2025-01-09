@@ -186,7 +186,7 @@
                             </archive>
                             <inlineDescriptors>
                                 <inlineDescriptor>
-                                    <id>with-dependencies-slf4j-excluded</id>
+                                    <id>with-dependencies-excluded-slf4j</id>
                                     <formats>
                                         <format>jar</format>
                                     </formats>

@@ -235,7 +235,6 @@ public class ScannerPostProcessor {
         ScanFileDetails cached = purl2ComponentDetailsMap.get(newPurl.toString());
 
         if (cached != null) {
-            //TODO: Clarification on copyright, Vulns, etc
             return cached.toBuilder()
                     .file(existingComponent.getFile())
                     .fileHash(existingComponent.getFileHash())
@@ -247,6 +246,10 @@ public class ScannerPostProcessor {
         }
         // If no cached info, create minimal version
         return existingComponent.toBuilder()
+                .copyrightDetails(new CopyrightDetails[]{})
+                .licenseDetails(new LicenseDetails[]{})
+                .vulnerabilityDetails(new VulnerabilityDetails[]{})
+                .version(null)
                 .purls(new String[]{newPurl.toString()})
                 .url(Purl2Url.isSupported(newPurl) ? Purl2Url.convert(newPurl) : "")
                 .component(newPurl.getName())
