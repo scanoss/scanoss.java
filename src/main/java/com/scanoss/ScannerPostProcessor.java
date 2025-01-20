@@ -257,7 +257,6 @@ public class ScannerPostProcessor {
                 .build();
     }
 
-
     /**
      * Applies remove rules to scan results, filtering out matches based on certain criteria.
      * <p>
@@ -265,8 +264,8 @@ public class ScannerPostProcessor {
      * - Rule must match either both path and purl, just the path, or just the purl
      * <p>
      * Then, for each matched result:
-     * 1. If none of the matching rules define line ranges -> Remove the result
-     * 2. If any matching rules define line ranges -> Only remove if the result's lines overlap with any rule's line range
+     * 1. If none of the matching rules define line ranges &rarr; Remove the result
+     * 2. If any matching rules define line ranges &rarr; Only remove if the result's lines overlap with any rule's line range
      *
      * @param results The list of scan results to process
      * @param rules   The list of remove rules to apply
