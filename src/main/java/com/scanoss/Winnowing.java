@@ -209,33 +209,6 @@ public class Winnowing {
                 }
             }
         }
-        // TODO do we still want this?
-        // Check to see if the first newline is very far away. If so, it's another hint this could be a binary/data file
-//        for (int i = 0; i < contents.length; i++) {
-//            if (contents[i] == '\n') {
-//                return false;
-//            } else if (i > MAX_LONG_LINE_CHARS) {
-//                log.trace("Skipping snippets due to file line being too long: {} - {}", filename, MAX_LONG_LINE_CHARS);
-//                return true;
-//            }
-//        }
-        // TODO do we want to skip a whole file is some of it is a large single line?
-//        StringBuilder outputBuilder = new StringBuilder();
-//        for (char c: contents) {
-//            if (c == '\n') { // New line, check line length
-//                if (outputBuilder.length() > MAX_LONG_LINE_CHARS) {
-//                    log.trace("Skipping snippets due to file line being too long: {} - {}", filename, MAX_LONG_LINE_CHARS);
-//                    return true;
-//                }
-//                outputBuilder.setLength(0);  // empty the string again
-//            } else {
-//                outputBuilder.append(c);
-//            }
-//        }
-//        if (outputBuilder.length() > MAX_LONG_LINE_CHARS) { // Check the last string length
-//            log.trace("Skipping snippets due to file line being too long: {} - {}", filename, MAX_LONG_LINE_CHARS);
-//            return true;
-//        }
         return false;
     }
 

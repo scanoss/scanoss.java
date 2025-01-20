@@ -34,8 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.scanoss.TestConstants.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @Slf4j
 public class TestJsonUtils {
@@ -87,4 +86,53 @@ public class TestJsonUtils {
 
         log.info("Finished {} -->", methodName);
     }
+
+    @Test
+    public void testToRawJsonStringPositive() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        JsonObject jsonObject = JsonUtils.toJsonObject(jsonResultsString);
+        List<ScanFileResult> sampleScanResults = JsonUtils.toScanFileResultsFromObject(jsonObject);      //TODO: Create sampleScanResults with a helper function
+
+        // Convert to raw JSON strings
+        List<String> rawJsonStrings = JsonUtils.toRawJsonString(sampleScanResults);
+
+        // Verify results
+        assertNotNull("Raw JSON strings should not be null", rawJsonStrings);
+        assertEquals("Should have correct number of results", 4, rawJsonStrings.size());
+
+        // Verify each JSON string can be parsed back to objects
+        for (String jsonString : rawJsonStrings) {
+            JsonObject jObject = JsonUtils.toJsonObject(jsonString);
+            assertNotNull("Parsed JSON object should not be null", jObject);
+            assertEquals("Each JSON object should have exactly one key", 1, jObject.keySet().size());
+        }
+
+        // Verify first result contains expected file path
+        JsonObject firstResult = JsonUtils.toJsonObject(rawJsonStrings.get(0));
+        assertTrue("First result should contain scanoss/__init__.py", firstResult.has("scanoss/__init__.py"));
+
+        JsonObject secondResult = JsonUtils.toJsonObject(rawJsonStrings.get(1));
+        assertTrue("Second result should contain CMSsite/admin/js/npm.js", secondResult.has("CMSsite/admin/js/npm.js"));
+
+        JsonObject thirdResult = JsonUtils.toJsonObject(rawJsonStrings.get(2));
+        assertTrue("Second result should contain src/spdx.c", thirdResult.has("src/spdx.c"));
+
+        JsonObject fourthResult = JsonUtils.toJsonObject(rawJsonStrings.get(3));
+        assertTrue("Second result should contain scanoss/api/__init__.py", fourthResult.has("scanoss/api/__init__.py"));
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
+    @Test
+    public void testToRawJsonStringEmptyList() {
+        List<ScanFileResult> emptyList = new ArrayList<>();
+        List<String> result = JsonUtils.toRawJsonString(emptyList);
+        assertNotNull("Result should not be null for empty input", result);
+        assertTrue("Result should be empty for empty input", result.isEmpty());
+    }
+
+
 }

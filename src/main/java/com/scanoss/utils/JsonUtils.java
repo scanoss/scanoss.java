@@ -179,6 +179,49 @@ public class JsonUtils {
         return scanFileResults;
     }
 
+
+    /**
+     * Convert a list of ScanFileResult objects to a list of raw JSON strings
+     *
+     * @param results List of ScanFileResult objects to convert
+     * @return List of raw JSON strings
+     * @throws JsonParseException    JSON Parsing failed
+     * @throws IllegalStateException JSON field is not of JSON Object type
+     */
+    public static List<String> toRawJsonString(@NonNull List<ScanFileResult> results) throws JsonParseException, IllegalStateException {
+        List<String> rawJsonStrings = new ArrayList<>(results.size());
+        Gson gson = new Gson();
+
+        results.forEach(result -> {
+            JsonObject jsonObject = new JsonObject();
+            JsonElement detailsJson = gson.toJsonTree(result.getFileDetails());
+            jsonObject.add(result.getFilePath(), detailsJson);
+            rawJsonStrings.add(jsonObject.toString());
+        });
+
+        return rawJsonStrings;
+    }
+
+    /**
+     * Converts a list of ScanFileResult objects into a JSON object where the file paths are keys
+     * and the corresponding file details are the values
+     *
+     * @param scanFileResults List of ScanFileResult objects to convert
+     * @return JsonObject containing file paths as keys and file details as JSON elements
+     */
+    public static JsonObject toScanFileResultJsonObject(List<ScanFileResult> scanFileResults) {
+        JsonObject root = new JsonObject();
+        Gson gson = new Gson();
+
+        scanFileResults.forEach(result -> {
+            JsonElement detailsJson = gson.toJsonTree(result.getFileDetails());
+            root.add(result.getFilePath(), detailsJson);
+        });
+
+        return root;
+    }
+
+
     /**
      * Convert the given JSON Object to a list of Scan File Results
      *
@@ -194,6 +237,8 @@ public class JsonUtils {
         });
         return results;
     }
+
+
 
     /**
      * Determine if the given string is a boolean true/false

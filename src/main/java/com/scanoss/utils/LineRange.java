@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2024, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,50 +20,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.dto;
+package com.scanoss.utils;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import static com.scanoss.utils.JsonUtils.checkBooleanString;
+import lombok.Getter;
 
 /**
- * Scan Results Match License Details
+ * Represents a line range with start and end lines
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class LicenseDetails {
-    private String name;
-    private String source;
-    private String copyleft;
-    @SerializedName("patent_hints")
-    private String patentHints;
-    private String url;
-    @SerializedName("checklist_url")
-    private String checklistUrl;
-    @SerializedName("osadl_updated")
-    private String osadlUpdated;
+@Getter
+public class LineRange {
+    private final int start;
+    private final int end;
+
 
     /**
-     * Determine if the license is Copyleft or not
+     * Creates a new line range with the specified start and end lines.
      *
-     * @return <code>true</code> if copyleft, <code>false</code> otherwise
+     * @param start the starting line number (inclusive)
+     * @param end the ending line number (inclusive)
      */
-    public boolean isCopyleft() {
-        return checkBooleanString(copyleft);
+    public LineRange(int start, int end) {
+        this.start = start;
+        this.end = end;
     }
 
     /**
-     * Determine if the license is Copyleft or not
+     * Determines if this line range overlaps with another line range.
+     * Two ranges overlap if any line numbers are shared between them.
+     * For example:
+     * - LineRange(1,5) overlaps with LineRange(3,7)
+     * - LineRange(1,3) overlaps with LineRange(3,5)
+     * - LineRange(1,3) does not overlap with LineRange(4,6)
      *
-     * @return <code>true</code> if copyleft, <code>false</code> otherwise
+     * @param other the LineRange to check for overlap with this range
+     * @return true if the ranges share any line numbers, false otherwise
      */
-    public boolean hasPatentHints() {
-        return checkBooleanString(patentHints);
+    public boolean overlaps(LineRange other) {
+        return this.start <= other.end && this.end >= other.start;
     }
 }
