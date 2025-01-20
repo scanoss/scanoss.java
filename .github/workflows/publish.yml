@@ -60,7 +60,6 @@ jobs:
         with:
           name: scanoss-jars
           path: ./target/*.jar
-          overwrite: true
 
 #      - name: Release
 #        uses: softprops/action-gh-release@v1
@@ -139,16 +138,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: scanoss-jars
-          path: ./target/scanoss-java-${{ matrix.os }}
-          overwrite: true
+          path: |
+            ./target/scanoss-java-${{ matrix.os }}
 
       - name: Cache ${{ matrix.os }} Binary Windows
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: scanoss-jars
-          path: ./target/scanoss-java-${{ matrix.os }}.exe
-          overwrite: true
+          path: |
+            ./target/scanoss-java-${{ matrix.os }}.exe
 
 
   # Upload all the jars and binaries  a GH Release
