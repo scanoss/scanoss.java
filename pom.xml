@@ -181,7 +181,7 @@
                         <configuration>
                             <inlineDescriptors>
                                 <inlineDescriptor>
-                                    <id>with-dependencies-excluded-slf4j-simple</id>
+                                    <id>with-dependencies-exclude-slf4j-simple</id>
                                     <formats>
                                         <format>jar</format>
                                     </formats>
