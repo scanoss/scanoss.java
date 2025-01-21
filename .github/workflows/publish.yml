@@ -61,14 +61,6 @@ jobs:
           name: scanoss-jars
           path: ./target/*.jar
 
-#      - name: Release
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          draft: true
-#          files: |
-#            target/*.jar
-#            scanoss-cli.sh
-
   # Build all the native binaries for the given OSes
   build_native:
     if: success()
@@ -137,14 +129,14 @@ jobs:
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: scanoss-jars
+          name: scanoss-jars-${{ matrix.os }}
           path: ./target/scanoss-java-${{ matrix.os }}
 
       - name: Cache ${{ matrix.os }} Binary Windows
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: scanoss-jars
+          name: scanoss-jars-${{ matrix.os }}
           path: ./target/scanoss-java-${{ matrix.os }}.exe
 
 
@@ -160,7 +152,7 @@ jobs:
       - name: Download Cached artifacts
         uses: actions/download-artifact@v4
         with:
-          name: scanoss-jars
+          pattern: scanoss-jars*  #TODO: Rename to scanoss-binary-windows/linux/mac
           path: target
 
       - name: List Packages
@@ -168,12 +160,10 @@ jobs:
         run: |
           ls -la target/
 
-      # Only create a release if we have a tagged push
-      - name: Release ${{ github.ref_type }} - ${{ github.ref_name }}
+      - name: GH Release ${{ github.ref_type }} - ${{ github.ref_name }}
         if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          files: |
-            target/*
-            scanoss-cli.sh
+        run: |
+          gh release create ${{github.ref_name}} \
+                            --repo ${{ github.server_url }}/${{ github.repository }} \
+                            --generate-notes \
+                            target/* scanoss-cli.sh      

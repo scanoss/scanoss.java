@@ -6,7 +6,7 @@
 
     <groupId>com.scanoss</groupId>
     <artifactId>scanoss</artifactId>
-    <version>0.8.1</version>
+    <version>0.8.2</version>
     <packaging>jar</packaging>
     <name>scanoss.java</name>
     <url>https://github.com/scanoss/scanoss.java</url>
@@ -44,11 +44,6 @@
     </properties>
 
     <distributionManagement>
-        <!--        <repository>-->
-        <!--            <id>github</id>-->
-        <!--            <name>GitHub SCANOSS Apache Maven Packages</name>-->
-        <!--            <url>https://maven.pkg.github.com/scanoss/scanoss.java</url>-->
-        <!--        </repository>-->
         <snapshotRepository>
             <id>ossrh</id>
             <name>Maven Central Snapshot Repo</name>
@@ -62,58 +57,36 @@
     </distributionManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>mockwebserver</artifactId>
-            <version>4.12.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.36</version>
-            <optional>true</optional>
-        </dependency>
+        <!-- Core compile dependencies -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>4.12.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp-tls</artifactId>
             <version>4.12.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.17.1</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4jVersion}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4jVersion}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
             <version>2.9.2</version>
-        </dependency>
-        <dependency>
-            <groupId>info.picocli</groupId>
-            <artifactId>picocli</artifactId>
-            <version>4.7.6</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -125,6 +98,42 @@
             <groupId>com.github.package-url</groupId>
             <artifactId>packageurl-java</artifactId>
             <version>1.5.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.7.6</version>
+            <optional>true</optional>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.36</version>
+            <optional>true</optional>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4jVersion}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <version>4.12.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
@@ -170,34 +179,6 @@
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>without-slf4j</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <inlineDescriptors>
-                                <inlineDescriptor>
-                                    <id>with-dependencies-exclude-slf4j-simple</id>
-                                    <formats>
-                                        <format>jar</format>
-                                    </formats>
-                                    <includeBaseDirectory>false</includeBaseDirectory>
-                                    <dependencySets>
-                                        <dependencySet>
-                                            <outputDirectory>/</outputDirectory>
-                                            <useProjectArtifact>true</useProjectArtifact>
-                                            <unpack>true</unpack>
-                                            <excludes>
-                                                <exclude>org.slf4j:slf4j-simple</exclude>
-                                            </excludes>
-                                        </dependencySet>
-                                    </dependencySets>
-                                </inlineDescriptor>
-                            </inlineDescriptors>
                         </configuration>
                     </execution>
                 </executions>
@@ -283,12 +264,9 @@
                                 <buildArg>-H:+ReportExceptionStackTraces</buildArg>
                                 <buildArg>-H:ReflectionConfigurationFiles=../config/reflect-config.json</buildArg>
                                 <buildArg>-H:ResourceConfigurationFiles=../config/resource-config.json</buildArg>
-                                <!-- <buildArg>-H:+StaticExecutableWithDynamicLibC</buildArg> -->
                                 <buildArg>--verbose</buildArg>
                                 <buildArg>--no-fallback</buildArg>
                                 <buildArg>-march=native</buildArg>
-                                <!-- For Quick Build (22.1+) -->
-<!--                                <buildArg>-Ob</buildArg>-->
                             </buildArgs>
                         </configuration>
                     </plugin>
