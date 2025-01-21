@@ -130,16 +130,25 @@ jobs:
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: scanoss-jars-${{ matrix.os }}
-          path: ./target/scanoss-java-${{ matrix.os }}
+          name: scanoss-jars-$${{ matrix.runs-on }}
+          path: ./target/scanoss-java-${{ matrix.runs-on }}
 
       - name: Cache ${{ matrix.os }} Binary Windows
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: scanoss-jars-${{ matrix.os }}
-          path: ./target/scanoss-java-${{ matrix.os }}.exe
-
+          name: scanoss-jars-${{ matrix.runs-on }}
+          path: ./target/scanoss-java-${{ matrix.runs-on }}.exe
+    
+    merge:
+      runs-on: ubuntu-latest
+      needs: upload
+      steps:
+        - name: Merge artifacts
+          uses: actions/upload-artifact/merge@v4
+          with:
+            name: scanoss-jars
+            pattern: scanoss-jars-*
 
   # Upload all the jars and binaries  a GH Release
   create_release:
