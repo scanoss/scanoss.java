@@ -48,6 +48,7 @@ jobs:
           mvn --no-transfer-progress -DskipTests clean package
 
       - name: Publish to the Maven Central Repository
+        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
         run: |
           mvn --no-transfer-progress --batch-mode deploy
         env:
@@ -58,7 +59,7 @@ jobs:
       - name: Cache Jars
         uses: actions/upload-artifact@v4
         with:
-          name: scanoss-jars
+          name: scanoss-jars-maven
           path: ./target/*.jar
 
   # Build all the native binaries for the given OSes
@@ -152,7 +153,8 @@ jobs:
       - name: Download Cached artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: scanoss-jars*  #TODO: Rename to scanoss-binary-windows/linux/mac
+          pattern: scanoss-jars-*  #TODO: Rename to scanoss-binary-windows/linux/mac
+          merge-multiple: true
           path: target
 
       - name: List Packages
@@ -162,8 +164,11 @@ jobs:
 
       - name: GH Release ${{ github.ref_type }} - ${{ github.ref_name }}
         if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create ${{github.ref_name}} \
+                            --draft \
                             --repo ${{ github.server_url }}/${{ github.repository }} \
                             --generate-notes \
                             target/* scanoss-cli.sh      
