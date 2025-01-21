@@ -179,14 +179,9 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <archive>
-                                <manifest>
-                                    <mainClass>${exec.mainClass}</mainClass>
-                                </manifest>
-                            </archive>
                             <inlineDescriptors>
                                 <inlineDescriptor>
-                                    <id>with-dependencies-excluded-slf4j</id>
+                                    <id>with-dependencies-exclude-slf4j-simple</id>
                                     <formats>
                                         <format>jar</format>
                                     </formats>
@@ -197,7 +192,6 @@
                                             <useProjectArtifact>true</useProjectArtifact>
                                             <unpack>true</unpack>
                                             <excludes>
-                                                <exclude>org.slf4j:slf4j-api</exclude>
                                                 <exclude>org.slf4j:slf4j-simple</exclude>
                                             </excludes>
                                         </dependencySet>
