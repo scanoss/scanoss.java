@@ -172,7 +172,7 @@ jobs:
           ls -la target/
 
       - name: GH Release ${{ github.ref_type }} - ${{ github.ref_name }}
-        #if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
