@@ -31,6 +31,7 @@ import com.scanoss.settings.Settings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,6 +54,7 @@ import static com.scanoss.utils.JsonUtils.toScanFileResultJsonObject;
  */
 @SuppressWarnings({"unused", "CanBeFinal"})
 @picocli.CommandLine.Command(name = "scan", description = "Scan the given file/folder/wfp")
+@Slf4j
 class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Spec
     picocli.CommandLine.Model.CommandSpec spec;
@@ -90,12 +92,6 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-F", "--flags"}, description = "Scanning engine flags (1: disable snippet matching, 2 enable snippet ids, 4: disable dependencies, 8: disable licenses, 16: disable copyrights, 32: disable vulnerabilities, 64: disable quality, 128: disable cryptography,256: disable best match only, 512: hide identified files, 1024: enable download_url, 2048: enable GitHub full path, 4096: disable extended server stats")
     private String scanFlags;
 
-    @picocli.CommandLine.Option(names = {"-i", "--identify"}, description = "Scan and identify components in SBOM file")
-    private String identifySbom;
-
-    @picocli.CommandLine.Option(names = {"-n", "--ignore"}, description = "Ignore components specified in the SBOM file")
-    private String ignoreSbom;
-
     @picocli.CommandLine.Option(names = {"--settings"}, description = "Settings file to use for scanning (optional - default scanoss.json)")
     private String settingsPath;
 
@@ -126,18 +122,11 @@ class ScanCommandLine implements Runnable {
         if (fileFolder == null || fileFolder.isEmpty()) {
             throw new RuntimeException("Error: No file or folder specified to scan");
         }
-        if (identifySbom != null && ignoreSbom != null) {
-            throw new RuntimeException("Error: Specify one of --identify or --ignore not both");
-        }
+
+        //TODO: Deprecate options
         String sbomType = null;
         String sbom = null;
-        if (identifySbom != null && !identifySbom.isEmpty()) {
-            sbomType = "identify";
-            sbom = loadFileToString(identifySbom);
-        } else if (ignoreSbom != null && !ignoreSbom.isEmpty()) {
-            sbomType = "blacklist";
-            sbom = loadFileToString(ignoreSbom);
-        }
+
         String caCertPem = null;
         if (caCert != null && !caCert.isEmpty()) {
             caCertPem = loadFileToString(caCert);
@@ -154,6 +143,7 @@ class ScanCommandLine implements Runnable {
             settings = Settings.createFromPath(Paths.get(settingsPath));
             if (settings == null) throw new RuntimeException("Error: Failed to read settings file");
         }
+        log.info("Settings file read: {}", settings);
 
         if (com.scanoss.cli.CommandLine.debug) {
             if (numThreads != DEFAULT_WORKER_THREADS) {
@@ -179,7 +169,7 @@ class ScanCommandLine implements Runnable {
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
                 .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
                 .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
-                .settings(this.settings)
+                .settings(settings)
                 .build();
 
         File f = new File(fileFolder);

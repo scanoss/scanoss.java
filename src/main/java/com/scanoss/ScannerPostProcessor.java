@@ -77,6 +77,10 @@ public class ScannerPostProcessor {
         log.info("Starting scan results processing with {} results", scanFileResults.size());
         log.debug("BOM configuration - Remove rules: {}, Replace rules: {}", removeSize, replaceSize);
 
+        if (scanFileResults.isEmpty()) {
+            log.info("No scan results found. Skipping: {}", bom);
+        }
+
         buildPurl2ComponentDetailsMap(scanFileResults);
         List<ScanFileResult> processedResults = new ArrayList<>(scanFileResults);
         if (removeSize > 0) {

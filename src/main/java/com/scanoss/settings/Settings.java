@@ -23,15 +23,16 @@
 package com.scanoss.settings;
 
 import com.google.gson.Gson;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
+import com.scanoss.dto.SbomLegacy;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents the SCANOSS scanner settings configuration.
@@ -41,13 +42,25 @@ import java.nio.file.Path;
 @Slf4j
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Settings {
     /**
      * The Bill of Materials (BOM) configuration containing rules for component handling.
      * Includes rules for including, ignoring, removing, and replacing components
      * during and after the scanning process.
      */
-    private final Bom bom;
+    private final @Builder.Default Bom bom = Bom.builder().build();
+
+
+
+    public SbomLegacy getLegacySbom(List<Rule> rules) {
+        List<SbomLegacy.Component> c = new ArrayList<>();
+        rules.forEach(rule -> {
+            c.add(new SbomLegacy.Component( rule.getPurl()));
+        });
+        return SbomLegacy.builder().components(c).build();
+    }
 
     /**
      * Creates a Settings object from a JSON string
@@ -76,5 +89,9 @@ public class Settings {
         }
 
     }
+
+
+
+
 }
 

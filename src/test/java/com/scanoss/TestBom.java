@@ -67,10 +67,11 @@ public class TestBom {
 
         // Create Bom with rules in random order
         Bom bom = Bom.builder()
-                .replace(pathOnly)
-                .replace(bothFieldsShortPath)
-                .replace(purlOnly)
-                .replace(bothFieldsLongPath)
+                .replace(List.of(
+                    pathOnly,
+                    bothFieldsShortPath,
+                    purlOnly,
+                    bothFieldsLongPath))
                 .build();
 
         // Get sorted rules
@@ -101,8 +102,7 @@ public class TestBom {
 
         // Create Bom with rules
         Bom bom = Bom.builder()
-                .replace(pathRule1)
-                .replace(pathRule2)
+                .replace(List.of(pathRule1,pathRule2))
                 .build();
 
         // Get sorted rules

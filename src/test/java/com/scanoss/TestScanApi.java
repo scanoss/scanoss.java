@@ -25,23 +25,32 @@ package com.scanoss;
 import com.scanoss.exceptions.ScanApiException;
 import com.scanoss.rest.HttpStatusCode;
 import com.scanoss.rest.ScanApi;
+import com.scanoss.settings.Bom;
+import com.scanoss.settings.Rule;
+import com.scanoss.settings.Settings;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.scanoss.TestConstants.SCAN_RESP_SUCCESS;
 import static com.scanoss.TestConstants.customSelfSignedCertificate;
 import static org.junit.Assert.*;
+
+import okhttp3.MultipartBody;
+import okio.Buffer;
 
 @Slf4j
 public class TestScanApi {
@@ -203,5 +212,45 @@ public class TestScanApi {
 
         log.info("Finished {} -->", methodName);
     }
+    @Test
+    public void TestScanApiSettingsPositive() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        try {
+            Rule rule = Rule.builder().purl("pkg:github/scanoss/engine@1.0.0").build();
+            Bom bom = Bom.builder().include(List.of(rule)).build();
+            Settings settings = Settings.builder().bom(bom).build();
+
+            ScanApi scanApi = ScanApi.builder()
+                    .settings(settings)
+                    .url(server.url("/api/scan/direct").toString())
+                    .build();
+
+            server.enqueue(new MockResponse()
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .setBody(SCAN_RESP_SUCCESS)
+                    .setResponseCode(200));
+
+            String response = scanApi.scan("file=....", "", 1);
+            assertNotNull("Scan result with include rules should not be null", response);
+            assertFalse("Should've gotten a response JSON", response.isEmpty());
+
+            // Verify the request contained correct identify settings
+            RecordedRequest r = server.takeRequest();
+            String rBody = r.getBody().readUtf8();
+            assertTrue("Request should contain type identify", rBody.contains("identify"));
+            assertTrue("Request should contain rule PURL",
+                    rBody.contains(rule.getPurl()));
+
+        } catch (InterruptedException e) {
+            log.error("Test interrupted while waiting for request: {}", e.getLocalizedMessage());
+            fail("Test interrupted while waiting for request");
+        }
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
 
 }
