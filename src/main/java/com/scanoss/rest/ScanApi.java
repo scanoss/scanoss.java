@@ -162,11 +162,10 @@ public class ScanApi {
             data.put("type", type);
         }
 
-        log.info("Settings read", settings);
         if (settings != null && !settings.getBom().getIgnore().isEmpty()) {
             List<Rule> rules = settings.getBom().getIgnore();
             SbomLegacy legacyIgnore = settings.getLegacySbom(rules);
-            log.info("ignore rules detected. Converting to legacy rules{}", JsonUtils.toJson(legacyIgnore));
+            log.info("ignore rules detected. Converting to legacy rules {}", JsonUtils.toJson(legacyIgnore));
             data.put("assets", JsonUtils.toJson(legacyIgnore));
             data.put("type", "blacklist");
         }
@@ -174,7 +173,7 @@ public class ScanApi {
         if (settings != null && !settings.getBom().getInclude().isEmpty()) {
             List<Rule> rules = settings.getBom().getInclude();
             SbomLegacy legacyInclude = settings.getLegacySbom(rules);
-            log.info("include rules detected. Converting to legacy rules{}", JsonUtils.toJson(legacyInclude));
+            log.info("include rules detected. Converting to legacy rules {}", JsonUtils.toJson(legacyInclude));
             data.put("assets", JsonUtils.toJson(legacyInclude));
             data.put("type", "identify");
         }

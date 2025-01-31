@@ -53,7 +53,15 @@ public class Settings {
     private final @Builder.Default Bom bom = Bom.builder().build();
 
 
-
+    /**
+     * Converts modern rule-based configuration to legacy SBOM format.
+     * This method is needed as a temporary solution because the current engine
+     * does not yet support the new settings.json format with 'include' and 'ignore' properties.
+     * Instead, it converts these rules to the legacy include/blacklist style.
+     *
+     * @param rules List of inclusion/exclusion rules to be converted
+     * @return SbomLegacy object containing the converted rules as components
+     */
     public SbomLegacy getLegacySbom(List<Rule> rules) {
         List<SbomLegacy.Component> c = new ArrayList<>();
         rules.forEach(rule -> {

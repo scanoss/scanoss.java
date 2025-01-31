@@ -113,6 +113,11 @@ public class ScannerPostProcessor {
             }
             // Iterate through file details
             for (ScanFileDetails details : fileDetails) {
+                if (details != null && details.getMatchType() == MatchType.none) {
+                    log.warn("Skipping no match for file: {}", result.getFilePath());
+                    continue;
+                }
+
                 String[] purls = details != null ? details.getPurls() : null;
                 if (purls == null) {
                     log.warn("Null details or empty scan file result details. Skipping: {}", details);

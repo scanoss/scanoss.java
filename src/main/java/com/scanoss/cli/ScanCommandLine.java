@@ -54,7 +54,6 @@ import static com.scanoss.utils.JsonUtils.toScanFileResultJsonObject;
  */
 @SuppressWarnings({"unused", "CanBeFinal"})
 @picocli.CommandLine.Command(name = "scan", description = "Scan the given file/folder/wfp")
-@Slf4j
 class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Spec
     picocli.CommandLine.Model.CommandSpec spec;
@@ -142,8 +141,9 @@ class ScanCommandLine implements Runnable {
         if(settingsPath != null && !settingsPath.isEmpty()) {
             settings = Settings.createFromPath(Paths.get(settingsPath));
             if (settings == null) throw new RuntimeException("Error: Failed to read settings file");
+            printMsg(err, String.format("Settings file read %s", settings));
         }
-        log.info("Settings file read: {}", settings);
+
 
         if (com.scanoss.cli.CommandLine.debug) {
             if (numThreads != DEFAULT_WORKER_THREADS) {
