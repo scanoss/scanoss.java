@@ -262,7 +262,7 @@ public class TestScanner {
         List<String> results = scanner.scanFolder(folder);
         log.info("Received {} results", results.size());
         assertFalse("Scan results should be empty", results.isEmpty());
-        assertEquals("Results should be one", results.size() , 1);
+        assertEquals("Results should be one", 1, results.size());
 
         log.info("Finished {} -->", methodName);
     }

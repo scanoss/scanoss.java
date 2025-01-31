@@ -22,7 +22,6 @@
  */
 package com.scanoss.settings;
 
-import com.scanoss.dto.SbomLegacy;
 import lombok.*;
 
 import java.util.ArrayList;

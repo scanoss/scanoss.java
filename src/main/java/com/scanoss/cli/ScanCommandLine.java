@@ -23,15 +23,12 @@
 package com.scanoss.cli;
 
 import com.scanoss.Scanner;
-import com.scanoss.ScannerPostProcessor;
-import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
 import com.scanoss.settings.Settings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +41,6 @@ import java.util.List;
 import static com.scanoss.ScanossConstants.*;
 import static com.scanoss.cli.CommandLine.printDebug;
 import static com.scanoss.cli.CommandLine.printMsg;
-import static com.scanoss.utils.JsonUtils.toScanFileResultJsonObject;
 
 /**
  * Scan Command Line Processor Class

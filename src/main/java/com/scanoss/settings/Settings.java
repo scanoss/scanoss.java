@@ -64,9 +64,7 @@ public class Settings {
      */
     public SbomLegacy getLegacySbom(List<Rule> rules) {
         List<SbomLegacy.Component> c = new ArrayList<>();
-        rules.forEach(rule -> {
-            c.add(new SbomLegacy.Component( rule.getPurl()));
-        });
+        rules.forEach(rule -> c.add(new SbomLegacy.Component( rule.getPurl())));
         return SbomLegacy.builder().components(c).build();
     }
 

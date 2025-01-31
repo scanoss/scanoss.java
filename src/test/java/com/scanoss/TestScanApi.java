@@ -39,7 +39,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,9 +47,6 @@ import java.util.concurrent.TimeUnit;
 import static com.scanoss.TestConstants.SCAN_RESP_SUCCESS;
 import static com.scanoss.TestConstants.customSelfSignedCertificate;
 import static org.junit.Assert.*;
-
-import okhttp3.MultipartBody;
-import okio.Buffer;
 
 @Slf4j
 public class TestScanApi {
