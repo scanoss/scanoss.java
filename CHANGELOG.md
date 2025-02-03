@@ -11,13 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upcoming changes...
 
-## [0.7.3] - 2024-09-12
-### Added
-- Added variables `DEFAULT_BASE_URL` and `DEFAULT_BASE_URL2` to separate the scan URL from the scan path
 
-## [0.7.2] - 2024-04-17
+## [0.9.0] - 2025-02-03
+### Added
+- Add support to rules: include & ignore
+
+## [0.8.2] - 2025-01-23
+### Changed
+- Updates scope on dependencies pom.xml
+- Publish workflow
+
+## [0.8.0] - 2025-01-21
 ### Added
 - Added [tagging workflow](.github/workflows/version-tag.yml) to aid release generation
+- Added variables `DEFAULT_BASE_URL` and `DEFAULT_BASE_URL2` to separate the scan URL from the scan path
+- Adds support to rules: replace & remove
 
 ## [0.7.1] - 2024-04-12
 ### Changed
@@ -76,10 +84,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2023-07-04
 ### Added
 - First pass at the following Classes
-    - Fingerprinting ([Winnowing](src/main/java/com/scanoss/Winnowing.java))
-    - Scanning ([Scanner](src/main/java/com/scanoss/Scanner.java))
-    - REST Interface ([ScanApi](src/main/java/com/scanoss/rest/ScanApi.java))
-    - JSON Utils ([JsonUtils](src/main/java/com/scanoss/utils/JsonUtils.java))
+  - Fingerprinting ([Winnowing](src/main/java/com/scanoss/Winnowing.java))
+  - Scanning ([Scanner](src/main/java/com/scanoss/Scanner.java))
+  - REST Interface ([ScanApi](src/main/java/com/scanoss/rest/ScanApi.java))
+  - JSON Utils ([JsonUtils](src/main/java/com/scanoss/utils/JsonUtils.java))
 - CLI ([CommandLine](src/main/java/com/scanoss/cli/CommandLine.java))
 
 [0.2.0]: https://github.com/scanoss/scanoss.java/compare/v0.0.0...v0.2.0
@@ -94,5 +102,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.1]: https://github.com/scanoss/scanoss.java/compare/v0.6.0...v0.6.1
 [0.7.0]: https://github.com/scanoss/scanoss.java/compare/v0.6.1...v0.7.0
 [0.7.1]: https://github.com/scanoss/scanoss.java/compare/v0.7.0...v0.7.1
-[0.7.2]: https://github.com/scanoss/scanoss.java/compare/v0.7.1...v0.7.2
-[0.7.3]: https://github.com/scanoss/scanoss.java/compare/v0.7.2...v0.7.3
+[0.8.0]: https://github.com/scanoss/scanoss.java/compare/v0.7.1...v0.8.0
+[0.8.1]: https://github.com/scanoss/scanoss.java/compare/v0.8.0...v0.8.1
+[0.9.0]: https://github.com/scanoss/scanoss.java/compare/v0.8.1...v0.9.0
