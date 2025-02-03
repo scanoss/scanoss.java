@@ -88,7 +88,7 @@ public class TestScannerPostProcessor {
                 .path("CMSsite/admin/js/npm.js")
                 .build();
 
-        Bom bom = Bom.builder().remove(rule).build();
+        Bom bom = Bom.builder().remove(List.of(rule)).build();
 
         // Process results
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);

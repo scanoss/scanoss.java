@@ -22,9 +22,7 @@
  */
 package com.scanoss.settings;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,31 +35,34 @@ import java.util.List;
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Bom {
+
     /**
      * List of include rules for adding context when scanning.
      * These rules are sent to the SCANOSS API and have a higher chance of being
      * considered part of the resulting scan.
      */
-    private final @Singular("include") List<Rule> include;
+    private final @Builder.Default List<Rule> include = new ArrayList<>();
     /**
      * List of ignore rules for excluding certain components .
      * These rules are sent to the SCANOSS API.
      */
-    private final @Singular("ignore") List<Rule> ignore;
+    private final @Builder.Default List<Rule> ignore = new ArrayList<>();
     /**
      * List of remove rules for excluding components from results after scanning.
      * These rules are applied to the results file after scanning and are processed
      * on the client side.
      */
-    private final @Singular("remove") List<RemoveRule> remove;
+    private final @Builder.Default List<RemoveRule> remove = new ArrayList<>();
     /**
      * List of replace rules for substituting components after scanning.
      * These rules are applied to the results file after scanning and are processed
      * on the client side. Each rule can specify a new PURL and license for the
      * replacement component.
      */
-    private final @Singular("replace") List<ReplaceRule> replace;
+    private final @Builder.Default List<ReplaceRule> replace = new ArrayList<>();
 
     /**
      * Cached list of replace rules sorted by priority.
@@ -70,7 +71,7 @@ public class Bom {
      *
      * @see #getReplaceRulesByPriority()
      */
-    private final List<ReplaceRule> sortedReplace;
+    private final @Builder.Default List<ReplaceRule> sortedReplace = new ArrayList<>();
 
     /**
      * Sorts replace rules by priority from highest to lowest:
@@ -81,7 +82,7 @@ public class Bom {
      * @return A new list containing the sorted replacement rules
      */
     public List<ReplaceRule> getReplaceRulesByPriority() {
-        if (sortedReplace == null) {
+        if (sortedReplace == null || sortedReplace.isEmpty()) {
             List<ReplaceRule> sortedReplace = new ArrayList<>(replace);
             sortedReplace.sort(new RuleComparator());
             return sortedReplace;

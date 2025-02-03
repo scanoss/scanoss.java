@@ -24,10 +24,10 @@ package com.scanoss.dto;
 
 import com.google.gson.annotations.SerializedName;
 import com.scanoss.dto.enums.MatchType;
+import com.scanoss.dto.enums.StatusType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Scan File Result Detailed Information
@@ -43,7 +43,7 @@ public class ScanFileDetails {
     private final String version;
     private final String latest;
     private final String url;
-    private final String status;
+    private final StatusType status;
     private final String matched;
     private final String file;
     private final String lines;

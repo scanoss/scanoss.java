@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2024, SCANOSS
+ * Copyright (c) 2025, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,31 +20,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.utils;
+package com.scanoss.dto;
+
+
+import lombok.Builder;
+import lombok.Data;
+import java.util.List;
 
 /**
- * SCANOSS Winnowing Utils Class
- * <p>
- *     This class provides methods for normalizing characters and other text processing utilities.
- * </p>
+ * Legacy representation of a Software Bill of Materials (SBOM).
+ * This class exists to support backward compatibility with older include/blacklist style
+ * configurations while the engine is updated to support the newer include/ignore format
+ * from settings.json.
  */
-public class WinnowingUtils {
+@Data
+@Builder
+public class SbomLegacy {
+    private final List<Component> components;
 
     /**
-     * Normalise the given character
-     *
-     * @param c character to normalise
-     * @return normalised character
+     * Represents a component within the legacy SBOM structure.
+     * Each component is identified by its Package URL (PURL).
      */
-    public static char normalize(char c) {
-        if (c < '0' || c > 'z') {
-            return 0;
-        } else if (c <= '9' || c >= 'a') {
-            return c;
-        } else if (c >= 'A' && c <= 'Z') {
-            return (char) (c + 32);
-        } else {
-            return 0;
-        }
+    @Data
+    public static class Component {
+        private final String purl;
     }
 }

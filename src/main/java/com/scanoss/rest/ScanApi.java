@@ -22,7 +22,11 @@
  */
 package com.scanoss.rest;
 
+import com.scanoss.dto.SbomLegacy;
 import com.scanoss.exceptions.ScanApiException;
+import com.scanoss.settings.Rule;
+import com.scanoss.settings.Settings;
+import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.PackageDetails;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,10 +39,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.Proxy;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.scanoss.ScanossConstants.DEFAULT_HTTP_RETRY_LIMIT;
@@ -70,12 +71,13 @@ public class ScanApi {
     private String customCert; // Custom certificate
     private Proxy proxy; // Proxy configuration
     private String baseUrl; // SCANOSS base API URI (to used instead of url)
-
+    private Settings settings;
     @SuppressWarnings("unused")
     private ScanApi(String scanType, Duration timeout, Integer retryLimit, String url, String apiKey, String flags,
                     String sbomType, String sbom,
                     OkHttpClient okHttpClient, Map<String, String> headers, String customCert,
-                    Proxy proxy, String baseUrl) {
+                    Proxy proxy, String baseUrl, Settings settings) {
+        this.settings = settings;
         this.scanType = scanType;
         this.timeout = timeout;
         this.retryLimit = retryLimit;
@@ -159,6 +161,24 @@ public class ScanApi {
             data.put("assets", sbom);
             data.put("type", type);
         }
+
+        if (settings != null && !settings.getBom().getIgnore().isEmpty()) {
+            List<Rule> rules = settings.getBom().getIgnore();
+            SbomLegacy legacyIgnore = settings.getLegacySbom(rules);
+            log.info("ignore rules detected. Converting to legacy rules {}", JsonUtils.toJson(legacyIgnore));
+            data.put("assets", JsonUtils.toJson(legacyIgnore));
+            data.put("type", "blacklist");
+        }
+
+        if (settings != null && !settings.getBom().getInclude().isEmpty()) {
+            List<Rule> rules = settings.getBom().getInclude();
+            SbomLegacy legacyInclude = settings.getLegacySbom(rules);
+            log.info("include rules detected. Converting to legacy rules {}", JsonUtils.toJson(legacyInclude));
+            data.put("assets", JsonUtils.toJson(legacyInclude));
+            data.put("type", "identify");
+        }
+
+
         Request request;  // Create multipart request
         try {
             request = new Request.Builder().url(url).headers(Headers.of(postHeaders))

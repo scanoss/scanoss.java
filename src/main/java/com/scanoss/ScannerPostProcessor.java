@@ -36,7 +36,6 @@ import com.scanoss.utils.Purl2Url;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -77,6 +76,10 @@ public class ScannerPostProcessor {
         log.info("Starting scan results processing with {} results", scanFileResults.size());
         log.debug("BOM configuration - Remove rules: {}, Replace rules: {}", removeSize, replaceSize);
 
+        if (scanFileResults.isEmpty()) {
+            log.info("No scan results found. Skipping: {}", bom);
+        }
+
         buildPurl2ComponentDetailsMap(scanFileResults);
         List<ScanFileResult> processedResults = new ArrayList<>(scanFileResults);
         if (removeSize > 0) {
@@ -109,6 +112,11 @@ public class ScannerPostProcessor {
             }
             // Iterate through file details
             for (ScanFileDetails details : fileDetails) {
+                if (details != null && details.getMatchType() == MatchType.none) {
+                    log.warn("Skipping no match for file: {}", result.getFilePath());
+                    continue;
+                }
+
                 String[] purls = details != null ? details.getPurls() : null;
                 if (purls == null) {
                     log.warn("Null details or empty scan file result details. Skipping: {}", details);

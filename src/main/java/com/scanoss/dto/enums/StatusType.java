@@ -20,31 +20,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.utils;
+package com.scanoss.dto.enums;
 
 /**
- * SCANOSS Winnowing Utils Class
- * <p>
- *     This class provides methods for normalizing characters and other text processing utilities.
- * </p>
+ * Represents the status of a file in the SCANOSS result.json output.
+ * This indicates whether a file has been successfully identified or is still
+ * pending identification in the scanning results.
  */
-public class WinnowingUtils {
+public enum StatusType {
+    /**
+     * File is still pending identification in the scan results.
+     */
+    pending,
 
     /**
-     * Normalise the given character
-     *
-     * @param c character to normalise
-     * @return normalised character
+     * File has been successfully identified in the scan results.
      */
-    public static char normalize(char c) {
-        if (c < '0' || c > 'z') {
-            return 0;
-        } else if (c <= '9' || c >= 'a') {
-            return c;
-        } else if (c >= 'A' && c <= 'Z') {
-            return (char) (c + 32);
-        } else {
-            return 0;
-        }
-    }
+    identified,
+
+
 }

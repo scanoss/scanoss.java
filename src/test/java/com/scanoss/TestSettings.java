@@ -23,6 +23,7 @@
 package com.scanoss;
 
 import com.scanoss.settings.Settings;
+import com.scanoss.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,6 +95,31 @@ public class TestSettings {
         Settings settings = Settings.createFromPath(nonExistentSettingsPath);
 
         assertNull("Settings should be null", settings);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
+    @Test
+    public void testEmptySettingsInitialization() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        // Test with completely empty JSON
+        String emptyJson = "{}";
+        Settings emptySettings = JsonUtils.fromJson(emptyJson, Settings.class);
+
+        assertNotNull("Settings should not be null", emptySettings);
+        assertNotNull("Bom should not be null", emptySettings.getBom());
+        assertNotNull("Include list should not be null", emptySettings.getBom().getInclude());
+        assertNotNull("Ignore list should not be null", emptySettings.getBom().getIgnore());
+        assertNotNull("Remove list should not be null", emptySettings.getBom().getRemove());
+        assertNotNull("Replace list should not be null", emptySettings.getBom().getReplace());
+
+        assertTrue("Include list should be empty", emptySettings.getBom().getInclude().isEmpty());
+        assertTrue("Ignore list should be empty", emptySettings.getBom().getIgnore().isEmpty());
+        assertTrue("Remove list should be empty", emptySettings.getBom().getRemove().isEmpty());
+        assertTrue("Replace list should be empty", emptySettings.getBom().getReplace().isEmpty());
 
         log.info("Finished {} -->", methodName);
     }

@@ -6,7 +6,7 @@
 
     <groupId>com.scanoss</groupId>
     <artifactId>scanoss</artifactId>
-    <version>0.8.2</version>
+    <version>0.9.0</version>
     <packaging>jar</packaging>
     <name>scanoss.java</name>
     <url>https://github.com/scanoss/scanoss.java</url>
@@ -179,6 +179,34 @@
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>without-slf4j</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <inlineDescriptors>
+                                <inlineDescriptor>
+                                    <id>with-dependencies-exclude-slf4j-simple</id>
+                                    <formats>
+                                        <format>jar</format>
+                                    </formats>
+                                    <includeBaseDirectory>false</includeBaseDirectory>
+                                    <dependencySets>
+                                        <dependencySet>
+                                            <outputDirectory>/</outputDirectory>
+                                            <useProjectArtifact>true</useProjectArtifact>
+                                            <unpack>true</unpack>
+                                            <excludes>
+                                                <exclude>org.slf4j:slf4j-simple</exclude>
+                                            </excludes>
+                                        </dependencySet>
+                                    </dependencySets>
+                                </inlineDescriptor>
+                            </inlineDescriptors>
                         </configuration>
                     </execution>
                 </executions>

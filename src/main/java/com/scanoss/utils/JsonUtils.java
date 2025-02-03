@@ -29,8 +29,11 @@ import com.scanoss.dto.ScanFileResult;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,6 +50,8 @@ public class JsonUtils {
     // Custom list type for decoding Scan Results
     private static final Type scanDetailslistType = new TypeToken<List<ScanFileDetails>>() {
     }.getType();
+
+    private static final Gson gson = new Gson();
 
     /**
      * Pretty Print the given JSON Object to the specified Writer
@@ -248,5 +253,44 @@ public class JsonUtils {
      */
     public static boolean checkBooleanString(String value) {
         return value != null && (value.equals("yes") || value.equals("true"));
+    }
+
+
+    /**
+     * Converts a Java object to its JSON string representation.
+     *
+     * @param obj The object to be converted to JSON
+     * @return A JSON formatted string representation of the object
+     */
+    public static String toJson(Object obj) {
+        return gson.toJson(obj);
+    }
+
+    /**
+     * Converts a JSON string back to a Java object of the specified type.
+     *
+     * @param json The JSON string to be converted
+     * @param classOfT The class type to convert the JSON into
+     * @param <T> The type parameter representing the target class
+     * @return An instance of type T populated with the JSON data
+     * @throws JsonSyntaxException If the JSON string is malformed
+     */
+    public static <T> T fromJson(String json, Class<T> classOfT) throws  JsonSyntaxException {
+        return gson.fromJson(json, classOfT);
+    }
+
+    /**
+     * Reads JSON from a file path and converts it to the specified class type.
+     *
+     * @param path     The file path to read JSON from
+     * @param classOfT The class type to convert the JSON to
+     * @param <T>      The type parameter for the class
+     * @return An instance of the specified class populated with the JSON data
+     * @throws IOException If there's an error reading the file
+     * @throws JsonSyntaxException If the JSON is malformed
+     */
+    public static <T> T fromJsonFile(Path path, Class<T> classOfT) throws IOException, JsonSyntaxException {
+        String json = Files.readString(path);
+        return JsonUtils.fromJson(json, classOfT);
     }
 }
