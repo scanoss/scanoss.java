@@ -20,20 +20,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.processor;
+package com.scanoss;
 
-/**
- * SCANOSS File Processor Interface
- */
-public interface FileProcessor {
+import com.scanoss.cli.CommandLine;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-    /**
-     * Implement process method to process the file
-     *
-     * @param file   file to process
-     * @param folder root folder of the file to scan
-     * @return scan result
-     */
-    String process(String file, String folder);
+import java.io.IOException;
+
+import static com.scanoss.TestConstants.SCAN_RESP_SUCCESS;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+@Slf4j
+public class TestAntPathMatcher {
+
+    private MockWebServer server;
+
+    @Before
+    public void Setup() throws IOException {
+        log.info("Starting Ant Path Matcher test cases...");
+        log.debug("Logging debug enabled");
+        log.trace("Logging trace enabled");
+    }
+
+    @Test
+    public void TestAntPathMatcher()  {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+
+
+        log.info("Finished {} -->", methodName);
+    }
 
 }

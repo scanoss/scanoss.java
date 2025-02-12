@@ -268,4 +268,40 @@ public class TestScanner {
     }
 
 
+
+    @Test
+    public void TestScannerFiltering() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String f;
+
+        log.info("Testing filtering: folder ends with nbproject should be filtered... ");
+        f = "testing/data/folder-ends-with-nbproject";
+        Scanner scanner = Scanner.builder().build();
+        List<String> wfps = scanner.wfpFolder(f);
+        assertTrue("WFP should be empty", wfps.isEmpty());
+
+        log.info("Testing filtering: file nbproject should not be filtered... ");
+        f = "testing/data";
+        wfps = scanner.wfpFolder(f);
+        boolean wasFilenbprojectFingerprinted = wfps.stream().anyMatch(w -> w.contains(",nbproject\n"));
+        assertTrue("nbproject file should be fingerprinted", wasFilenbprojectFingerprinted);
+
+        log.info("Testing filtering: file scanner.build should be filtered... ");
+        f = "testing/data";
+        wfps = scanner.wfpFolder(f);
+        boolean wasFileScannerBuildFingerprinted = wfps.stream().anyMatch(w -> w.contains(",scanner.build\n"));
+        assertFalse("scanner.build file should not be fingerprinted", wasFileScannerBuildFingerprinted);
+
+        log.info("Testing filtering: folder folder.build should not be filtered... ");
+        f = "testing/data";
+        wfps = scanner.wfpFolder(f);
+        boolean wasFolderScannerBuildFingerprinted = wfps.stream().anyMatch(w -> w.contains(",scanner.build\n"));
+        assertFalse("scanner.build file should not be fingerprinted", wasFolderScannerBuildFingerprinted);
+
+
+        log.info("Finished {} -->", methodName);
+    }
 }

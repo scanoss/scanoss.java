@@ -25,9 +25,10 @@ package com.scanoss;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
-import com.scanoss.processor.FileProcessor;
-import com.scanoss.processor.ScanFileProcessor;
-import com.scanoss.processor.WfpFileProcessor;
+import com.scanoss.matcher.GitIgnoreMatcher;
+import com.scanoss.matcher.PathMatcherHiddenFiles;
+import com.scanoss.matcher.PathMatcherOrCriteria;
+import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
 import com.scanoss.settings.Settings;
 import com.scanoss.utils.JsonUtils;
@@ -49,6 +50,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 
 import static com.scanoss.ScanossConstants.*;
 
@@ -94,7 +96,7 @@ public class Scanner {
     private WfpFileProcessor wfpFileProcessor;
     private Settings settings;
     private ScannerPostProcessor postProcessor;
-
+    private PathMatcher filter;
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
@@ -102,7 +104,7 @@ public class Scanner {
                     Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
-                    Settings settings, ScannerPostProcessor postProcessor
+                    Settings settings, ScannerPostProcessor postProcessor, PathMatcher filter
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
@@ -136,7 +138,59 @@ public class Scanner {
                 .build());
         this.settings = Objects.requireNonNullElseGet(settings, () -> Settings.builder().build());
         this.postProcessor = Objects.requireNonNullElseGet(postProcessor, () ->
-                ScannerPostProcessor.builder().build());    }
+                ScannerPostProcessor.builder().build());
+        this.filter = Objects.requireNonNullElseGet(filter, this::buildDefaultPathMatcher);
+    }
+
+    private PathMatcher buildDefaultPathMatcher() {
+        List<PathMatcher> matchers = new ArrayList<>();
+
+        //README: https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/
+        if (!this.hiddenFilesFolders) {
+            Predicate<Path> hiddenFiles = p -> p.startsWith(".");
+            Predicate<Path> notCurrentDirectory = p -> !p.equals(".");
+            hiddenFiles.and(notCurrentDirectory);
+        }
+
+
+        //TODO: Rename allExtensions flag to scanAllFoldersAndFiles. WARNING about breaking change
+        if (this.allExtensions) {
+            log.trace("Not loading any path matcher, scanning all files");
+            return PathMatcherOrCriteria.builder().build();
+        }
+
+        // Skip hidden files unless explicitly asked to read them
+        if (!this.hiddenFilesFolders) {
+            log.trace("Loading default filters for hidden files");
+            matchers.add(PathMatcherHiddenFiles.builder().build());
+        }
+
+        // Skip some specific files
+        log.trace("Loading default filters for specific files");
+        patterns.addAll(FILTERED_FILES);
+
+        if (!this.allFolders) {
+            log.trace("Loading default filters for folders ending with");
+            patterns.addAll(FILTERED_ENDING_WITH_DIRS);
+        }
+
+
+
+
+
+
+        //if(this.settings.getBom().ge){
+        //       List<String> patterns = settings.skip.patterns.scanning;
+        //
+        //        PathMatcher gitIgnorePathMatcher = GitIgnoreMatcher.builder().build()
+
+        //       filesMatchers.add(gitIgnorePathMatcher)
+        //       folderMatchers.add(gitIgnorePathMatcher)
+        //
+        // }
+
+        return PathMatcherOrCriteria.builder().matchers(matchers).build();
+    }
 
     /**
      * Generate a WFP/Fingerprint for the given file
@@ -196,6 +250,8 @@ public class Scanner {
      * @return <code>true</code> if the file should be skipped, <code>false</code> otherwise
      */
     private Boolean filterFile(String name) {
+
+
         // Skip hidden files unless explicitly asked to read them
         if (!hiddenFilesFolders && name.startsWith(".")) {
             log.trace("Skipping hidden file: {}", name);
@@ -321,7 +377,8 @@ public class Scanner {
                 Path path = Path.of(file);
                 boolean skipDir = false;
                 for (Path p : path) {
-                    if (filterFolder(p.toString().toLowerCase())) {  // should we skip this folder or not
+                    //if (filterFolder(p.toString().toLowerCase())) {  // should we skip this folder or not
+                    if (this.filter != null && this.filter.matches(p)) {  // should we skip this folder or not
                         skipDir = true;
                         break;
                     }

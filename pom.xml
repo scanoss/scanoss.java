@@ -114,7 +114,19 @@
             <optional>true</optional>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>7.1.0.202411261347-r</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.10.15</version>
+            <scope>compile</scope>
 
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>
