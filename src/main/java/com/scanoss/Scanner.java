@@ -25,9 +25,6 @@ package com.scanoss;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
-import com.scanoss.matcher.GitIgnoreMatcher;
-import com.scanoss.matcher.PathMatcherHiddenFiles;
-import com.scanoss.matcher.PathMatcherOrCriteria;
 import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
 import com.scanoss.settings.Settings;
@@ -96,7 +93,7 @@ public class Scanner {
     private WfpFileProcessor wfpFileProcessor;
     private Settings settings;
     private ScannerPostProcessor postProcessor;
-    private PathMatcher filter;
+    private Predicate<Path> filter;
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
@@ -104,7 +101,7 @@ public class Scanner {
                     Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
-                    Settings settings, ScannerPostProcessor postProcessor, PathMatcher filter
+                    Settings settings, ScannerPostProcessor postProcessor, Predicate<Path> filter
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
@@ -139,57 +136,30 @@ public class Scanner {
         this.settings = Objects.requireNonNullElseGet(settings, () -> Settings.builder().build());
         this.postProcessor = Objects.requireNonNullElseGet(postProcessor, () ->
                 ScannerPostProcessor.builder().build());
-        this.filter = Objects.requireNonNullElseGet(filter, this::buildDefaultPathMatcher);
+        this.filter = this.buildFolderFilter();
     }
 
-    private PathMatcher buildDefaultPathMatcher() {
-        List<PathMatcher> matchers = new ArrayList<>();
-
+    private Predicate<Path> buildFolderFilter() {
+        Predicate<Path> filter = p -> false;
         //README: https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/
         if (!this.hiddenFilesFolders) {
+            log.debug("Hidden folder flag: {}", this.hiddenFilesFolders);
             Predicate<Path> hiddenFiles = p -> p.startsWith(".");
-            Predicate<Path> notCurrentDirectory = p -> !p.equals(".");
-            hiddenFiles.and(notCurrentDirectory);
+            Predicate<Path> notCurrentDirectory = p -> !p.getFileName().toString().equals(".");
+            filter = hiddenFiles.and(notCurrentDirectory);
         }
 
-
-        //TODO: Rename allExtensions flag to scanAllFoldersAndFiles. WARNING about breaking change
-        if (this.allExtensions) {
-            log.trace("Not loading any path matcher, scanning all files");
-            return PathMatcherOrCriteria.builder().build();
+        if (!allFolders) {
+            log.debug("All folders: {}", this.allFolders);
+            Predicate<Path> filterDirs = p -> FILTERED_DIRS.stream()
+                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
+            filter = filter.or(filterDirs);
+            Predicate<Path> filterDirExt = p -> FILTERED_DIR_EXT.stream()
+                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
+            filter = filter.or(filterDirExt);
         }
 
-        // Skip hidden files unless explicitly asked to read them
-        if (!this.hiddenFilesFolders) {
-            log.trace("Loading default filters for hidden files");
-            matchers.add(PathMatcherHiddenFiles.builder().build());
-        }
-
-        // Skip some specific files
-        log.trace("Loading default filters for specific files");
-        patterns.addAll(FILTERED_FILES);
-
-        if (!this.allFolders) {
-            log.trace("Loading default filters for folders ending with");
-            patterns.addAll(FILTERED_ENDING_WITH_DIRS);
-        }
-
-
-
-
-
-
-        //if(this.settings.getBom().ge){
-        //       List<String> patterns = settings.skip.patterns.scanning;
-        //
-        //        PathMatcher gitIgnorePathMatcher = GitIgnoreMatcher.builder().build()
-
-        //       filesMatchers.add(gitIgnorePathMatcher)
-        //       folderMatchers.add(gitIgnorePathMatcher)
-        //
-        // }
-
-        return PathMatcherOrCriteria.builder().matchers(matchers).build();
+        return filter;
     }
 
     /**
@@ -318,10 +288,15 @@ public class Scanner {
             Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) {
-                    String nameLower = file.getFileName().toString().toLowerCase();
-                    if (attrs.isDirectory() && filterFolder(nameLower)) {
+                    log.debug("Processing file: {} - Filter result: {}", file.getFileName().toString(), filter.test(file));
+                    if(filter.test(file)){
+                        log.debug("Processing file: {} - Filter result: {}", file.getFileName().toString(), filter.test(file));
                         return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
                     }
+
+              /*      if (attrs.isDirectory() && filterFolder(nameLower)) {
+                        return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
+                    }*/
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -377,8 +352,8 @@ public class Scanner {
                 Path path = Path.of(file);
                 boolean skipDir = false;
                 for (Path p : path) {
-                    //if (filterFolder(p.toString().toLowerCase())) {  // should we skip this folder or not
-                    if (this.filter != null && this.filter.matches(p)) {  // should we skip this folder or not
+                    if (filterFolder(p.toString().toLowerCase())) {  // should we skip this folder or not
+                  //  if (this.filter != null && this.filter.matches(p)) {  // should we skip this folder or not
                         skipDir = true;
                         break;
                     }
