@@ -25,17 +25,14 @@ package com.scanoss;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
-import com.scanoss.matcher.ExclusionRules;
-import com.scanoss.matcher.FileFilter;
-import com.scanoss.matcher.FileFilterBuilder;
-import com.scanoss.matcher.FilterConfig;
+import com.scanoss.filters.FilterConfig;
+import com.scanoss.filters.factories.FileFilterFactory;
+import com.scanoss.filters.factories.FolderFilterFactory;
 import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
 import com.scanoss.settings.Settings;
 import com.scanoss.utils.JsonUtils;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -83,31 +80,57 @@ public class Scanner {
     private Duration timeout = Duration.ofSeconds(DEFAULT_TIMEOUT); // API POST timeout
     @Builder.Default
     private Integer retryLimit = DEFAULT_HTTP_RETRY_LIMIT; // Retry limit for posting scan requests
+
+    @NonNull
     private String url;  // Alternative scanning URL
+    @NonNull
     private String apiKey; // API key
+    @NonNull
     private String scanFlags; // Scan flags to pass to the API
+    @NonNull
     private String sbomType; // SBOM type (identify/ignore)
+    @NonNull
     private String sbom;  // SBOM to supply while scanning
+    @NonNull
     private int snippetLimit; // Size limit for a single line of generated snippet
+    @NonNull
     private String customCert; // Custom certificate
+    @NonNull
     private Proxy proxy; // Proxy
+    @NonNull
     private Winnowing winnowing;
+    @NonNull
     private ScanApi scanApi;
+    @NonNull
     private ScanFileProcessor scanFileProcessor;
+    @NonNull
     private WfpFileProcessor wfpFileProcessor;
+    @NonNull
     private Settings settings;
+    @NonNull
     private ScannerPostProcessor postProcessor;
+    @NonNull
     private FilterConfig filterConfig;
-    private Predicate<Path> shouldExcludeFile;
-    private Predicate<Path> shouldExcludeFolder;
+
+
+    @Getter(value=AccessLevel.PRIVATE)
+    @Setter(value=AccessLevel.PRIVATE)
+    private Predicate<Path> fileFilter;
+
+    @Getter(value=AccessLevel.PRIVATE)
+    @Setter(value=AccessLevel.PRIVATE)
+    private Predicate<Path> folderFilter;
+
     @SuppressWarnings("unused")
+    @Builder
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
                     Integer retryLimit, String url, String apiKey, String scanFlags, String sbomType, String sbom,
                     Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
-                    Settings settings, ScannerPostProcessor postProcessor, FilterConfig filterConfig
+                    Settings settings, ScannerPostProcessor postProcessor, FilterConfig filterConfig,
+                    Predicate<Path> fileFilter, Predicate<Path> folderFilter
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
@@ -145,20 +168,15 @@ public class Scanner {
 
         this.filterConfig = Objects.requireNonNullElseGet(filterConfig, () -> FilterConfig.builder()
                 .allFolders(allFolders)
-                .gitIgnorePatterns(settings.getScanningIgnorePattern())
+                .allExtensions(allExtensions)
+                .hiddenFilesFolders(hiddenFilesFolders)
+                .gitIgnorePatterns(settings != null ? settings.getScanningIgnorePattern() : new ArrayList<>())
                 .build());
 
-        //this.fileFilter = FileFilter.builder().config(this.filterConfig).build();
-
-        //Option 1:
-        this.shouldExcludeFolder = FilterFactory.buildFolderFilter();
-        this.shouldExcludeFile =  FilterFactory.buildFileFilter();
-
-
-        //Option 2:
-        this.shouldExcludeFile = new FileFilterBuilder(this.filterConfig).build();
-
+        this.fileFilter = FileFilterFactory.build(this.filterConfig);
+        this.folderFilter = FolderFilterFactory.build(this.filterConfig);
     }
+
 /*
      Scanner.builder().FileFilter().FolderFilter
  */
@@ -311,21 +329,17 @@ public class Scanner {
             Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) {
-                    if(shouldExcludeFile.test(file)) {
-                        log.debug("Processing file: {} - Filter result: {}", file.getFileName().toString(), filter.test(file));
+                    if(folderFilter.test(file)) {
+                        log.debug("Processing file: {}", file.getFileName().toString());
                         return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
                     }
-
-              /*      if (attrs.isDirectory() && filterFolder(nameLower)) {
-                        return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
-                    }*/
                     return FileVisitResult.CONTINUE;
                 }
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     String nameLower = file.getFileName().toString().toLowerCase();
-                    if (attrs.isRegularFile() && !shouldExcludeFolder.test(nameLower) && attrs.size() > 0) {
+                    if (attrs.isRegularFile() && !fileFilter.test(file) && attrs.size() > 0) {
                         String filename = file.toString();
                         Future<String> future = executorService.submit(() -> processor.process(filename, stripDirectory(folder, filename)));
                         futures.add(future);
@@ -374,8 +388,8 @@ public class Scanner {
                 Path path = Path.of(file);
                 boolean skipDir = false;
                 for (Path p : path) {
-                    if (filterFolder(p.toString().toLowerCase())) {  // should we skip this folder or not
-                  //  if (this.filter != null && this.filter.matches(p)) {  // should we skip this folder or not
+                    // should we skip this folder or not
+                    if (this.folderFilter.test(p)) {  // should we skip this folder or not
                         skipDir = true;
                         break;
                     }
@@ -384,7 +398,7 @@ public class Scanner {
                     continue; // skip this file as the folder is not allowed
                 }
                 String nameLower = path.getFileName().toString().toLowerCase();
-                if (!filterFile(nameLower)) {
+                if (!this.fileFilter.test(path)) {
                     Path fullPath = Path.of(root, file);
                     File f = fullPath.toFile();
                     if (f.exists() && f.isFile() && f.length() > 0 && ! Files.isSymbolicLink(fullPath)) {

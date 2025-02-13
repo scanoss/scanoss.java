@@ -1,10 +1,8 @@
-package com.scanoss.matcher;
+package com.scanoss.filters;
 
-import com.scanoss.settings.Settings;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,4 +24,7 @@ public class FilterConfig {
 
     @Builder.Default
     private Boolean allFolders = false;
+
+    @Builder.Default
+    private Boolean allExtensions = false;
 }

@@ -1,4 +1,4 @@
-package com.scanoss.matcher;
+package com.scanoss.filters;
 
 import java.nio.file.PathMatcher;
 

@@ -1,4 +1,4 @@
-package com.scanoss.matcher;
+package com.scanoss.filters;
 
 import lombok.Builder;
 
@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class AntFilter implements PathFilter {
+public class AntFilter {
     List<String> patterns;
 
     @Builder
@@ -16,7 +16,7 @@ public class AntFilter implements PathFilter {
         this.patterns = patterns;
     }
 
-    public Predicate<Path> getPathFilter() {
+    public Predicate<Path> get() {
         return p -> patterns.stream().anyMatch(
                 pattern ->
                         SelectorUtils.matchPath(pattern, p.toString()));

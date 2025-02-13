@@ -1,4 +1,4 @@
-package com.scanoss.matcher;
+package com.scanoss.filters;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class GitIgnoreFilter implements PathFilter {
+public class GitIgnoreFilter {
 
     IgnoreNode node;
 
@@ -30,7 +30,7 @@ public class GitIgnoreFilter implements PathFilter {
 
     }
 
-    public Predicate<Path> getPathFilter() {
+    public Predicate<Path> get() {
         return p -> {
             MatchResult r = node.isIgnored(p.toString(), p.toFile().isDirectory());
             return r.equals(MatchResult.IGNORED);

@@ -280,6 +280,7 @@ public class TestScanner {
         log.info("Testing filtering: folder ends with nbproject should be filtered... ");
         f = "testing/data/folder-ends-with-nbproject";
         Scanner scanner = Scanner.builder().build();
+
         List<String> wfps = scanner.wfpFolder(f);
         assertTrue("WFP should be empty", wfps.isEmpty());
 
