@@ -25,9 +25,10 @@ package com.scanoss;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.matcher.ExclusionRules;
 import com.scanoss.matcher.FileFilter;
+import com.scanoss.matcher.FileFilterBuilder;
 import com.scanoss.matcher.FilterConfig;
-import com.scanoss.matcher.FolderFilter;
 import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
 import com.scanoss.settings.Settings;
@@ -97,8 +98,8 @@ public class Scanner {
     private Settings settings;
     private ScannerPostProcessor postProcessor;
     private FilterConfig filterConfig;
-    private FileFilter fileFilter;
-    private FolderFilter folderFilter;
+    private Predicate<Path> shouldExcludeFile;
+    private Predicate<Path> shouldExcludeFolder;
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
@@ -147,8 +148,15 @@ public class Scanner {
                 .gitIgnorePatterns(settings.getScanningIgnorePattern())
                 .build());
 
-        this.fileFilter = FileFilter.builder().config(this.filterConfig).build();
-        this.folderFilter = FolderFilter.builder().config(this.filterConfig).build();
+        //this.fileFilter = FileFilter.builder().config(this.filterConfig).build();
+
+        //Option 1:
+        this.shouldExcludeFolder = FilterFactory.buildFolderFilter();
+        this.shouldExcludeFile =  FilterFactory.buildFileFilter();
+
+
+        //Option 2:
+        this.shouldExcludeFile = new FileFilterBuilder(this.filterConfig).build();
 
     }
 /*
@@ -303,7 +311,7 @@ public class Scanner {
             Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) {
-                    if(folderFilter.evaluate(file)){
+                    if(shouldExcludeFile.test(file)) {
                         log.debug("Processing file: {} - Filter result: {}", file.getFileName().toString(), filter.test(file));
                         return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
                     }
@@ -317,7 +325,7 @@ public class Scanner {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     String nameLower = file.getFileName().toString().toLowerCase();
-                    if (attrs.isRegularFile() && !folderFilter.test(nameLower) && attrs.size() > 0) {
+                    if (attrs.isRegularFile() && !shouldExcludeFolder.test(nameLower) && attrs.size() > 0) {
                         String filename = file.toString();
                         Future<String> future = executorService.submit(() -> processor.process(filename, stripDirectory(folder, filename)));
                         futures.add(future);

@@ -10,27 +10,28 @@ import static com.scanoss.ScanossConstants.FILTERED_DIR_EXT;
 
 
 @Builder
-public class FolderFilter extends BaseFilter {
+class FilterFactory {
 
-    private final FilterConfig config;
 
-//    private final Predicate<Path> filter;
+    private static Predicate<Path> buildBaseFilter()  {
 
-    public FolderFilter(FilterConfig config) {
-        //super(config.getGitIgnorePatterns(),config.getAntPatterns(), this.buildFilter());
-        super(config);
-        this.buildFilter();
-        this.config = config;
     }
 
-    private void buildFilter(){
+    public static Predicate<Path> buildFileFilter(FilterConfig filterConfig) {
+         filter = buildFolderFilter()
+
+         if (filterConfig.getAllFolders())
+             filter.or()
+    }
+
+    public static Predicate<Path> buildFolderFilter(FilterConfig filterConfig) {
         Predicate<Path> filter = p -> false;
         //README: https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/
         if (!this.config.getHiddenFilesFolders()) {
 
             Predicate<Path> hiddenFiles = p -> p.startsWith(".");
             Predicate<Path> notCurrentDirectory = p -> !p.getFileName().toString().equals(".");
-            this.predicate.or(hiddenFiles).and(notCurrentDirectory);
+            this.shouldSkip.or(hiddenFiles).and(notCurrentDirectory);
         }
 
         if (!this.config.getAllFolders()) {
@@ -45,13 +46,8 @@ public class FolderFilter extends BaseFilter {
 
 
 
-        if (this.gitIgnoreMatcher.evaluate())
 
     }
 
 
-    @Override
-    public Boolean evaluate(Path path) {
-        return this.predicate.test(path);
-    }
 }

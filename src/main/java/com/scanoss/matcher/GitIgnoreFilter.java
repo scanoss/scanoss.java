@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class GitIgnoreMatcher implements PathFilter {
+public class GitIgnoreFilter implements PathFilter {
+
+    IgnoreNode node;
 
     List<String> patterns;
 
@@ -20,14 +22,15 @@ public class GitIgnoreMatcher implements PathFilter {
     List<FastIgnoreRule> rules;
 
     @Builder
-    public GitIgnoreMatcher(@NotNull List<String> patterns) {
+    public GitIgnoreFilter(@NotNull List<String> patterns) {
         this.rules = new ArrayList<>();
         this.patterns = patterns;
         this.patterns.forEach(pattern -> rules.add(new FastIgnoreRule(pattern)));
+        this.node = new IgnoreNode(rules);
+
     }
 
     public Predicate<Path> getPathFilter() {
-        IgnoreNode node = new IgnoreNode(rules);
         return p -> {
             MatchResult r = node.isIgnored(p.toString(), p.toFile().isDirectory());
             return r.equals(MatchResult.IGNORED);

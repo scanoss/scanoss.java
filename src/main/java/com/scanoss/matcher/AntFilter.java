@@ -8,11 +8,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class AntPathMatcher implements PathFilter {
+public class AntFilter implements PathFilter {
     List<String> patterns;
 
     @Builder
-    public AntPathMatcher(@NotNull List<String> patterns) {
+    public AntFilter(@NotNull List<String> patterns) {
         this.patterns = patterns;
     }
 
