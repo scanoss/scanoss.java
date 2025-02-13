@@ -81,48 +81,41 @@ public class Scanner {
     @Builder.Default
     private Integer retryLimit = DEFAULT_HTTP_RETRY_LIMIT; // Retry limit for posting scan requests
 
-    @NonNull
-    private String url;  // Alternative scanning URL
-    @NonNull
-    private String apiKey; // API key
-    @NonNull
-    private String scanFlags; // Scan flags to pass to the API
-    @NonNull
-    private String sbomType; // SBOM type (identify/ignore)
-    @NonNull
-    private String sbom;  // SBOM to supply while scanning
-    @NonNull
-    private int snippetLimit; // Size limit for a single line of generated snippet
-    @NonNull
-    private String customCert; // Custom certificate
-    @NonNull
-    private Proxy proxy; // Proxy
-    @NonNull
-    private Winnowing winnowing;
-    @NonNull
-    private ScanApi scanApi;
-    @NonNull
-    private ScanFileProcessor scanFileProcessor;
-    @NonNull
-    private WfpFileProcessor wfpFileProcessor;
-    @NonNull
-    private Settings settings;
-    @NonNull
-    private ScannerPostProcessor postProcessor;
-    @NonNull
-    private FilterConfig filterConfig;
-
-
-    @Getter(value=AccessLevel.PRIVATE)
-    @Setter(value=AccessLevel.PRIVATE)
+    private final String url;  // Alternative scanning URL
+    private final String apiKey; // API key
+    private final String scanFlags; // Scan flags to pass to the API
+    private final String sbomType; // SBOM type (identify/ignore)
+    private final String sbom;  // SBOM to supply while scanning
+    private final int snippetLimit; // Size limit for a single line of generated snippet
+    private final String customCert; // Custom certificate
+    private final Proxy proxy; // Proxy
+    private final Winnowing winnowing;
+    private final ScanApi scanApi;
+    private final ScanFileProcessor scanFileProcessor;
+    private final WfpFileProcessor wfpFileProcessor;
+    private final Settings settings;
+    private final ScannerPostProcessor postProcessor;
+    private final FilterConfig filterConfig;
     private Predicate<Path> fileFilter;
-
-    @Getter(value=AccessLevel.PRIVATE)
-    @Setter(value=AccessLevel.PRIVATE)
     private Predicate<Path> folderFilter;
 
-    @SuppressWarnings("unused")
-    @Builder
+    public static class ScannerBuilder {
+
+        private ScannerBuilder folderFilter(Predicate<Path> folderFilter) {
+            return this;
+        }
+
+        private ScannerBuilder fileFilter(Predicate<Path> fileFilter) {
+            return this;
+        }
+
+
+    }
+
+
+
+
+  //  @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
                     Integer retryLimit, String url, String apiKey, String scanFlags, String sbomType, String sbom,
@@ -130,7 +123,8 @@ public class Scanner {
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
                     Settings settings, ScannerPostProcessor postProcessor, FilterConfig filterConfig,
-                    Predicate<Path> fileFilter, Predicate<Path> folderFilter
+                    Predicate<Path> fileFilter,
+                    Predicate<Path> folderFilter
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
@@ -175,6 +169,7 @@ public class Scanner {
 
         this.fileFilter = FileFilterFactory.build(this.filterConfig);
         this.folderFilter = FolderFilterFactory.build(this.filterConfig);
+
     }
 
 /*
