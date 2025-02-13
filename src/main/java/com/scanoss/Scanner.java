@@ -25,6 +25,9 @@ package com.scanoss;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.matcher.FileFilter;
+import com.scanoss.matcher.FilterConfig;
+import com.scanoss.matcher.FolderFilter;
 import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
 import com.scanoss.settings.Settings;
@@ -93,7 +96,9 @@ public class Scanner {
     private WfpFileProcessor wfpFileProcessor;
     private Settings settings;
     private ScannerPostProcessor postProcessor;
-    private Predicate<Path> filter;
+    private FilterConfig filterConfig;
+    private FileFilter fileFilter;
+    private FolderFilter folderFilter;
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
@@ -101,7 +106,7 @@ public class Scanner {
                     Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
-                    Settings settings, ScannerPostProcessor postProcessor, Predicate<Path> filter
+                    Settings settings, ScannerPostProcessor postProcessor, FilterConfig filterConfig
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
@@ -136,31 +141,41 @@ public class Scanner {
         this.settings = Objects.requireNonNullElseGet(settings, () -> Settings.builder().build());
         this.postProcessor = Objects.requireNonNullElseGet(postProcessor, () ->
                 ScannerPostProcessor.builder().build());
-        this.filter = this.buildFolderFilter();
+
+        this.filterConfig = Objects.requireNonNullElseGet(filterConfig, () -> FilterConfig.builder()
+                .allFolders(allFolders)
+                .gitIgnorePatterns(settings.getScanningIgnorePattern())
+                .build());
+
+        this.fileFilter = FileFilter.builder().config(this.filterConfig).build();
+        this.folderFilter = FolderFilter.builder().config(this.filterConfig).build();
+
     }
-
-    private Predicate<Path> buildFolderFilter() {
-        Predicate<Path> filter = p -> false;
-        //README: https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/
-        if (!this.hiddenFilesFolders) {
-            log.debug("Hidden folder flag: {}", this.hiddenFilesFolders);
-            Predicate<Path> hiddenFiles = p -> p.startsWith(".");
-            Predicate<Path> notCurrentDirectory = p -> !p.getFileName().toString().equals(".");
-            filter = hiddenFiles.and(notCurrentDirectory);
-        }
-
-        if (!allFolders) {
-            log.debug("All folders: {}", this.allFolders);
-            Predicate<Path> filterDirs = p -> FILTERED_DIRS.stream()
-                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
-            filter = filter.or(filterDirs);
-            Predicate<Path> filterDirExt = p -> FILTERED_DIR_EXT.stream()
-                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
-            filter = filter.or(filterDirExt);
-        }
-
-        return filter;
-    }
+/*
+     Scanner.builder().FileFilter().FolderFilter
+ */
+//    private Predicate<Path> buildFolderFilter() {
+//        Predicate<Path> filter = p -> false;
+//        //README: https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/
+//        if (!this.hiddenFilesFolders) {
+//            log.debug("Hidden folder flag: {}", this.hiddenFilesFolders);
+//            Predicate<Path> hiddenFiles = p -> p.startsWith(".");
+//            Predicate<Path> notCurrentDirectory = p -> !p.getFileName().toString().equals(".");
+//            filter = hiddenFiles.and(notCurrentDirectory);
+//        }
+//
+//        if (!allFolders) {
+//            log.debug("All folders: {}", this.allFolders);
+//            Predicate<Path> filterDirs = p -> FILTERED_DIRS.stream()
+//                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
+//            filter = filter.or(filterDirs);
+//            Predicate<Path> filterDirExt = p -> FILTERED_DIR_EXT.stream()
+//                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
+//            filter = filter.or(filterDirExt);
+//        }
+//
+//        return filter;
+//    }
 
     /**
      * Generate a WFP/Fingerprint for the given file
@@ -181,71 +196,71 @@ public class Scanner {
         return this.winnowing.wfpForFile(filename, filename);
     }
 
-    /**
-     * Determine if a folder should be processed or not
-     *
-     * @param name folder/directory to review
-     * @return <code>true</code> if the folder should be skipped, <code>false</code> otherwise
-     */
-    private Boolean filterFolder(String name) {
-        String nameLower =  name.toLowerCase();
-        if (!hiddenFilesFolders && name.startsWith(".") && !name.equals(".")) {
-            log.trace("Skipping hidden folder: {}", name);
-            return true;
-        }
-        boolean ignore = false;
-        if (!allFolders) { // skip this check if all folders is selected
-            for (String ending : ScanossConstants.FILTERED_DIRS) {
-                if (nameLower.endsWith(ending)) {
-                    log.trace("Skipping folder due to ending: {} - {}", name, ending);
-                    ignore = true;
-                }
-            }
-            if(!ignore){
-                for (String ending : ScanossConstants.FILTERED_DIR_EXT) {
-                    if (nameLower.endsWith(ending)) {
-                        log.trace("Skipping folder due to ending: {} - {}", name, ending);
-                        ignore = true;
-                    }
-                }
-            }
-        }
-        return ignore;
-    }
-
-    /**
-     * Determine if a file should be processed or not
-     *
-     * @param name filename to review
-     * @return <code>true</code> if the file should be skipped, <code>false</code> otherwise
-     */
-    private Boolean filterFile(String name) {
-
-
-        // Skip hidden files unless explicitly asked to read them
-        if (!hiddenFilesFolders && name.startsWith(".")) {
-            log.trace("Skipping hidden file: {}", name);
-            return true;
-        }
-        // Process all file extensions if requested
-        if (this.allExtensions) {
-            log.trace("Processing all file extensions: {}", name);
-            return false;
-        }
-        // Skip some specific files
-        if (ScanossConstants.FILTERED_FILES.contains(name)) {
-            log.trace("Skipping specific file: {}", name);
-            return true;
-        }
-        // Skip specific file endings/extensions
-        for (String ending : ScanossConstants.FILTERED_EXTENSIONS) {
-            if (name.endsWith(ending)) {
-                log.trace("Skipping file due to ending: {} - {}", name, ending);
-                return true;
-            }
-        }
-        return false;
-    }
+//    /**
+//     * Determine if a folder should be processed or not
+//     *
+//     * @param name folder/directory to review
+//     * @return <code>true</code> if the folder should be skipped, <code>false</code> otherwise
+//     */
+//    private Boolean filterFolder(String name) {
+//        String nameLower =  name.toLowerCase();
+//        if (!hiddenFilesFolders && name.startsWith(".") && !name.equals(".")) {
+//            log.trace("Skipping hidden folder: {}", name);
+//            return true;
+//        }
+//        boolean ignore = false;
+//        if (!allFolders) { // skip this check if all folders is selected
+//            for (String ending : ScanossConstants.FILTERED_DIRS) {
+//                if (nameLower.endsWith(ending)) {
+//                    log.trace("Skipping folder due to ending: {} - {}", name, ending);
+//                    ignore = true;
+//                }
+//            }
+//            if(!ignore){
+//                for (String ending : ScanossConstants.FILTERED_DIR_EXT) {
+//                    if (nameLower.endsWith(ending)) {
+//                        log.trace("Skipping folder due to ending: {} - {}", name, ending);
+//                        ignore = true;
+//                    }
+//                }
+//            }
+//        }
+//        return ignore;
+//    }
+//
+//    /**
+//     * Determine if a file should be processed or not
+//     *
+//     * @param name filename to review
+//     * @return <code>true</code> if the file should be skipped, <code>false</code> otherwise
+//     */
+//    private Boolean filterFile(String name) {
+//
+//
+//        // Skip hidden files unless explicitly asked to read them
+//        if (!hiddenFilesFolders && name.startsWith(".")) {
+//            log.trace("Skipping hidden file: {}", name);
+//            return true;
+//        }
+//        // Process all file extensions if requested
+//        if (this.allExtensions) {
+//            log.trace("Processing all file extensions: {}", name);
+//            return false;
+//        }
+//        // Skip some specific files
+//        if (ScanossConstants.FILTERED_FILES.contains(name)) {
+//            log.trace("Skipping specific file: {}", name);
+//            return true;
+//        }
+//        // Skip specific file endings/extensions
+//        for (String ending : ScanossConstants.FILTERED_EXTENSIONS) {
+//            if (name.endsWith(ending)) {
+//                log.trace("Skipping file due to ending: {} - {}", name, ending);
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
     /**
      * Strip the leading string from the specified path
@@ -288,8 +303,7 @@ public class Scanner {
             Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) {
-                    log.debug("Processing file: {} - Filter result: {}", file.getFileName().toString(), filter.test(file));
-                    if(filter.test(file)){
+                    if(folderFilter.evaluate(file)){
                         log.debug("Processing file: {} - Filter result: {}", file.getFileName().toString(), filter.test(file));
                         return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
                     }
@@ -303,7 +317,7 @@ public class Scanner {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     String nameLower = file.getFileName().toString().toLowerCase();
-                    if (attrs.isRegularFile() && !filterFile(nameLower) && attrs.size() > 0) {
+                    if (attrs.isRegularFile() && !folderFilter.test(nameLower) && attrs.size() > 0) {
                         String filename = file.toString();
                         Future<String> future = executorService.submit(() -> processor.process(filename, stripDirectory(folder, filename)));
                         futures.add(future);

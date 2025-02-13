@@ -97,6 +97,11 @@ public class Settings {
     }
 
 
+    public List<String> getScanningIgnorePattern()  {
+        return new ArrayList<>();
+    }
+
+
 
 
 }

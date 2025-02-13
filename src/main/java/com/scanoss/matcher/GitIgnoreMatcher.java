@@ -7,14 +7,12 @@ import org.eclipse.jgit.ignore.FastIgnoreRule;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.ignore.IgnoreNode.MatchResult;
 import org.jetbrains.annotations.NotNull;
-
-
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
-public class GitIgnoreMatcher implements PathMatcher {
+public class GitIgnoreMatcher implements PathFilter {
 
     List<String> patterns;
 
@@ -28,11 +26,11 @@ public class GitIgnoreMatcher implements PathMatcher {
         this.patterns.forEach(pattern -> rules.add(new FastIgnoreRule(pattern)));
     }
 
-    @Override
-    public boolean matches(Path path) {
+    public Predicate<Path> getPathFilter() {
         IgnoreNode node = new IgnoreNode(rules);
-
-        MatchResult result = node.isIgnored(path.toString(), path.toFile().isDirectory());
-        return result.equals(MatchResult.IGNORED);
+        return p -> {
+            MatchResult r = node.isIgnored(p.toString(), p.toFile().isDirectory());
+            return r.equals(MatchResult.IGNORED);
+        };
     }
 }
