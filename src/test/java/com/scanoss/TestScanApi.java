@@ -27,7 +27,7 @@ import com.scanoss.rest.HttpStatusCode;
 import com.scanoss.rest.ScanApi;
 import com.scanoss.settings.Bom;
 import com.scanoss.settings.Rule;
-import com.scanoss.settings.Settings;
+import com.scanoss.settings.ScanossSettings;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
@@ -216,7 +216,7 @@ public class TestScanApi {
         try {
             Rule rule = Rule.builder().purl("pkg:github/scanoss/engine@1.0.0").build();
             Bom bom = Bom.builder().include(List.of(rule)).build();
-            Settings settings = Settings.builder().bom(bom).build();
+            ScanossSettings settings = ScanossSettings.builder().bom(bom).build();
 
             ScanApi scanApi = ScanApi.builder()
                     .settings(settings)

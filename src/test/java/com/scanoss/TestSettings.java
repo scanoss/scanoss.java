@@ -22,17 +22,18 @@
  */
 package com.scanoss;
 
-import com.scanoss.settings.Settings;
+import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -75,7 +76,7 @@ public class TestSettings {
         log.info("<-- Starting {}", methodName);
 
 
-        Settings settings = Settings.createFromPath(existingSettingsPath);
+        ScanossSettings settings = ScanossSettings.createFromPath(existingSettingsPath);
         assertNotNull("Settings should not be null", settings);
 
         assertEquals("scanner.c", settings.getBom().getRemove().get(0).getPath());
@@ -92,7 +93,7 @@ public class TestSettings {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        Settings settings = Settings.createFromPath(nonExistentSettingsPath);
+        ScanossSettings settings = ScanossSettings.createFromPath(nonExistentSettingsPath);
 
         assertNull("Settings should be null", settings);
 
@@ -107,7 +108,7 @@ public class TestSettings {
 
         // Test with completely empty JSON
         String emptyJson = "{}";
-        Settings emptySettings = JsonUtils.fromJson(emptyJson, Settings.class);
+        ScanossSettings emptySettings = JsonUtils.fromJson(emptyJson, ScanossSettings.class);
 
         assertNotNull("Settings should not be null", emptySettings);
         assertNotNull("Bom should not be null", emptySettings.getBom());
@@ -120,6 +121,26 @@ public class TestSettings {
         assertTrue("Ignore list should be empty", emptySettings.getBom().getIgnore().isEmpty());
         assertTrue("Remove list should be empty", emptySettings.getBom().getRemove().isEmpty());
         assertTrue("Replace list should be empty", emptySettings.getBom().getReplace().isEmpty());
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void testSkip() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        ScanossSettings settings = ScanossSettings.createFromPath(existingSettingsPath);
+        assertNotNull("Settings should not be null", settings);
+        assertNotEquals(0, settings.getSettings().getSkip().getPatterns().getScanning().size());
+        assertEquals((List.of(
+                "*.log",
+                "!important.log",
+                "temp/",
+                "debug[0-9]*.txt",
+                "src/client/specific-file.js",
+                "src/nested/folder/"
+        )), settings.getSettings().getSkip().getPatterns().getScanning());
 
         log.info("Finished {} -->", methodName);
     }

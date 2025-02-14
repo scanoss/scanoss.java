@@ -30,7 +30,7 @@ import com.scanoss.filters.factories.FileFilterFactory;
 import com.scanoss.filters.factories.FolderFilterFactory;
 import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
-import com.scanoss.settings.Settings;
+import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -101,7 +101,7 @@ public class Scanner {
     private final ScanApi scanApi;
     private final ScanFileProcessor scanFileProcessor;
     private final WfpFileProcessor wfpFileProcessor;
-    private final Settings settings;
+    private final ScanossSettings settings;
     private final ScannerPostProcessor postProcessor;
     private final FilterConfig filterConfig;
     private Predicate<Path> fileFilter;
@@ -125,7 +125,7 @@ public class Scanner {
                     Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
-                    Settings settings, ScannerPostProcessor postProcessor, FilterConfig filterConfig,
+                    ScanossSettings settings, ScannerPostProcessor postProcessor, FilterConfig filterConfig,
                     Predicate<Path> fileFilter,
                     Predicate<Path> folderFilter
     ) {
@@ -159,7 +159,7 @@ public class Scanner {
         this.wfpFileProcessor = Objects.requireNonNullElseGet(wfpFileProcessor, () -> WfpFileProcessor.builder()
                 .winnowing(this.winnowing)
                 .build());
-        this.settings = Objects.requireNonNullElseGet(settings, () -> Settings.builder().build());
+        this.settings = Objects.requireNonNullElseGet(settings, () -> ScanossSettings.builder().build());
         this.postProcessor = Objects.requireNonNullElseGet(postProcessor, () ->
                 ScannerPostProcessor.builder().build());
 

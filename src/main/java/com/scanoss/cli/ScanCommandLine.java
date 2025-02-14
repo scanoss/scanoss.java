@@ -25,7 +25,7 @@ package com.scanoss.cli;
 import com.scanoss.Scanner;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
-import com.scanoss.settings.Settings;
+import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
@@ -107,7 +107,7 @@ class ScanCommandLine implements Runnable {
 
     private Scanner scanner;
 
-    private Settings settings;
+    private ScanossSettings settings;
     /**
      * Run the 'scan' command
      */
@@ -135,7 +135,7 @@ class ScanCommandLine implements Runnable {
         }
 
         if(settingsPath != null && !settingsPath.isEmpty()) {
-            settings = Settings.createFromPath(Paths.get(settingsPath));
+            settings = ScanossSettings.createFromPath(Paths.get(settingsPath));
             if (settings == null) throw new RuntimeException("Error: Failed to read settings file");
             printMsg(err, String.format("Settings file read %s", settings));
         }

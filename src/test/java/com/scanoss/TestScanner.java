@@ -24,7 +24,7 @@ package com.scanoss;
 
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.filters.FilterConfig;
-import com.scanoss.settings.Settings;
+import com.scanoss.settings.ScanossSettings;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -321,18 +321,17 @@ public class TestScanner {
         log.info("Testing GitIgnore Pattern:  ");
         f = "testing/data/folder-ends-with-nbproject";
 
-        Settings.Patterns patterns = Settings.Patterns.builder().scanning(List.of("*nbproject")).build();
-        Settings.Skip skip = Settings.Skip.builder().patterns(patterns).build();
-        Settings settings = Settings.builder().skip(skip).build();
+        ScanossSettings.Patterns patterns = ScanossSettings.Patterns.builder().scanning(List.of("*nbproject")).build();
+        ScanossSettings.Skip skip = ScanossSettings.Skip.builder().patterns(patterns).build();
+        ScanossSettings.Settings settings = ScanossSettings.Settings.builder().skip(skip).build();
+        ScanossSettings scanossSettings = ScanossSettings.builder().settings(settings).build();
 
-        Scanner scanner = Scanner.builder().settings(settings).build();
+        Scanner scanner = Scanner.builder().settings(scanossSettings).build();
         wfps = scanner.wfpFolder(f);
         assertTrue("Folder should be skipped by gitignore", wfps.isEmpty());
 
         log.info("Finished {} -->", methodName);
     }
-
-
 
 
     @Test

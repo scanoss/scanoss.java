@@ -7,6 +7,20 @@
         "purl": "pkg:github/scanoss/scanner.c"
       }
     ]
+  },
+  "settings": {
+    "skip": {
+      "patterns": {
+        "scanning": [
+          "*.log",
+          "!important.log",
+          "temp/",
+          "debug[0-9]*.txt",
+          "src/client/specific-file.js",
+          "src/nested/folder/"
+        ]
+      }
+    }
   }
 }
 
