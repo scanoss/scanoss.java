@@ -87,7 +87,7 @@ public class TestSettings {
     }
 
     @Test
-    public void testSettingsFromNonExistentFile() throws IOException {
+    public void testSettingsFromNonExistentFile() {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);

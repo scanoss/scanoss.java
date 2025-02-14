@@ -26,15 +26,16 @@ import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
-@Slf4j
+
 /**
  * An abstract base class that provides core filtering functionality for the SCANOSS filtering system.
  */
+@Slf4j
 public abstract class BaseFilter {
     protected final FilterConfig config;
-    protected GitIgnoreFilter gitIgnoreFilter;
-    protected  AntFilter antFilter;
-    protected  Predicate<Path> baseSkipFilter;
+    protected final GitIgnoreFilter gitIgnoreFilter;
+    protected final AntFilter antFilter;
+    protected final Predicate<Path> baseSkipFilter;
 
     /**
      * Constructs a BaseFilter with the specified configuration.

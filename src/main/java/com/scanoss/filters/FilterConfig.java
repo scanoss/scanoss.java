@@ -35,20 +35,20 @@ import java.util.List;
 public class FilterConfig {
 
     @Builder.Default
-    private List<String> gitIgnorePatterns = new ArrayList<>();
+    private final List<String> gitIgnorePatterns = new ArrayList<>();
 
     @Builder.Default
-    private List<String> antPatterns = new ArrayList<>();
+    private final List<String> antPatterns = new ArrayList<>();
 
     @Builder.Default
-    private Boolean hiddenFilesFolders = false;
+    private final Boolean hiddenFilesFolders = false;
 
     @Builder.Default
-    private Boolean allFilesFolders = false;
+    private final Boolean allFilesFolders = false;
 
     @Builder.Default
-    private Boolean allFolders = false;
+    private final Boolean allFolders = false;
 
     @Builder.Default
-    private Boolean allExtensions = false;
+    private final Boolean allExtensions = false;
 }

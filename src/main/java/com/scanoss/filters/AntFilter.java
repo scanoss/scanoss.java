@@ -39,7 +39,7 @@ import java.util.function.Predicate;
  *
  */
 public class AntFilter {
-    List<String> patterns;
+    private final List<String> patterns;
 
     /**
      * Constructs an AntFilter with the specified list of patterns.
