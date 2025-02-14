@@ -51,7 +51,7 @@ public class Settings {
      * during and after the scanning process.
      */
     private final @Builder.Default Bom bom = Bom.builder().build();
-
+    private final @Builder.Default Skip skip = Skip.builder().build();
 
     @Data
     @Builder
@@ -136,11 +136,8 @@ public class Settings {
 
 
     public List<String> getScanningIgnorePattern()  {
-        return new ArrayList<>();
+        return this.skip.getPatterns().getScanning();
     }
-
-
-
 
 }
 

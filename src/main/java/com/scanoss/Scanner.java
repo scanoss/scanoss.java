@@ -171,7 +171,7 @@ public class Scanner {
                 .build());
 
         this.fileFilter = Objects.requireNonNullElseGet(fileFilter , () -> FileFilterFactory.build(this.filterConfig));
-        this.folderFilter = FolderFilterFactory.build(this.filterConfig);
+        this.folderFilter = Objects.requireNonNullElseGet(folderFilter, () -> FolderFilterFactory.build(this.filterConfig));
     }
 
     /**
@@ -243,7 +243,6 @@ public class Scanner {
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    String nameLower = file.getFileName().toString().toLowerCase();
                     if (attrs.isRegularFile() && !fileFilter.test(file) && attrs.size() > 0) {
                         String filename = file.toString();
                         Future<String> future = executorService.submit(() -> processor.process(filename, stripDirectory(folder, filename)));

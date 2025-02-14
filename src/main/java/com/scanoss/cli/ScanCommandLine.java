@@ -29,7 +29,6 @@ import com.scanoss.settings.Settings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
