@@ -64,26 +64,34 @@ import static com.scanoss.ScanossConstants.*;
 public class Scanner {
     @Builder.Default
     private Boolean skipSnippets = Boolean.FALSE;  // Skip snippet generations
+
     @Builder.Default
     private Boolean allExtensions = Boolean.FALSE; // Fingerprint all file extensions
+
     @Builder.Default
     private Boolean obfuscate = Boolean.FALSE; // Obfuscate file path
+
     @Builder.Default
     private Boolean hpsm = Boolean.FALSE; // Enable High Precision Snippet Matching data collection
+
     @Builder.Default
     private Boolean hiddenFilesFolders = Boolean.FALSE; // Enable Scanning of hidden files/folders
+
     @Builder.Default
     private Boolean allFolders = Boolean.FALSE; // Enable Scanning of all folders (except hidden)
+
     @Builder.Default
     private Integer numThreads = DEFAULT_WORKER_THREADS;  // Number of parallel threads to use when processing a folder
+
     @Builder.Default
     private Duration timeout = Duration.ofSeconds(DEFAULT_TIMEOUT); // API POST timeout
+
     @Builder.Default
     private Integer retryLimit = DEFAULT_HTTP_RETRY_LIMIT; // Retry limit for posting scan requests
 
     private final String url;  // Alternative scanning URL
     private final String apiKey; // API key
-    private final String scanFlags; // Scan flags to pass to the API
+    private final String scanFlags; // Scan flags to pass to the APIç
     private final String sbomType; // SBOM type (identify/ignore)
     private final String sbom;  // SBOM to supply while scanning
     private final int snippetLimit; // Size limit for a single line of generated snippet
@@ -96,26 +104,24 @@ public class Scanner {
     private final Settings settings;
     private final ScannerPostProcessor postProcessor;
     private final FilterConfig filterConfig;
+
+    @Getter(AccessLevel.PRIVATE)
     private Predicate<Path> fileFilter;
+    @Getter(AccessLevel.PRIVATE)
     private Predicate<Path> folderFilter;
 
+    //TODO: Once this Lombok PR is merged  https://github.com/projectlombok/lombok/pull/3723#pullrequestreview-2617412643
+    // Update Lombok dependency
     public static class ScannerBuilder {
-
         private ScannerBuilder folderFilter(Predicate<Path> folderFilter) {
             return this;
         }
-
         private ScannerBuilder fileFilter(Predicate<Path> fileFilter) {
             return this;
         }
-
-
     }
 
-
-
-
-  //  @SuppressWarnings("unused")
+    @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,
                     Integer retryLimit, String url, String apiKey, String scanFlags, String sbomType, String sbom,
@@ -164,39 +170,12 @@ public class Scanner {
                 .allFolders(allFolders)
                 .allExtensions(allExtensions)
                 .hiddenFilesFolders(hiddenFilesFolders)
-                .gitIgnorePatterns(settings != null ? settings.getScanningIgnorePattern() : new ArrayList<>())
+                .gitIgnorePatterns(this.settings.getScanningIgnorePattern())
                 .build());
 
         this.fileFilter = FileFilterFactory.build(this.filterConfig);
         this.folderFilter = FolderFilterFactory.build(this.filterConfig);
-
     }
-
-/*
-     Scanner.builder().FileFilter().FolderFilter
- */
-//    private Predicate<Path> buildFolderFilter() {
-//        Predicate<Path> filter = p -> false;
-//        //README: https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/
-//        if (!this.hiddenFilesFolders) {
-//            log.debug("Hidden folder flag: {}", this.hiddenFilesFolders);
-//            Predicate<Path> hiddenFiles = p -> p.startsWith(".");
-//            Predicate<Path> notCurrentDirectory = p -> !p.getFileName().toString().equals(".");
-//            filter = hiddenFiles.and(notCurrentDirectory);
-//        }
-//
-//        if (!allFolders) {
-//            log.debug("All folders: {}", this.allFolders);
-//            Predicate<Path> filterDirs = p -> FILTERED_DIRS.stream()
-//                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
-//            filter = filter.or(filterDirs);
-//            Predicate<Path> filterDirExt = p -> FILTERED_DIR_EXT.stream()
-//                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
-//            filter = filter.or(filterDirExt);
-//        }
-//
-//        return filter;
-//    }
 
     /**
      * Generate a WFP/Fingerprint for the given file

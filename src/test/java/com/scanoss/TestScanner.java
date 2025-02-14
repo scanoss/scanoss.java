@@ -281,6 +281,7 @@ public class TestScanner {
         f = "testing/data/folder-ends-with-nbproject";
         Scanner scanner = Scanner.builder().build();
 
+
         List<String> wfps = scanner.wfpFolder(f);
         assertTrue("WFP should be empty", wfps.isEmpty());
 
