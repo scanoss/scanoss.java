@@ -53,6 +53,44 @@ public class Settings {
     private final @Builder.Default Bom bom = Bom.builder().build();
 
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Skip {
+        private final @Builder.Default Patterns patterns = Patterns.builder().build();
+        private final @Builder.Default Sizes sizes = Sizes.builder().build();
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Patterns {
+        private final @Builder.Default List<String> scanning = new ArrayList<>();
+        private final @Builder.Default List<String> fingerprinting = new ArrayList<>();
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Sizes {
+        private final @Builder.Default List<SizeRule> scanning = new ArrayList<>();
+        private final @Builder.Default List<SizeRule> fingerprinting = new ArrayList<>();
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SizeRule {
+        private List<String> patterns;
+        private long min;
+        private long max;
+    }
+
+
     /**
      * Converts modern rule-based configuration to legacy SBOM format.
      * This method is needed as a temporary solution because the current engine

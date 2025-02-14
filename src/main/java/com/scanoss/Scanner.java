@@ -104,10 +104,7 @@ public class Scanner {
     private final Settings settings;
     private final ScannerPostProcessor postProcessor;
     private final FilterConfig filterConfig;
-
-    @Getter(AccessLevel.PRIVATE)
     private Predicate<Path> fileFilter;
-    @Getter(AccessLevel.PRIVATE)
     private Predicate<Path> folderFilter;
 
     //TODO: Once this Lombok PR is merged  https://github.com/projectlombok/lombok/pull/3723#pullrequestreview-2617412643
@@ -173,7 +170,7 @@ public class Scanner {
                 .gitIgnorePatterns(this.settings.getScanningIgnorePattern())
                 .build());
 
-        this.fileFilter = FileFilterFactory.build(this.filterConfig);
+        this.fileFilter = Objects.requireNonNullElseGet(fileFilter , () -> FileFilterFactory.build(this.filterConfig));
         this.folderFilter = FolderFilterFactory.build(this.filterConfig);
     }
 
