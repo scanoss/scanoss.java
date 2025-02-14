@@ -29,6 +29,7 @@ import com.scanoss.settings.Settings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -240,15 +241,13 @@ class ScanCommandLine implements Runnable {
                 printDebug(err, "Converting to JSON...");
                 JsonUtils.writeJsonPretty(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)), out);
                 return;
-            } else {
-                err.println("Error: No results return.");
             }
+            printMsg(err, String.format("Found 0 results."));
         } catch (ScannerException | WinnowingException e) {
             if (CommandLine.debug) {
                 e.printStackTrace(err);
             }
-            throw e;
+            throw new RuntimeException(String.format("Something went wrong while scanning %s.", folder));
         }
-        throw new RuntimeException(String.format("Something went wrong while scanning %s", folder));
     }
 }
