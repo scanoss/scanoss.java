@@ -53,7 +53,7 @@ public class ScanossConstants {
     static final int MAX_LONG_LINE_CHARS = 1000; // Maximum length of a single source line to be considered source code
 
     // File extensions to ignore snippets for
-    static final List<String> SKIP_SNIPPET_EXT = Arrays.asList(
+    public static final List<String> SKIP_SNIPPET_EXT = Arrays.asList(
             ".exe", ".zip", ".tar", ".tgz", ".gz", ".7z", ".rar", ".jar", ".war", ".ear", ".class", ".pyc",
             ".o", ".a", ".so", ".obj", ".dll", ".lib", ".out", ".app", ".bin",
             ".lst", ".dat", ".json", ".htm", ".html", ".xml", ".md", ".txt",
@@ -62,17 +62,17 @@ public class ScanossConstants {
     );
 
     // Folders to skip
-    static final List<String> FILTERED_DIRS = Arrays.asList(
+    public static final List<String> FILTERED_DIRS = Arrays.asList(
             "nbproject", "nbbuild", "nbdist", "__pycache__", "venv", "_yardoc", "eggs", "wheels", "htmlcov",
             "__pypackages__", "target"
     );
 
     // Folder endings to skip
-    static final List<String> FILTERED_DIR_EXT = List.of(".egg-info");
+    public static final List<String> FILTERED_DIR_EXT = List.of(".egg-info");
 
 
     // File extensions to skip
-    static final List<String> FILTERED_EXTENSIONS = Arrays.asList(
+    public static final List<String> FILTERED_EXTENSIONS = Arrays.asList(
             ".1", ".2", ".3", ".4", ".5", ".6", ".7", ".8", ".9", ".ac", ".adoc", ".am",
             ".asciidoc", ".bmp", ".build", ".cfg", ".chm", ".class", ".cmake", ".cnf",
             ".conf", ".config", ".contributors", ".copying", ".crt", ".csproj", ".css",
@@ -95,7 +95,7 @@ public class ScanossConstants {
     );
 
     // Files to skip
-    static final List<String> FILTERED_FILES = Arrays.asList(
+    public static final List<String> FILTERED_FILES = Arrays.asList(
             "gradlew", "gradlew.bat", "mvnw", "mvnw.cmd", "gradle-wrapper.jar", "maven-wrapper.jar",
             "thumbs.db", "babel.config.js", "license.txt", "license.md", "copying.lib", "makefile"
     );

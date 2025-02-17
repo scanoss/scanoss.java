@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2025, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,20 +20,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.processor;
+package com.scanoss.filters;
+
+import lombok.Builder;
+import lombok.Getter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * SCANOSS File Processor Interface
+ * Configuration class for the SCANOSS filtering system that defines various filtering rules and patterns.
  */
-public interface FileProcessor {
+@Getter
+@Builder
+public class FilterConfig {
 
-    /**
-     * Implement process method to process the file
-     *
-     * @param file   file to process
-     * @param folder root folder of the file to scan
-     * @return scan result
-     */
-    String process(String file, String folder);
+    @Builder.Default
+    private final List<String> gitIgnorePatterns = new ArrayList<>();
 
+    @Builder.Default
+    private final List<String> antPatterns = new ArrayList<>();
+
+    @Builder.Default
+    private final Boolean hiddenFilesFolders = false;
+
+    @Builder.Default
+    private final Boolean allFilesFolders = false;
+
+    @Builder.Default
+    private final Boolean allFolders = false;
+
+    @Builder.Default
+    private final Boolean allExtensions = false;
 }

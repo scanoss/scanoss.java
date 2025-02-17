@@ -25,7 +25,7 @@ package com.scanoss.cli;
 import com.scanoss.Scanner;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
-import com.scanoss.settings.Settings;
+import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
 import lombok.NonNull;
@@ -107,7 +107,7 @@ class ScanCommandLine implements Runnable {
 
     private Scanner scanner;
 
-    private Settings settings;
+    private ScanossSettings settings;
     /**
      * Run the 'scan' command
      */
@@ -135,7 +135,7 @@ class ScanCommandLine implements Runnable {
         }
 
         if(settingsPath != null && !settingsPath.isEmpty()) {
-            settings = Settings.createFromPath(Paths.get(settingsPath));
+            settings = ScanossSettings.createFromPath(Paths.get(settingsPath));
             if (settings == null) throw new RuntimeException("Error: Failed to read settings file");
             printMsg(err, String.format("Settings file read %s", settings));
         }
@@ -240,15 +240,13 @@ class ScanCommandLine implements Runnable {
                 printDebug(err, "Converting to JSON...");
                 JsonUtils.writeJsonPretty(JsonUtils.joinJsonObjects(JsonUtils.toJsonObjects(results)), out);
                 return;
-            } else {
-                err.println("Error: No results return.");
             }
+            printMsg(err, String.format("Found 0 results."));
         } catch (ScannerException | WinnowingException e) {
             if (CommandLine.debug) {
                 e.printStackTrace(err);
             }
-            throw e;
+            throw new RuntimeException(String.format("Something went wrong while scanning %s.", folder));
         }
-        throw new RuntimeException(String.format("Something went wrong while scanning %s", folder));
     }
 }

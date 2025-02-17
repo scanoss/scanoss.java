@@ -247,6 +247,7 @@ public class ScannerPostProcessor {
                     .file(existingComponent.getFile())
                     .fileHash(existingComponent.getFileHash())
                     .fileUrl(existingComponent.getFileUrl())
+                    .lines(existingComponent.getLines())
                     .purls(new String[]{newPurl.toString()})
                     .component(newPurl.getName())
                     .vendor(newPurl.getNamespace())

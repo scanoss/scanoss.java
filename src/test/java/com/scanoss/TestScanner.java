@@ -23,6 +23,8 @@
 package com.scanoss;
 
 import com.scanoss.exceptions.ScannerException;
+import com.scanoss.filters.FilterConfig;
+import com.scanoss.settings.ScanossSettings;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -268,4 +270,92 @@ public class TestScanner {
     }
 
 
+
+    @Test
+    public void TestScannerFiltering() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String f;
+
+        log.info("Testing filtering: folder ends with nbproject should NOT be filtered... ");
+        f = "testing/data/folder-ends-with-nbproject";
+        Scanner scanner = Scanner.builder().build();
+        List<String> wfps = scanner.wfpFolder(f);
+        assertTrue("WFP should NOT be empty", !wfps.isEmpty());
+
+        log.info("Testing filtering: file nbproject should not be filtered... ");
+        f = "testing/data";
+        wfps = scanner.wfpFolder(f);
+        boolean wasFilenbprojectFingerprinted = wfps.stream().anyMatch(w -> w.contains(",nbproject\n"));
+        assertTrue("nbproject file should be fingerprinted", wasFilenbprojectFingerprinted);
+
+        log.info("Testing filtering: file scanner.build should be filtered... ");
+        f = "testing/data";
+        wfps = scanner.wfpFolder(f);
+        boolean wasFileScannerBuildFingerprinted = wfps.stream().anyMatch(w -> w.contains(",scanner.build\n"));
+        assertFalse("scanner.build file should not be fingerprinted", wasFileScannerBuildFingerprinted);
+
+        log.info("Testing filtering: folder folder.build should not be filtered... ");
+        f = "testing/data";
+        wfps = scanner.wfpFolder(f);
+        boolean wasFolderScannerBuildFingerprinted = wfps.stream().anyMatch(w -> w.contains(",scanner.build\n"));
+        assertFalse("scanner.build file should not be fingerprinted", wasFolderScannerBuildFingerprinted);
+
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
+
+    @Test
+    public void TestScannerSkipGitIgnore() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String f;
+        List<String> wfps;
+
+        log.info("Testing GitIgnore Pattern:  ");
+        f = "testing/data/folder-ends-with-nbproject";
+
+        ScanossSettings.Patterns patterns = ScanossSettings.Patterns.builder().scanning(List.of("*nbproject")).build();
+        ScanossSettings.Skip skip = ScanossSettings.Skip.builder().patterns(patterns).build();
+        ScanossSettings.Settings settings = ScanossSettings.Settings.builder().skip(skip).build();
+        ScanossSettings scanossSettings = ScanossSettings.builder().settings(settings).build();
+
+        Scanner scanner = Scanner.builder().settings(scanossSettings).build();
+        wfps = scanner.wfpFolder(f);
+        assertTrue("Folder should be skipped by gitignore", wfps.isEmpty());
+
+        log.info("Finished {} -->", methodName);
+    }
+
+
+    @Test
+    public void TestScannerSkipAntPattern() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String f;
+        List<String> wfps;
+
+        log.info("Testing GitIgnore Pattern:  ");
+        f = "testing/data/folder-ends-with-nbproject";
+
+        FilterConfig filterConfig = FilterConfig.builder()
+                .allFolders(false)
+                .hiddenFilesFolders(false)
+                .allFilesFolders(false)
+                .antPatterns(List.of("**/*nbproject/")).build();
+
+        Scanner scanner = Scanner.builder().filterConfig(filterConfig).build();
+        wfps = scanner.wfpFolder(f);
+        assertTrue("Folder should be skipped by Ant Patterns", wfps.isEmpty());
+
+        log.info("Finished {} -->", methodName);
+    }
 }

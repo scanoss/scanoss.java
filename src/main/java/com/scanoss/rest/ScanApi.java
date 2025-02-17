@@ -25,7 +25,7 @@ package com.scanoss.rest;
 import com.scanoss.dto.SbomLegacy;
 import com.scanoss.exceptions.ScanApiException;
 import com.scanoss.settings.Rule;
-import com.scanoss.settings.Settings;
+import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.PackageDetails;
 import lombok.Builder;
@@ -71,12 +71,12 @@ public class ScanApi {
     private String customCert; // Custom certificate
     private Proxy proxy; // Proxy configuration
     private String baseUrl; // SCANOSS base API URI (to used instead of url)
-    private Settings settings;
+    private ScanossSettings settings;
     @SuppressWarnings("unused")
     private ScanApi(String scanType, Duration timeout, Integer retryLimit, String url, String apiKey, String flags,
                     String sbomType, String sbom,
                     OkHttpClient okHttpClient, Map<String, String> headers, String customCert,
-                    Proxy proxy, String baseUrl, Settings settings) {
+                    Proxy proxy, String baseUrl, ScanossSettings settings) {
         this.settings = settings;
         this.scanType = scanType;
         this.timeout = timeout;

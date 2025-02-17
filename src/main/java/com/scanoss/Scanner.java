@@ -25,15 +25,14 @@ package com.scanoss;
 import com.scanoss.dto.ScanFileResult;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
-import com.scanoss.processor.FileProcessor;
-import com.scanoss.processor.ScanFileProcessor;
-import com.scanoss.processor.WfpFileProcessor;
+import com.scanoss.filters.FilterConfig;
+import com.scanoss.filters.factories.FileFilterFactory;
+import com.scanoss.filters.factories.FolderFilterFactory;
+import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
-import com.scanoss.settings.Settings;
+import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -49,6 +48,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 
 import static com.scanoss.ScanossConstants.*;
 
@@ -64,36 +64,59 @@ import static com.scanoss.ScanossConstants.*;
 public class Scanner {
     @Builder.Default
     private Boolean skipSnippets = Boolean.FALSE;  // Skip snippet generations
+
     @Builder.Default
     private Boolean allExtensions = Boolean.FALSE; // Fingerprint all file extensions
+
     @Builder.Default
     private Boolean obfuscate = Boolean.FALSE; // Obfuscate file path
+
     @Builder.Default
     private Boolean hpsm = Boolean.FALSE; // Enable High Precision Snippet Matching data collection
+
     @Builder.Default
     private Boolean hiddenFilesFolders = Boolean.FALSE; // Enable Scanning of hidden files/folders
+
     @Builder.Default
     private Boolean allFolders = Boolean.FALSE; // Enable Scanning of all folders (except hidden)
+
     @Builder.Default
     private Integer numThreads = DEFAULT_WORKER_THREADS;  // Number of parallel threads to use when processing a folder
+
     @Builder.Default
     private Duration timeout = Duration.ofSeconds(DEFAULT_TIMEOUT); // API POST timeout
+
     @Builder.Default
     private Integer retryLimit = DEFAULT_HTTP_RETRY_LIMIT; // Retry limit for posting scan requests
-    private String url;  // Alternative scanning URL
-    private String apiKey; // API key
-    private String scanFlags; // Scan flags to pass to the API
-    private String sbomType; // SBOM type (identify/ignore)
-    private String sbom;  // SBOM to supply while scanning
-    private int snippetLimit; // Size limit for a single line of generated snippet
-    private String customCert; // Custom certificate
-    private Proxy proxy; // Proxy
-    private Winnowing winnowing;
-    private ScanApi scanApi;
-    private ScanFileProcessor scanFileProcessor;
-    private WfpFileProcessor wfpFileProcessor;
-    private Settings settings;
-    private ScannerPostProcessor postProcessor;
+
+    private final String url;  // Alternative scanning URL
+    private final String apiKey; // API key
+    private final String scanFlags; // Scan flags to pass to the APIç
+    private final String sbomType; // SBOM type (identify/ignore)
+    private final String sbom;  // SBOM to supply while scanning
+    private final int snippetLimit; // Size limit for a single line of generated snippet
+    private final String customCert; // Custom certificate
+    private final Proxy proxy; // Proxy
+    private final Winnowing winnowing;
+    private final ScanApi scanApi;
+    private final ScanFileProcessor scanFileProcessor;
+    private final WfpFileProcessor wfpFileProcessor;
+    private final ScanossSettings settings;
+    private final ScannerPostProcessor postProcessor;
+    private final FilterConfig filterConfig;
+    private Predicate<Path> fileFilter;
+    private Predicate<Path> folderFilter;
+
+    //TODO: Once this Lombok PR is merged  https://github.com/projectlombok/lombok/pull/3723#pullrequestreview-2617412643
+    // Update Lombok dependency
+    public static class ScannerBuilder {
+        private ScannerBuilder folderFilter(Predicate<Path> folderFilter) {
+            return this;
+        }
+        private ScannerBuilder fileFilter(Predicate<Path> fileFilter) {
+            return this;
+        }
+    }
 
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
@@ -102,7 +125,9 @@ public class Scanner {
                     Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
-                    Settings settings, ScannerPostProcessor postProcessor
+                    ScanossSettings settings, ScannerPostProcessor postProcessor, FilterConfig filterConfig,
+                    Predicate<Path> fileFilter,
+                    Predicate<Path> folderFilter
     ) {
         this.skipSnippets = skipSnippets;
         this.allExtensions = allExtensions;
@@ -134,9 +159,20 @@ public class Scanner {
         this.wfpFileProcessor = Objects.requireNonNullElseGet(wfpFileProcessor, () -> WfpFileProcessor.builder()
                 .winnowing(this.winnowing)
                 .build());
-        this.settings = Objects.requireNonNullElseGet(settings, () -> Settings.builder().build());
+        this.settings = Objects.requireNonNullElseGet(settings, () -> ScanossSettings.builder().build());
         this.postProcessor = Objects.requireNonNullElseGet(postProcessor, () ->
-                ScannerPostProcessor.builder().build());    }
+                ScannerPostProcessor.builder().build());
+
+        this.filterConfig = Objects.requireNonNullElseGet(filterConfig, () -> FilterConfig.builder()
+                .allFolders(allFolders)
+                .allExtensions(allExtensions)
+                .hiddenFilesFolders(hiddenFilesFolders)
+                .gitIgnorePatterns(this.settings.getScanningIgnorePattern())
+                .build());
+
+        this.fileFilter = Objects.requireNonNullElseGet(fileFilter , () -> FileFilterFactory.build(this.filterConfig));
+        this.folderFilter = Objects.requireNonNullElseGet(folderFilter, () -> FolderFilterFactory.build(this.filterConfig));
+    }
 
     /**
      * Generate a WFP/Fingerprint for the given file
@@ -155,70 +191,6 @@ public class Scanner {
             throw new ScannerException(String.format("File does not exist or is not a file: %s", filename));
         }
         return this.winnowing.wfpForFile(filename, filename);
-    }
-
-    /**
-     * Determine if a folder should be processed or not
-     *
-     * @param name folder/directory to review
-     * @return <code>true</code> if the folder should be skipped, <code>false</code> otherwise
-     */
-    private Boolean filterFolder(String name) {
-        String nameLower =  name.toLowerCase();
-        if (!hiddenFilesFolders && name.startsWith(".") && !name.equals(".")) {
-            log.trace("Skipping hidden folder: {}", name);
-            return true;
-        }
-        boolean ignore = false;
-        if (!allFolders) { // skip this check if all folders is selected
-            for (String ending : ScanossConstants.FILTERED_DIRS) {
-                if (nameLower.endsWith(ending)) {
-                    log.trace("Skipping folder due to ending: {} - {}", name, ending);
-                    ignore = true;
-                }
-            }
-            if(!ignore){
-                for (String ending : ScanossConstants.FILTERED_DIR_EXT) {
-                    if (nameLower.endsWith(ending)) {
-                        log.trace("Skipping folder due to ending: {} - {}", name, ending);
-                        ignore = true;
-                    }
-                }
-            }
-        }
-        return ignore;
-    }
-
-    /**
-     * Determine if a file should be processed or not
-     *
-     * @param name filename to review
-     * @return <code>true</code> if the file should be skipped, <code>false</code> otherwise
-     */
-    private Boolean filterFile(String name) {
-        // Skip hidden files unless explicitly asked to read them
-        if (!hiddenFilesFolders && name.startsWith(".")) {
-            log.trace("Skipping hidden file: {}", name);
-            return true;
-        }
-        // Process all file extensions if requested
-        if (this.allExtensions) {
-            log.trace("Processing all file extensions: {}", name);
-            return false;
-        }
-        // Skip some specific files
-        if (ScanossConstants.FILTERED_FILES.contains(name)) {
-            log.trace("Skipping specific file: {}", name);
-            return true;
-        }
-        // Skip specific file endings/extensions
-        for (String ending : ScanossConstants.FILTERED_EXTENSIONS) {
-            if (name.endsWith(ending)) {
-                log.trace("Skipping file due to ending: {} - {}", name, ending);
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -262,8 +234,8 @@ public class Scanner {
             Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) {
-                    String nameLower = file.getFileName().toString().toLowerCase();
-                    if (attrs.isDirectory() && filterFolder(nameLower)) {
+                    if(folderFilter.test(file)) {
+                        log.debug("Processing file: {}", file.getFileName().toString());
                         return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
                     }
                     return FileVisitResult.CONTINUE;
@@ -271,8 +243,7 @@ public class Scanner {
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    String nameLower = file.getFileName().toString().toLowerCase();
-                    if (attrs.isRegularFile() && !filterFile(nameLower) && attrs.size() > 0) {
+                    if (attrs.isRegularFile() && !fileFilter.test(file) && attrs.size() > 0) {
                         String filename = file.toString();
                         Future<String> future = executorService.submit(() -> processor.process(filename, stripDirectory(folder, filename)));
                         futures.add(future);
@@ -321,7 +292,8 @@ public class Scanner {
                 Path path = Path.of(file);
                 boolean skipDir = false;
                 for (Path p : path) {
-                    if (filterFolder(p.toString().toLowerCase())) {  // should we skip this folder or not
+                    // should we skip this folder or not
+                    if (this.folderFilter.test(p)) {  // should we skip this folder or not
                         skipDir = true;
                         break;
                     }
@@ -330,7 +302,7 @@ public class Scanner {
                     continue; // skip this file as the folder is not allowed
                 }
                 String nameLower = path.getFileName().toString().toLowerCase();
-                if (!filterFile(nameLower)) {
+                if (!this.fileFilter.test(path)) {
                     Path fullPath = Path.of(root, file);
                     File f = fullPath.toFile();
                     if (f.exists() && f.isFile() && f.length() > 0 && ! Files.isSymbolicLink(fullPath)) {

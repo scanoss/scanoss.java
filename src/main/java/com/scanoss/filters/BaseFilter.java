@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2025, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,20 +20,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.processor;
+package com.scanoss.filters;
+
+import lombok.extern.slf4j.Slf4j;
+import java.nio.file.Path;
+import java.util.function.Predicate;
+
 
 /**
- * SCANOSS File Processor Interface
+ * An abstract base class that provides core filtering functionality for the SCANOSS filtering system.
  */
-public interface FileProcessor {
+@Slf4j
+public abstract class BaseFilter {
+    protected final FilterConfig config;
+    protected final GitIgnoreFilter gitIgnoreFilter;
+    protected final AntFilter antFilter;
+    protected final Predicate<Path> baseSkipFilter;
 
     /**
-     * Implement process method to process the file
+     * Constructs a BaseFilter with the specified configuration.
+     * Initializes both Git ignore and Ant pattern filters, and combines them
+     * into a single base skip filter using logical OR operation.
      *
-     * @param file   file to process
-     * @param folder root folder of the file to scan
-     * @return scan result
+     * @param config the configuration object containing filter patterns and settings
      */
-    String process(String file, String folder);
-
+    protected BaseFilter(FilterConfig config) {
+        this.config = config;
+        this.gitIgnoreFilter = GitIgnoreFilter.builder().patterns(config.getGitIgnorePatterns()).build();
+        this.antFilter = AntFilter.builder().patterns(config.getAntPatterns()).build();
+        this.baseSkipFilter = this.antFilter.get().or(this.gitIgnoreFilter.get());
+    }
 }

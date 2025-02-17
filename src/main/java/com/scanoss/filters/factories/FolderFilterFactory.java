@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (c) 2023, SCANOSS
+ * Copyright (c) 2025, SCANOSS
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,20 +20,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.scanoss.processor;
+package com.scanoss.filters.factories;
+
+import com.scanoss.filters.FilterConfig;
+import com.scanoss.filters.FolderFilter;
+import java.nio.file.Path;
+import java.util.function.Predicate;
 
 /**
- * SCANOSS File Processor Interface
+ A factory class that provides a static method for creating folder filtering predicates.
  */
-public interface FileProcessor {
-
+public class FolderFilterFactory {
     /**
-     * Implement process method to process the file
+     * Creates a folder filtering predicate based on the provided configuration.
      *
-     * @param file   file to process
-     * @param folder root folder of the file to scan
-     * @return scan result
+     * <p>This method uses the builder pattern through {@link FolderFilter} to construct
+     * a predicate that can be used to filter folder paths. The filtering criteria are
+     * determined by the settings in the provided configuration object.
+     *
+     * @param config the configuration object containing filter settings and criteria
+     * @return a predicate that evaluates folder paths according to the specified configuration
+     * @throws NullPointerException if the config parameter is null
+     * @see FolderFilter
+     * @see FilterConfig
      */
-    String process(String file, String folder);
-
+    public static Predicate<Path> build(FilterConfig config) {  // Static factory method
+        return new FolderFilter(config).get();
+    }
 }

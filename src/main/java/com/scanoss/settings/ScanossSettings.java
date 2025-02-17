@@ -44,13 +44,59 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Settings {
+public class ScanossSettings {
     /**
      * The Bill of Materials (BOM) configuration containing rules for component handling.
      * Includes rules for including, ignoring, removing, and replacing components
      * during and after the scanning process.
      */
     private final @Builder.Default Bom bom = Bom.builder().build();
+    private final @Builder.Default Settings settings = Settings.builder().build();
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Settings {
+        private final @Builder.Default Skip skip = Skip.builder().build();
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Skip {
+        private final @Builder.Default Patterns patterns = Patterns.builder().build();
+        private final @Builder.Default Sizes sizes = Sizes.builder().build();
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Patterns {
+        private final @Builder.Default List<String> scanning = new ArrayList<>();
+        private final @Builder.Default List<String> fingerprinting = new ArrayList<>();
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Sizes {
+        private final @Builder.Default List<SizeRule> scanning = new ArrayList<>();
+        private final @Builder.Default List<SizeRule> fingerprinting = new ArrayList<>();
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SizeRule {
+        private List<String> patterns;
+        private long min;
+        private long max;
+    }
 
 
     /**
@@ -74,9 +120,9 @@ public class Settings {
      * @param json The JSON string to parse
      * @return A new Settings object
      */
-    public static Settings createFromJsonString(@NonNull String json) {
+    public static ScanossSettings createFromJsonString(@NonNull String json) {
         Gson gson = new Gson();
-        return gson.fromJson(json, Settings.class);
+        return gson.fromJson(json, ScanossSettings.class);
     }
 
     /**
@@ -85,7 +131,7 @@ public class Settings {
      * @param path The path to the JSON file
      * @return A new Settings object
      */
-    public static Settings createFromPath(@NonNull Path path) {
+    public static ScanossSettings createFromPath(@NonNull Path path) {
         try {
             String json = Files.readString(path, StandardCharsets.UTF_8);
             return createFromJsonString(json);
@@ -97,7 +143,9 @@ public class Settings {
     }
 
 
-
+    public List<String> getScanningIgnorePattern()  {
+        return this.settings.getSkip().getPatterns().getScanning();
+    }
 
 }
 
