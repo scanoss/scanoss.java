@@ -72,11 +72,18 @@ public class FolderFilter extends BaseFilter {
         }
 
         if (!config.getAllFolders()) {
-            Predicate<Path> filterDirs = p -> FILTERED_DIRS.stream()
-                    .anyMatch(d -> p.getFileName().toString().toLowerCase().equals(d));
-            Predicate<Path> filterDirExt = p -> FILTERED_DIR_EXT.stream()
-                    .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
+            Predicate<Path> filterDirs = p -> {
+              String fileNameToLower = p.getFileName().toString().toLowerCase();
+               return FILTERED_DIRS.stream()
+                        .anyMatch(fileNameToLower::equals);
+            };
+            baseFilter = baseFilter.or(filterDirs);
 
+            Predicate<Path> filterDirExt = p -> {
+                String fileNameToLower = p.getFileName().toString().toLowerCase();
+                return FILTERED_DIR_EXT.stream()
+                        .anyMatch(fileNameToLower::endsWith);
+            };
             baseFilter = baseFilter.or(filterDirs).or(filterDirExt);
         }
 

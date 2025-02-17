@@ -116,6 +116,7 @@ public class TestSettings {
         assertNotNull("Ignore list should not be null", emptySettings.getBom().getIgnore());
         assertNotNull("Remove list should not be null", emptySettings.getBom().getRemove());
         assertNotNull("Replace list should not be null", emptySettings.getBom().getReplace());
+        assertNotNull("Settings should not be null", emptySettings.getSettings());
 
         assertTrue("Include list should be empty", emptySettings.getBom().getInclude().isEmpty());
         assertTrue("Ignore list should be empty", emptySettings.getBom().getIgnore().isEmpty());

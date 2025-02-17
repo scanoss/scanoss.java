@@ -60,23 +60,28 @@ public class FileFilter extends BaseFilter {
         // First call super's build to initialize base filters
         Predicate<Path> baseFilter = this.baseSkipFilter;
 
+        if(config.getAllExtensions()){
+            return p -> false;
+        }
+
         if (!config.getHiddenFilesFolders()) {
             Predicate<Path> skipHiddenFilter = p -> p.getFileName().toString().startsWith(".");
             baseFilter = baseFilter
                     .or(skipHiddenFilter);
         }
 
-        if(config.getAllExtensions()){
-            Predicate <Path> allExtensionsFilter = p -> false;
-            baseFilter = baseFilter.or(allExtensionsFilter);
-        }
-
-       Predicate<Path> filterFiles = p -> ScanossConstants.FILTERED_FILES.stream()
-              .anyMatch(d -> p.getFileName().toString().toLowerCase().equals(d));
+        Predicate<Path> filterFiles = p -> {
+            String fileNameToLower = p.getFileName().toString().toLowerCase();
+            return ScanossConstants.FILTERED_FILES.stream()
+                    .anyMatch(fileNameToLower::equals);
+        };
         baseFilter = baseFilter.or(filterFiles);
 
-        Predicate<Path> filterExtensions = p -> ScanossConstants.FILTERED_EXTENSIONS.stream()
-                .anyMatch(d -> p.getFileName().toString().toLowerCase().endsWith(d));
+        Predicate<Path> filterExtensions = p ->{
+            String fileNameToLower = p.getFileName().toString().toLowerCase();
+            return ScanossConstants.FILTERED_EXTENSIONS.stream()
+                    .anyMatch(fileNameToLower::endsWith);
+        };
         baseFilter = baseFilter.or(filterExtensions);
 
         return baseFilter;
