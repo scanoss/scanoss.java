@@ -24,8 +24,11 @@ package com.scanoss.filters;
 
 import lombok.Builder;
 import lombok.Getter;
+
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Configuration class for the SCANOSS filtering system that defines various filtering rules and patterns.
@@ -51,4 +54,7 @@ public class FilterConfig {
 
     @Builder.Default
     private final Boolean allExtensions = false;
+
+    @Builder.Default
+    private final Predicate<Path> customFilter = path -> false;
 }

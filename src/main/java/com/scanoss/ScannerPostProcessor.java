@@ -267,6 +267,22 @@ public class ScannerPostProcessor {
     }
 
     /**
+     * Marks all components in the list as non-matching by replacing each component
+     * with a new instance that has MatchType.NONE while preserving the serverDetails
+     * Modifies the input list in place using List.replaceAll().
+     *
+     * @param components List of scan file details to be marked as non-matching
+     */
+    private void markComponentsAsNonMatch(List<ScanFileDetails> components) {
+        components.replaceAll(component ->
+                ScanFileDetails.builder()
+                        .matchType(MatchType.none)
+                        .serverDetails(component.getServerDetails())
+                        .build()
+        );
+    }
+
+    /**
      * Applies remove rules to scan results, filtering out matches based on certain criteria.
      * <p>
      * First, matches are found based on path and/or purl:
@@ -281,7 +297,9 @@ public class ScannerPostProcessor {
      */
     public void applyRemoveRules(@NonNull List<ScanFileResult> results, @NonNull List<RemoveRule> rules) {
         log.debug("Starting remove rules application to {} results", results.size());
-        results.removeIf(result -> matchesRemovalCriteria(result, rules));
+        results.stream()
+                .filter(result -> matchesRemovalCriteria(result, rules))
+                .forEach(result -> markComponentsAsNonMatch(result.getFileDetails()));
         log.debug("Remove rules application completed. Results remaining: {}", results.size());
     }
 

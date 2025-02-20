@@ -24,6 +24,7 @@ package com.scanoss;
 
 import com.google.gson.JsonObject;
 import com.scanoss.dto.ScanFileResult;
+import com.scanoss.dto.enums.MatchType;
 import com.scanoss.settings.Bom;
 import com.scanoss.settings.RemoveRule;
 import com.scanoss.settings.ReplaceRule;
@@ -73,6 +74,16 @@ public class TestScannerPostProcessor {
 
     }
 
+    private Boolean hasOnlyNonMatchingDetailsForPath(List<ScanFileResult> results, String path) {
+        Optional<ScanFileResult> r = results.stream().filter(result -> result.getFilePath().matches(path)).findFirst();
+
+        if (r.isEmpty()) {
+            fail(String.format("Should have found file %s", path));
+        }
+
+        return r.get().getFileDetails().stream().noneMatch(c -> c.getMatchType() != MatchType.none);
+
+    }
 
     /**
      * TESTING REMOVE RULES
@@ -94,7 +105,7 @@ public class TestScannerPostProcessor {
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify
-        assertEquals("Should have one result less after removal", sampleScanResults.size() - 1, results.size());
+        assertTrue(hasOnlyNonMatchingDetailsForPath(results, "CMSsite/admin/js/npm.js"));
         log.info("Finished {} -->", methodName);
     }
 
@@ -116,13 +127,7 @@ public class TestScannerPostProcessor {
         // Process results
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
-        // Verify
-        assertEquals("Size should decrease by 1 after removal",
-                sampleScanResults.size() - 1,
-                results.size());
-
-        assertFalse("Should remove file CMSsite/admin/js/npm.js",
-                results.stream().anyMatch(r -> r.getFilePath().matches("CMSsite/admin/js/npm.js")));
+        assertTrue(hasOnlyNonMatchingDetailsForPath(results, "CMSsite/admin/js/npm.js"));
 
         log.info("Finished {} -->", methodName);
     }
@@ -258,7 +263,7 @@ public class TestScannerPostProcessor {
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
         // Verify - should remove because lines overlap
-        assertEquals("Should have one result less after removal", sampleScanResults.size() - 1, results.size());
+        assertTrue(hasOnlyNonMatchingDetailsForPath(results, "src/spdx.c"));
 
         log.info("Finished {} -->", methodName);
     }
@@ -289,7 +294,7 @@ public class TestScannerPostProcessor {
         // Process results
         List<ScanFileResult> results = scannerPostProcessor.process(sampleScanResults, bom);
 
-        assertEquals("Should have one result less after removal", sampleScanResults.size() - 1, results.size());
+        assertTrue(hasOnlyNonMatchingDetailsForPath(results, "src/spdx.c"));
 
         log.info("Finished {} -->", methodName);
     }
