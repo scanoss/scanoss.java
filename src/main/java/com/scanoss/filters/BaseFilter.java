@@ -48,6 +48,6 @@ public abstract class BaseFilter {
         this.config = config;
         this.gitIgnoreFilter = GitIgnoreFilter.builder().patterns(config.getGitIgnorePatterns()).build();
         this.antFilter = AntFilter.builder().patterns(config.getAntPatterns()).build();
-        this.baseSkipFilter = this.antFilter.get().or(this.gitIgnoreFilter.get());
+        this.baseSkipFilter = this.antFilter.get().or(this.gitIgnoreFilter.get()).or(this.config.getCustomFilter());
     }
 }

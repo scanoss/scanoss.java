@@ -107,17 +107,6 @@ public class Scanner {
     private Predicate<Path> fileFilter;
     private Predicate<Path> folderFilter;
 
-    //TODO: Once this Lombok PR is merged  https://github.com/projectlombok/lombok/pull/3723#pullrequestreview-2617412643
-    // Update Lombok dependency
-    public static class ScannerBuilder {
-        private ScannerBuilder folderFilter(Predicate<Path> folderFilter) {
-            return this;
-        }
-        private ScannerBuilder fileFilter(Predicate<Path> fileFilter) {
-            return this;
-        }
-    }
-
     @SuppressWarnings("unused")
     private Scanner(Boolean skipSnippets, Boolean allExtensions, Boolean obfuscate, Boolean hpsm,
                     Boolean hiddenFilesFolders, Boolean allFolders, Integer numThreads, Duration timeout,

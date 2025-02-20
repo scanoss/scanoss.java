@@ -358,4 +358,27 @@ public class TestScanner {
 
         log.info("Finished {} -->", methodName);
     }
+
+    @Test
+    public void TestScannerCustomFilterConfig() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String f;
+        List<String> wfps;
+
+        log.info("Testing GitIgnore Pattern:  ");
+        f = "testing/data/folder-ends-with-nbproject";
+
+        FilterConfig filterConfig = FilterConfig.builder()
+                .customFilter(p -> true)
+                .build();
+
+        Scanner scanner = Scanner.builder().filterConfig(filterConfig).build();
+        wfps = scanner.wfpFolder(f);
+        assertTrue("There is no fingerprint since custom filter it's always true", wfps.isEmpty());
+
+        log.info("Finished {} -->", methodName);
+    }
 }
