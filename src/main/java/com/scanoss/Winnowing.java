@@ -28,9 +28,11 @@ import com.scanoss.utils.WinnowingUtils;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MediaTypeRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -38,6 +40,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.CRC32C;
 import java.util.zip.Checksum;
 
@@ -58,6 +62,14 @@ public class Winnowing {
     private static final Tika tika = new Tika();
     private static final MediaTypeRegistry mediaTypeRegistry = MediaTypeRegistry.getDefaultRegistry();
 
+    /**
+     * Shared counter for generating unique IDs.
+     * idGenerator is shared across all Winnowing instances,
+     * ensuring sequential and unique ID generation for path obfuscation
+     * regardless of how many instances of Winnowing are created.
+     */
+    private static final AtomicLong idGenerator = new AtomicLong(0);
+
     @Builder.Default
     private Boolean skipSnippets = Boolean.FALSE; // Skip snippet generations
     @Builder.Default
@@ -68,6 +80,31 @@ public class Winnowing {
     private boolean hpsm = Boolean.FALSE; // Enable High Precision Snippet Matching data collection
     @Builder.Default
     private int snippetLimit = MAX_LONG_LINE_CHARS; // Enable limiting of size of a single line of snippet generation
+    @Builder.Default
+    private Map<String, String> obfuscationMap = new ConcurrentHashMap<>();
+
+    /**
+     * Resolves the real file path for a given obfuscated path.
+     * This method is thread-safe and can be called concurrently from multiple threads.
+     * If the provided path is not found in the obfuscation map, the original path is returned.
+     *
+     * @param obfuscatedPath the obfuscated path
+     * @return the real file path corresponding to the provided obfuscated path, or the original path if no mapping exists
+     */
+    public String deobfuscateFilePath(@NotNull String obfuscatedPath) {
+        String originalPath = obfuscationMap.get(obfuscatedPath);
+        return originalPath != null ? originalPath : obfuscatedPath;
+    }
+
+
+    /**
+     * Retrieves the size of the obfuscation map.
+     *
+     * @return the number of entries in the obfuscation map
+     */
+    public int getObfuscationMapSize() {
+        return obfuscationMap.size();
+    }
 
     /**
      * Calculate the WFP (fingerprint) for the given file
@@ -112,7 +149,11 @@ public class Winnowing {
         char[] fileContents = (new String(contents, Charset.defaultCharset())).toCharArray();
         String fileMD5 = DigestUtils.md5Hex(contents);
         StringBuilder wfpBuilder = new StringBuilder();
-        // TODO add obfuscation of the filename here
+
+        if (obfuscate) {
+            filename = obfuscateFilePath(filename);
+        }
+
         wfpBuilder.append(String.format("file=%s,%d,%s\n", fileMD5, contents.length, filename));
         if (binFile || this.skipSnippets || this.skipSnippets(filename, fileContents)) {
             return wfpBuilder.toString();
@@ -178,6 +219,40 @@ public class Winnowing {
             }
         }
         return wfpBuilder.toString();
+    }
+
+    /**
+     * Obfuscates the given file path by replacing it with a generated unique identifier while
+     * retaining its original file extension.
+     * This method is thread-safe and can be called concurrently from multiple threads.
+     *
+     * @param originalPath the original file path to be obfuscated; must not be null
+     * @return the obfuscated file path with a unique identifier and the original file extension
+     */
+    private String obfuscateFilePath(@NotNull String originalPath) {
+        final String extension = extractExtension(originalPath);
+
+        // Generate a unique identifier for the obfuscated file using a thread-safe approach
+        final String obfuscatedPath = idGenerator.getAndIncrement() + extension;
+        this.obfuscationMap.put(obfuscatedPath, originalPath);
+        return obfuscatedPath;
+    }
+
+    /**
+     * Extracts file extension from the given path, including the leading dot.
+     *
+     * @param path the file path or name (must not be null)
+     * @return the file extension with leading dot (e.g., ".txt") or empty string if no extension
+     */
+    private String extractExtension(@NotNull String path) {
+        try {
+            String extractedExtension = FilenameUtils.getExtension(path).trim();
+            return extractedExtension.isEmpty() ? "" : "." + extractedExtension;
+        } catch (IllegalArgumentException e) {
+            log.debug("Could not extract extension from filename '{}': {}",
+                    path, e.getMessage());
+            return "";
+        }
     }
 
     /**
