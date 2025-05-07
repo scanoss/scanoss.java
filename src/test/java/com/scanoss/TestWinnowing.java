@@ -24,6 +24,7 @@ package com.scanoss;
 
 
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.utils.WinnowingUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -265,4 +266,72 @@ public class TestWinnowing {
 
         log.info("Finished {} -->", methodName);
     }
+
+    @Test
+    public void TestWinnowingObfuscationFileWithExtension() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Winnowing winnowing = Winnowing.builder().obfuscate(true).build();
+
+        String fileWithExtension = "testing/data/test-file.txt";
+
+        String wfpWithExtension = winnowing.wfpForFile(fileWithExtension, fileWithExtension);
+        assertNotNull("Expected a result from WFP with extension", wfpWithExtension);
+
+        String obfuscatedPathWithExtension = WinnowingUtils.extractFilePathFromWFPBlock(wfpWithExtension);
+        assertNotNull("Should have found an obfuscated path in WFP with extension", obfuscatedPathWithExtension);
+
+        String originalPathWithExtension = winnowing.deobfuscateFilePath(obfuscatedPathWithExtension);
+        assertEquals("Original path should match input file with extension", fileWithExtension, originalPathWithExtension);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestWinnowingObfuscationFileWithoutExtension() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Winnowing winnowing = Winnowing.builder().obfuscate(true).build();
+
+        String fileWithoutExtension = "testing/data/nbproject";
+
+        String wfpWithoutExtension = winnowing.wfpForFile(fileWithoutExtension, fileWithoutExtension);
+
+        String obfuscatedPathWithoutExtension = WinnowingUtils.extractFilePathFromWFPBlock(wfpWithoutExtension);
+        assertNotNull("Should have found an obfuscated path in WFP without extension", obfuscatedPathWithoutExtension);
+
+        String originalPathWithoutExtension = winnowing.deobfuscateFilePath(obfuscatedPathWithoutExtension);
+        assertEquals("Original path should match input file without extension", fileWithoutExtension, originalPathWithoutExtension);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestDeobfuscateFilePathEmpty() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Winnowing winnowing = Winnowing.builder().build();
+        assertEquals("Should return null when given an empty obfuscated path", "" ,winnowing.deobfuscateFilePath(""));
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestDeobfuscateFilePathInvalid() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Winnowing winnowing = Winnowing.builder().build();
+        assertEquals("Should return same path if not exist on the map", "invalidPath", winnowing.deobfuscateFilePath("invalidPath"));
+
+        log.info("Finished {} -->", methodName);
+    }
 }
+
