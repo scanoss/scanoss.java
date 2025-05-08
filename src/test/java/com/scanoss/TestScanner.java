@@ -22,28 +22,59 @@
  */
 package com.scanoss;
 
+import com.google.gson.Gson;
+import com.scanoss.dto.ScanFileDetails;
+import com.scanoss.dto.ScanFileResult;
+import com.scanoss.dto.ServerDetails;
+import com.scanoss.dto.enums.MatchType;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.filters.FilterConfig;
 import com.scanoss.settings.ScanossSettings;
+import com.scanoss.utils.JsonUtils;
+import com.scanoss.utils.WinnowingUtils;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.Dispatcher;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
 @Slf4j
 public class TestScanner {
+    private MockWebServer server;
+
+
     @Before
-    public void Setup() {
+    public void Setup() throws IOException{
         log.info("Starting Scanner test cases...");
         log.debug("Logging debug enabled");
         log.trace("Logging trace enabled");
+        log.info("Starting Mock Server...");
+        server = new MockWebServer();
+        server.start();
+    }
+
+    @After
+    public void Finish() {
+        log.info("Shutting down mock server.");
+        try {
+            server.close();
+            server.shutdown();
+        } catch (IOException e) {
+            log.warn("Some issue shutting down mock server: {}", e.getLocalizedMessage());
+        }
     }
 
     @Test
@@ -199,6 +230,33 @@ public class TestScanner {
         log.info("<-- Starting {}", methodName);
 
         Scanner scanner = Scanner.builder().build();
+
+        List<String> fileList = Arrays.asList(
+                "src/test/java/com/scanoss/TestScanner.java",
+                "src/test/java/com/scanoss/TestWinnowing.java",
+                ".github/workflows/publish.yml",
+                ".gitignore",
+                "tmp/.gitignore"
+        );
+        String folder = ".";
+        List<String> results = scanner.scanFileList(folder, fileList);
+
+        assertNotNull("Should've gotten a response", results);
+        assertFalse("Scan results should not be empty", results.isEmpty());
+        assertEquals("Should've only gotten two results",2, results.size());
+        log.info("Received {} results", results.size());
+        log.info("Res Data: {}", results);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestScannerScanFileListPositiveWithObfuscation() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Scanner scanner = Scanner.builder().obfuscate(true).build();
 
         List<String> fileList = Arrays.asList(
                 "src/test/java/com/scanoss/TestScanner.java",
@@ -380,5 +438,209 @@ public class TestScanner {
         assertTrue("There is no fingerprint since custom filter it's always true", wfps.isEmpty());
 
         log.info("Finished {} -->", methodName);
+    }
+
+    /**
+     * Collects all files from the specified directory, returning their paths relative to the provided directory.
+     *
+     * @param directory the directory to scan for source files
+     * @return a list of paths relative to the specified directory
+     * @throws IOException if there's an error accessing the file system
+     */
+    private List<String> collectFilePaths(String directory) throws IOException {
+        Path dirPath = Paths.get(directory);
+        return Files.walk(dirPath)
+                .filter(Files::isRegularFile)
+                .map(path -> dirPath.relativize(path).toString())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Helper method to create a mock server dispatcher that returns "no match" results
+     * for all scan requests while tracking received paths for verification.
+     *
+     * @param receivedPaths Set that will be populated with paths extracted from the WFP block in requests
+     * @return Dispatcher that returns "no match" results for all files
+     */
+    private Dispatcher createNoMatchDispatcher(Set<String> receivedPaths) {
+        return new Dispatcher() {
+            @NotNull
+            @Override
+            public MockResponse dispatch(@NotNull RecordedRequest request) {
+                // Extract the WFP from the request and parse all obfuscated paths
+                String requestBody = request.getBody().readUtf8();
+                Set<String> paths = WinnowingUtils.extractFilePathsFromWFPBlock(requestBody);
+
+                // Store all received paths for later verification
+                receivedPaths.addAll(paths);
+
+                for (String path : paths) {
+                    log.debug("Server received obfuscated path: {}", path);
+                }
+
+                if (paths.isEmpty()) {
+                    return new MockResponse()
+                            .setResponseCode(400)
+                            .setBody("error: Bad Request - No valid obfuscated paths found");
+                }
+
+                // Create response objects using the DTO classes
+                Map<String, List<ScanFileDetails>> responseMap = new HashMap<>();
+
+                // Create server details object (same for all responses)
+                ServerDetails.KbVersion kbVersion = new ServerDetails.KbVersion("25.05", "21.05.21");
+                ServerDetails serverDetails = new ServerDetails("5.4.10", kbVersion);
+
+                // Create a "none" match result for each path
+                for (String path : paths) {
+                    ScanFileDetails noMatchResult = ScanFileDetails.builder()
+                            .matchType(MatchType.none)
+                            .serverDetails(serverDetails)
+                            .build();
+
+                    responseMap.put(path, Collections.singletonList(noMatchResult));
+                }
+
+                // Convert to JSON
+                Gson gson = new Gson();
+                String responseJson = gson.toJson(responseMap);
+
+                return new MockResponse()
+                        .setResponseCode(200)
+                        .setBody(responseJson);
+            }
+        };
+    }
+
+    /**
+     * Test that we can scan a file with obfuscation enabled using a mock server.
+     * This test focuses on the path obfuscation/deobfuscation cycle
+     */
+    @Test
+    public void testScanFileWithObfuscation() {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        final String fileToScan = "src/test/java/com/scanoss/TestScanner.java";
+
+        // Set to capture the path received by the server
+        final Set<String> receivedPaths = ConcurrentHashMap.newKeySet();
+
+        // Configure the MockWebServer to return a 'no match' response
+        server.setDispatcher(createNoMatchDispatcher(receivedPaths));
+
+        Scanner scanner = Scanner.builder()
+                .obfuscate(true)
+                .url(server.url("/api/scan/direct").toString())
+                .build();
+
+        String result = scanner.scanFile(fileToScan);
+
+        // Verify we got scan results
+        assertNotNull("Should have scan results", result);
+        assertFalse("Should have non-empty result", result.isEmpty());
+        log.info("Received scan result for file");
+
+        // Verify path received by the server is obfuscated (not matching the source file path)
+        assertFalse("Received paths should not be empty", receivedPaths.isEmpty());
+        String receivedPath = receivedPaths.iterator().next();
+        assertNotEquals("Path should be obfuscated", fileToScan, receivedPath);
+
+        // Verify (deobfuscation) that the result has the correct file path
+        List<ScanFileResult> resultsDto = JsonUtils.toScanFileResults(Collections.singletonList(result));
+        assertFalse("Results should not be empty", resultsDto.isEmpty());
+
+        String resultPath = resultsDto.get(0).getFilePath();
+        assertEquals("resultPath should be equal to the original file path", fileToScan, resultPath);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    /**
+     * Test that we can scan a list of files with obfuscation enabled using a mock server.
+     * This test focuses on the path obfuscation/deobfuscation cycle
+     */
+    @Test
+    public void testScanFileListWithObfuscation() throws IOException {
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        String testDir = "src/test/java/com/scanoss";
+
+        List<String> allFiles = collectFilePaths(testDir);
+        log.info("Found {} files in source directory", allFiles.size());
+
+        // Set to capture paths received by the server
+        final Set<String> receivedPaths = ConcurrentHashMap.newKeySet();
+
+        // Configure the MockWebServer to return a 'no match' response
+        server.setDispatcher(createNoMatchDispatcher(receivedPaths));
+
+        Scanner scanner = Scanner.builder()
+                .obfuscate(true)
+                .url(server.url("/api/scan/direct").toString())
+                .build();
+
+        List<String> results = scanner.scanFileList(testDir, allFiles);
+
+        // Verify we got scan results
+        assertNotNull("Should have scan results", results);
+        assertFalse("Should have non-empty results", results.isEmpty());
+        log.info("Received {} scan results", results.size());
+
+        // Verify paths received by the server are obfuscated (not matching any source file paths)
+        assertFalse("Received paths should not be empty", receivedPaths.isEmpty());
+        receivedPaths.forEach(receivedPath ->
+                assertFalse("Path should be obfuscated", allFiles.contains(receivedPath)));
+
+        // Verify all original paths are in the results (deobfuscation check)
+        List<ScanFileResult> resultsDto = JsonUtils.toScanFileResults(results);
+        resultsDto.forEach(r ->
+                assertTrue("Result should contain the original file path: " + r.getFilePath(),
+                        allFiles.contains(r.getFilePath())));
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    /**
+     * Test that we can scan a folder with obfuscation enabled using a mock server.
+     * This test focuses on the path obfuscation/deobfuscation cycle
+     */
+    @Test
+    public void testScanWithObfuscationCycle() throws IOException {
+        final String folderToScan = "src/test";
+
+        // Set to capture all paths received by the server
+        final Set<String> receivedPaths = ConcurrentHashMap.newKeySet();
+
+        // Collect all files in the src/test folder before scanning
+        List<String> allFiles = collectFilePaths(folderToScan);
+        log.info("Found {} files in source directory", allFiles.size());
+
+        // Configure the MockWebServer to return a 'no match' response
+        server.setDispatcher(createNoMatchDispatcher(receivedPaths));
+
+        Scanner scanner = Scanner.builder()
+                .obfuscate(true)
+                .url(server.url("/api/scan/direct").toString()) // Use our mock server
+                .build();
+
+        // Scan the files to test the full obfuscation/deobfuscation cycle
+        List<String> results = scanner.scanFolder(folderToScan);
+
+        // Verify we got scan results
+        assertNotNull("Should have scan results", results);
+        assertFalse("Should have result non empty", results.isEmpty());
+        log.info("Received {} scan results", results.size());
+
+        // Verify paths received by the server are obfuscated (not matching any source file paths)
+        receivedPaths.forEach(receivedPath ->
+                assertFalse("Path should be obfuscated: " + receivedPath, allFiles.contains(receivedPath)));
+
+        List<ScanFileResult> resultsDto = JsonUtils.toScanFileResults(results);
+        // Verify (deobfuscation) that all results from scanFolder are valid file paths from our source directory
+        resultsDto.forEach(r ->
+                assertTrue("Result should be a valid source file path: " + r.getFilePath(),
+                        allFiles.contains(r.getFilePath())));
     }
 }

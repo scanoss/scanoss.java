@@ -30,6 +30,7 @@ import com.scanoss.filters.factories.FileFilterFactory;
 import com.scanoss.filters.factories.FolderFilterFactory;
 import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
+import com.scanoss.settings.Bom;
 import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import lombok.*;
@@ -49,6 +50,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.scanoss.ScanossConstants.*;
 
@@ -353,13 +355,12 @@ public class Scanner {
      */
     public String scanFile(@NonNull String filename) throws ScannerException, WinnowingException {
         String wfp = wfpFile(filename);
-        if (wfp != null && !wfp.isEmpty()) {
-            String response = this.scanApi.scan(wfp, "", 1);
-            if (response != null && !response.isEmpty()) {
-                return response;
-            }
+        if (wfp == null || wfp.isEmpty()) {
+            return "";
         }
-        return "";
+
+        String result = scanApi.scan(wfp, "", 1);
+        return postProcessResult(result);
     }
 
     /**
@@ -385,18 +386,52 @@ public class Scanner {
         return postProcessResults(results);
     }
 
+
     /**
-     * Post-processes scan results based on BOM (Bill of Materials) settings if available.
-     * @param results List of raw scan results in JSON string format
-     * @return Processed results, either modified based on BOM or original results if no BOM exists
+     * Processes the result string and provides a post-processed output.
+     *
+     * @param rawResults the raw result string to be processed.
+     * @return the post-processed result string.
      */
-    private List<String> postProcessResults(List<String> results) {
-        if (settings.getBom() != null) {
-            List<ScanFileResult> scanFileResults = JsonUtils.toScanFileResults(results);
-            List <ScanFileResult>  newScanFileResults = this.postProcessor.process(scanFileResults, this.settings.getBom());
-            return JsonUtils.toRawJsonString(newScanFileResults);
+    private String postProcessResult(String rawResults) {
+        if (rawResults == null || rawResults.isEmpty()) {
+            return "";
         }
-        return results;
+        return postProcessResults(List.of(rawResults)).stream()
+                .findFirst()
+                .orElse("");
     }
 
+    /**
+     * Processes the given list of raw scan results by applying deobfuscation and post-processing steps based on settings.
+     *
+     * @param rawResults a list of raw scan results in string format to be processed
+     * @return a list of processed scan results in string format
+     */
+    private List<String> postProcessResults(List<String> rawResults) {
+        List<ScanFileResult> scanFileResults = JsonUtils.toScanFileResults(rawResults);
+
+        if (obfuscate) {
+            scanFileResults = deobfuscateResults(scanFileResults);
+        }
+
+        Bom bom = settings.getBom();
+        if (bom != null) {
+            scanFileResults = this.postProcessor.process(scanFileResults, bom);
+        }
+
+        return JsonUtils.toRawJsonString(scanFileResults);
+    }
+
+    /**
+     * Deobfuscate the file paths in a list of ScanFileResult.
+     *
+     * @param scanFileResults List of ScanFileResult to be deobfuscated
+     * @return List of ScanFileResult with deobfuscated file paths
+     */
+    private List<ScanFileResult> deobfuscateResults(@NonNull List<ScanFileResult> scanFileResults) {
+        return scanFileResults.stream()
+                .map(result -> result.withFilePath(winnowing.deobfuscateFilePath(result.getFilePath())))
+                .collect(Collectors.toList());
+    }
 }
