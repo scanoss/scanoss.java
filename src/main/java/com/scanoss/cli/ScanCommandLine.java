@@ -93,6 +93,9 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
     private int snippetLimit = 1000;
 
+    @picocli.CommandLine.Option(names = {"--obfuscate"}, description = "Obfuscate fingerprints")
+    private boolean obfuscate;
+
     @picocli.CommandLine.Option(names = {"--ca-cert"}, description = "Alternative certificate PEM file (optional)")
     private String caCert;
 
@@ -165,7 +168,7 @@ class ScanCommandLine implements Runnable {
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
                 .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
                 .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
-                .settings(settings)
+                .settings(settings).obfuscate(obfuscate)
                 .build();
 
         File f = new File(fileFolder);
