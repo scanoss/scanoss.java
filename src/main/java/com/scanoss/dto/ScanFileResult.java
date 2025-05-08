@@ -23,6 +23,7 @@
 package com.scanoss.dto;
 
 import lombok.Data;
+import lombok.With;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ import java.util.List;
  */
 @Data
 public class ScanFileResult {
+    @With
     private final String filePath;
     private final List<ScanFileDetails> fileDetails;
 }
