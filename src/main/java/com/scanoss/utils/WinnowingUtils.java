@@ -22,6 +22,13 @@
  */
 package com.scanoss.utils;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * SCANOSS Winnowing Utils Class
  * <p>
@@ -46,5 +53,46 @@ public class WinnowingUtils {
         } else {
             return 0;
         }
+    }
+
+
+    /**
+     * Extracts the first/primary file path from a WFP block.
+     * This is a convenience method for single-file scenarios.
+     *
+     * @param wfpBlock the WFP block containing file entries
+     * @return the first extracted file path, or null if none found
+     */
+    public static String extractFilePathFromWFPBlock(@NotNull String wfpBlock) {
+        Set<String> paths = extractFilePathsFromWFPBlock(wfpBlock);
+        return paths.isEmpty() ? null : paths.iterator().next();
+    }
+
+
+    /**
+     * Extract all file paths from a multi-file WFP block using regex.
+     * A multi-file WFP block contains multiple entries each starting with "file=".
+     *
+     * @param wfpBlock the WFP block containing multiple file entries
+     * @return a Set of extracted file paths, empty if none found
+     */
+    public static Set<String> extractFilePathsFromWFPBlock(@NotNull String wfpBlock) {
+        Set<String> paths = new HashSet<>();
+
+        // Pattern to match file=<md5>,<size>,<path> format and capture the path
+        // This regex matches: "file=" followed by any characters until a comma,
+        // then any characters until another comma, then captures everything after that comma until end of line
+        Pattern pattern = Pattern.compile("^file=[^,]+,[^,]+,(.+)$", Pattern.MULTILINE);
+        Matcher matcher = pattern.matcher(wfpBlock);
+
+        // Find all matches and add the captured paths to the result set
+        while (matcher.find()) {
+            String path = matcher.group(1);
+            if (path != null && !path.isEmpty()) {
+                paths.add(path);
+            }
+        }
+
+        return paths;
     }
 }
