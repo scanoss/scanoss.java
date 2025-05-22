@@ -60,3 +60,11 @@ inc_major:  ## Increment the major version on pom.xml
 version:  ## Show the current version of the package
 	@echo "Getting package version..."
 	VER=$(shell ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+
+javadoc:  ## Run javadoc to check for documentation errors
+	@echo "Running javadoc check..."
+	./mvnw javadoc:javadoc
+
+lint:  ## Run checkstyle or other linting tools
+	@echo "Running lint checks..."
+	./mvnw checkstyle:check
