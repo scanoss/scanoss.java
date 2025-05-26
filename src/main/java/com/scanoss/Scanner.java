@@ -223,8 +223,9 @@ public class Scanner {
         List<Future<String>> futures = new ArrayList<>();
         try {
             Files.walkFileTree(Paths.get(folder), new SimpleFileVisitor<>() {
+                @NonNull
                 @Override
-                public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) {
+                public FileVisitResult preVisitDirectory(Path file, @NonNull BasicFileAttributes attrs) {
                     if(folderFilter.test(file)) {
                         log.debug("Processing file: {}", file.getFileName().toString());
                         return FileVisitResult.SKIP_SUBTREE; // Skip the rest of this directory tree
@@ -232,8 +233,9 @@ public class Scanner {
                     return FileVisitResult.CONTINUE;
                 }
 
+                @NonNull
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                public FileVisitResult visitFile(Path file, @NonNull BasicFileAttributes attrs) {
                     if (attrs.isRegularFile() && !fileFilter.test(file) && attrs.size() > 0) {
                         String filename = file.toString();
                         Future<String> future = executorService.submit(() -> processor.process(filename, stripDirectory(folder, filename)));
@@ -292,7 +294,7 @@ public class Scanner {
                 if (skipDir) {
                     continue; // skip this file as the folder is not allowed
                 }
-                String nameLower = path.getFileName().toString().toLowerCase();
+
                 if (!this.fileFilter.test(path)) {
                     Path fullPath = Path.of(root, file);
                     File f = fullPath.toFile();

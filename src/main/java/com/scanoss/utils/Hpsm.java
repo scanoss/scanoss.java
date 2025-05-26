@@ -39,7 +39,7 @@ public class Hpsm {
     private static final int CRC8_MAXIM_DOW_POLYNOMIAL = 0x8C; // 0x31 reflected
     private static final int CRC8_MAXIM_DOW_INITIAL = 0x00; // 0x00 reflected
     private static final int CRC8_MAXIM_DOW_FINAL = 0x00; // 0x00 reflected
-    private static int[] crc8MaximDowTable = new int[CRC8_MAXIM_DOW_TABLE_SIZE];
+    private static final int[] crc8MaximDowTable = new int[CRC8_MAXIM_DOW_TABLE_SIZE];
 
     private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
 

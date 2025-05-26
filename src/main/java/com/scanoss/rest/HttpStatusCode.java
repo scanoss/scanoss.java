@@ -22,6 +22,8 @@
  */
 package com.scanoss.rest;
 
+import lombok.Getter;
+
 /**
  * Enum list of standard HTTP Status Codes
  */
@@ -281,6 +283,10 @@ public enum HttpStatusCode {
      */
     NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required");
 
+    /**
+     *  Get the Integer value of the HTTP Status Code
+     */
+    @Getter
     private final int value;
     private final String description;
 
@@ -308,15 +314,6 @@ public enum HttpStatusCode {
             }
         }
         return value + " Unknown Status Code";
-    }
-
-    /**
-     * Get the Integer value of the HTTP Status Code
-     *
-     * @return HTTP status integer value
-     */
-    public int getValue() {
-        return value;
     }
 
     /**

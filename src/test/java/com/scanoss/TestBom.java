@@ -110,8 +110,7 @@ public class TestBom {
 
         // Verify the rules with same path length maintain original order
         assertEquals("Size should be 2", 2, sortedRules.size());
-        assertTrue("Both rules should have same priority",
-                new RuleComparator().compare(sortedRules.get(0), sortedRules.get(1)) == 0);
+        assertEquals("Both rules should have same priority", 0, new RuleComparator().compare(sortedRules.get(0), sortedRules.get(1)));
 
         log.info("Finished testReplaceRulesSortingWithDuplicatePaths -->");
     }
