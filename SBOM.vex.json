@@ -1,0 +1,274 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://openvex.dev/docs/public/vex-9ac847eb9d3c54bf413fcab66605f2e94a78cde540a2037f782f0130282f4d38",
+  "author": "Unknown Author",
+  "timestamp": "2024-10-11T16:22:20.149653+02:00",
+  "last_updated": "2024-10-11T16:22:20.665509+02:00",
+  "version": 22,
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2011-4969"
+      },
+      "timestamp": "2024-10-11T16:22:20.149711+02:00",
+      "products": [
+        {
+          "@id": "pkg:npm/jquery"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2012-6708"
+      },
+      "timestamp": "2024-10-11T16:22:20.177319+02:00",
+      "products": [
+        {
+          "@id": "pkg:npm/jquery"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2015-9251"
+      },
+      "timestamp": "2024-10-11T16:22:20.200888+02:00",
+      "products": [
+        {
+          "@id": "pkg:npm/jquery"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2016-10707"
+      },
+      "timestamp": "2024-10-11T16:22:20.225331+02:00",
+      "products": [
+        {
+          "@id": "pkg:npm/jquery"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2016-2402"
+      },
+      "timestamp": "2024-10-11T16:22:20.249488+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/com.squareup.okhttp3:okhttp"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2016-4434"
+      },
+      "timestamp": "2024-10-11T16:22:20.273324+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2016-6809"
+      },
+      "timestamp": "2024-10-11T16:22:20.29739+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-11761"
+      },
+      "timestamp": "2024-10-11T16:22:20.321287+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-11762"
+      },
+      "timestamp": "2024-10-11T16:22:20.345536+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-11796"
+      },
+      "timestamp": "2024-10-11T16:22:20.370691+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-1335"
+      },
+      "timestamp": "2024-10-11T16:22:20.395879+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-1338"
+      },
+      "timestamp": "2024-10-11T16:22:20.419484+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-8017"
+      },
+      "timestamp": "2024-10-11T16:22:20.443453+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-10088"
+      },
+      "timestamp": "2024-10-11T16:22:20.467305+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-10094"
+      },
+      "timestamp": "2024-10-11T16:22:20.493157+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-11358"
+      },
+      "timestamp": "2024-10-11T16:22:20.517648+02:00",
+      "products": [
+        {
+          "@id": "pkg:npm/jquery"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2020-11022"
+      },
+      "timestamp": "2024-10-11T16:22:20.541696+02:00",
+      "products": [
+        {
+          "@id": "pkg:npm/jquery"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2020-11023"
+      },
+      "timestamp": "2024-10-11T16:22:20.567603+02:00",
+      "products": [
+        {
+          "@id": "pkg:npm/jquery"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2020-15250"
+      },
+      "timestamp": "2024-10-11T16:22:20.591338+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/junit:junit"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2020-7656"
+      },
+      "timestamp": "2024-10-11T16:22:20.616793+02:00",
+      "products": [
+        {
+          "@id": "pkg:npm/jquery"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-25647"
+      },
+      "timestamp": "2024-10-11T16:22:20.64106+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/com.google.code.gson:gson"
+        }
+      ],
+      "status": "under_investigation"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-30973"
+      },
+      "timestamp": "2024-10-11T16:22:20.665512+02:00",
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.tika:tika-core"
+        }
+      ],
+      "status": "under_investigation"
+    }
+  ]
+}
