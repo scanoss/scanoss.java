@@ -146,7 +146,6 @@ public class ScannerPostProcessor {
      *
      * @param results The list of scan results to process and modify
      * @param rules   The list of replacement rules to apply
-     * @return The modified input list of scan results with updated PURLs
      */
     private void applyReplaceRules(@NonNull List<ScanFileResult> results, @NonNull List<ReplaceRule> rules) {
         log.debug("Starting replace rules application for {} results with {} rules", results.size(), rules.size());
@@ -268,7 +267,7 @@ public class ScannerPostProcessor {
 
     /**
      * Marks all components in the list as non-matching by replacing each component
-     * with a new instance that has MatchType.NONE while preserving the serverDetails
+     * with a new instance that has MatchType. NONE while preserving the serverDetails
      * Modifies the input list in place using List.replaceAll().
      *
      * @param components List of scan file details to be marked as non-matching
@@ -451,7 +450,7 @@ public class ScannerPostProcessor {
      * 1. The result has a valid file path identifier
      * 2. The result contains a non-empty list of scan details
      * 3. The primary scan detail entry (first in the list) exists
-     *
+     * <p>
      * This structural validation is a prerequisite for any further processing of scan results,
      * such as match analysis or rule processing. Without these basic elements, the scan result
      * cannot be meaningfully processed.

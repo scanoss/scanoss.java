@@ -121,10 +121,6 @@ class ScanCommandLine implements Runnable {
             throw new RuntimeException("Error: No file or folder specified to scan");
         }
 
-        //TODO: Deprecate options
-        String sbomType = null;
-        String sbom = null;
-
         String caCertPem = null;
         if (caCert != null && !caCert.isEmpty()) {
             caCertPem = loadFileToString(caCert);
@@ -167,7 +163,7 @@ class ScanCommandLine implements Runnable {
         scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
                 .hiddenFilesFolders(allHidden).numThreads(numThreads).url(apiUrl).apiKey(apiKey)
                 .retryLimit(retryLimit).timeout(Duration.ofSeconds(timeoutLimit)).scanFlags(scanFlags)
-                .sbomType(sbomType).sbom(sbom).snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
+                .snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
                 .settings(settings).obfuscate(obfuscate)
                 .build();
 

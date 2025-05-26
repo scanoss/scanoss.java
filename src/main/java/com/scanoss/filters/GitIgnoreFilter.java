@@ -24,11 +24,11 @@ package com.scanoss.filters;
 
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Setter;
 import org.eclipse.jgit.ignore.FastIgnoreRule;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.ignore.IgnoreNode.MatchResult;
-import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +45,7 @@ public class GitIgnoreFilter {
     private List<FastIgnoreRule> rules;
 
     @Builder
-    public GitIgnoreFilter(@NotNull List<String> patterns) {
+    public GitIgnoreFilter(@NonNull List<String> patterns) {
         this.rules = new ArrayList<>();
         patterns.forEach(pattern -> rules.add(new FastIgnoreRule(pattern)));
         this.node = new IgnoreNode(rules);

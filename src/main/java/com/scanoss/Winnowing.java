@@ -32,7 +32,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MediaTypeRegistry;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -91,7 +90,7 @@ public class Winnowing {
      * @param obfuscatedPath the obfuscated path
      * @return the real file path corresponding to the provided obfuscated path, or the original path if no mapping exists
      */
-    public String deobfuscateFilePath(@NotNull String obfuscatedPath) {
+    public String deobfuscateFilePath(@NonNull String obfuscatedPath) {
         String originalPath = obfuscationMap.get(obfuscatedPath);
         return originalPath != null ? originalPath : obfuscatedPath;
     }
@@ -229,7 +228,7 @@ public class Winnowing {
      * @param originalPath the original file path to be obfuscated; must not be null
      * @return the obfuscated file path with a unique identifier and the original file extension
      */
-    private String obfuscateFilePath(@NotNull String originalPath) {
+    private String obfuscateFilePath(@NonNull String originalPath) {
         final String extension = extractExtension(originalPath);
 
         // Generate a unique identifier for the obfuscated file using a thread-safe approach
@@ -244,7 +243,7 @@ public class Winnowing {
      * @param path the file path or name (must not be null)
      * @return the file extension with leading dot (e.g., ".txt") or empty string if no extension
      */
-    private String extractExtension(@NotNull String path) {
+    private String extractExtension(@NonNull String path) {
         try {
             String extractedExtension = FilenameUtils.getExtension(path).trim();
             return extractedExtension.isEmpty() ? "" : "." + extractedExtension;

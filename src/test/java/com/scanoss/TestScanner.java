@@ -32,12 +32,12 @@ import com.scanoss.filters.FilterConfig;
 import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.WinnowingUtils;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -341,7 +341,7 @@ public class TestScanner {
         f = "testing/data/folder-ends-with-nbproject";
         Scanner scanner = Scanner.builder().build();
         List<String> wfps = scanner.wfpFolder(f);
-        assertTrue("WFP should NOT be empty", !wfps.isEmpty());
+        assertFalse("WFP should NOT be empty", wfps.isEmpty());
 
         log.info("Testing filtering: file nbproject should not be filtered... ");
         f = "testing/data";
@@ -464,9 +464,9 @@ public class TestScanner {
      */
     private Dispatcher createNoMatchDispatcher(Set<String> receivedPaths) {
         return new Dispatcher() {
-            @NotNull
+            @NonNull
             @Override
-            public MockResponse dispatch(@NotNull RecordedRequest request) {
+            public MockResponse dispatch(@NonNull RecordedRequest request) {
                 // Extract the WFP from the request and parse all obfuscated paths
                 String requestBody = request.getBody().readUtf8();
                 Set<String> paths = WinnowingUtils.extractFilePathsFromWFPBlock(requestBody);

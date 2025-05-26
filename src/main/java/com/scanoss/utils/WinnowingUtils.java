@@ -22,7 +22,7 @@
  */
 package com.scanoss.utils;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -63,7 +63,7 @@ public class WinnowingUtils {
      * @param wfpBlock the WFP block containing file entries
      * @return the first extracted file path, or null if none found
      */
-    public static String extractFilePathFromWFPBlock(@NotNull String wfpBlock) {
+    public static String extractFilePathFromWFPBlock(@NonNull String wfpBlock) {
         Set<String> paths = extractFilePathsFromWFPBlock(wfpBlock);
         return paths.isEmpty() ? null : paths.iterator().next();
     }
@@ -76,7 +76,7 @@ public class WinnowingUtils {
      * @param wfpBlock the WFP block containing multiple file entries
      * @return a Set of extracted file paths, empty if none found
      */
-    public static Set<String> extractFilePathsFromWFPBlock(@NotNull String wfpBlock) {
+    public static Set<String> extractFilePathsFromWFPBlock(@NonNull String wfpBlock) {
         Set<String> paths = new HashSet<>();
 
         // Pattern to match file=<md5>,<size>,<path> format and capture the path

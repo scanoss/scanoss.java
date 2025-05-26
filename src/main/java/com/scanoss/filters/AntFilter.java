@@ -23,8 +23,9 @@
 package com.scanoss.filters;
 
 import lombok.Builder;
+import lombok.NonNull;
 import org.apache.tools.ant.types.selectors.SelectorUtils;
-import org.jetbrains.annotations.NotNull;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Predicate;
@@ -47,7 +48,7 @@ public class AntFilter {
      * @param patterns a non-null list of Ant-style patterns to match against paths
      */
     @Builder
-    public AntFilter(@NotNull List<String> patterns) {
+    public AntFilter(@NonNull List<String> patterns) {
         this.patterns = patterns;
     }
 
