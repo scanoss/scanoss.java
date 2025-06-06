@@ -8,7 +8,7 @@ on:
         required: true
         default: "ubuntu-latest"
         type: choice
-        options: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-20.04', 'macos-11', 'windows-2019']
+        options: ['ubuntu-latest', 'macos-latest', 'windows-latest', 'ubuntu-20.04', 'macos-11', 'windows-2022']
         description: "Use to select OS to build native image for."
 
 jobs:
