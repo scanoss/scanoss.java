@@ -49,7 +49,7 @@ public class Test {
 The package also ships with a sample CLI. It can be run using the example script [scanoss-cli.sh](scanoss-cli.sh):
 
 ```bash
-scanos-cli.sh -h
+scanoss-cli.sh -h
 ```
 
 ### Custom Certificate
@@ -91,7 +91,7 @@ packaging/releasing an update.
 The following commands are provided for incrementing version:
 
 ```bash
-make inc_path
+make inc_patch
 make inc_minor
 make inc_major
 ```

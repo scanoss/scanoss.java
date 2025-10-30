@@ -105,6 +105,7 @@ public class TestWinnowing {
         assertNotNull(wfp);
         assertFalse(wfp.isEmpty());
         assertEquals("file=609a24b6cd27ef8108792ca459db1b28,293,local-file.c\n" +
+                "fh2=0bd0edfa2f3d4903c51b9fd910409942\n" +
                 "hpsm=df13c104d4\n" +
                 "3=0ed5027a,a9442399,d019b836\n" +
                 "4=613d56c0\n" +

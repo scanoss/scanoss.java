@@ -158,6 +158,11 @@ public class Winnowing {
             return wfpBuilder.toString();
         }
 
+        String fh2 = WinnowingUtils.calculateOppositeLineEndingHash(contents);
+        if (fh2 != null){
+            wfpBuilder.append(String.format("fh2=%s\n",fh2));
+        }
+
         if(this.isHpsm()){
             wfpBuilder.append(String.format("hpsm=%s\n", Hpsm.calcHpsm(contents)));
         }

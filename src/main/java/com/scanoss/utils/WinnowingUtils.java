@@ -22,8 +22,12 @@
  */
 package com.scanoss.utils;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
+import org.apache.commons.codec.digest.DigestUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -36,6 +40,17 @@ import java.util.regex.Pattern;
  * </p>
  */
 public class WinnowingUtils {
+
+    /**
+     * Inner class to hold line ending detection results.
+     */
+    @Getter
+    @AllArgsConstructor
+    public static class LineEndingInfo {
+        private final boolean hasCrlf;
+        private final boolean hasStandaloneLf;
+        private final boolean hasStandaloneCr;
+    }
 
     /**
      * Normalise the given character
@@ -94,5 +109,133 @@ public class WinnowingUtils {
         }
 
         return paths;
+    }
+
+    /**
+     * Calculate hash for contents with opposite line endings.
+     * If the file is primarily Unix (LF), calculates Windows (CRLF) hash.
+     * If the file is primarily Windows (CRLF), calculates Unix (LF) hash.
+     *
+     * @param contents File contents as bytes
+     * @return Hash with opposite line endings as hex string, or null if no line endings detected
+     */
+    public static String calculateOppositeLineEndingHash(byte[] contents) {
+        LineEndingInfo lineEndingInfo = detectLineEndings(contents);
+
+        // If no line endings detected, return null
+        if (!lineEndingInfo.hasCrlf && !lineEndingInfo.hasStandaloneLf && !lineEndingInfo.hasStandaloneCr) {
+            return null;
+        }
+
+        // Normalize all line endings to LF first
+        byte[] normalized = replaceSequence(contents, new byte[]{'\r', '\n'}, new byte[]{'\n'});
+        normalized = replaceSequence(normalized, new byte[]{'\r'}, new byte[]{'\n'});
+
+        byte[] oppositeContents;
+
+        // Determine the dominant line ending type
+        if (lineEndingInfo.hasCrlf && !lineEndingInfo.hasStandaloneLf && !lineEndingInfo.hasStandaloneCr) {
+            // File is Windows (CRLF) - produce Unix (LF) hash
+            oppositeContents = normalized;
+        } else {
+            // File is Unix (LF/CR) or mixed - produce Windows (CRLF) hash
+            oppositeContents = replaceSequence(normalized, new byte[]{'\n'}, new byte[]{'\r', '\n'});
+        }
+
+        return DigestUtils.md5Hex(oppositeContents);
+    }
+
+    /**
+     * Detect the types of line endings present in file contents.
+     *
+     * @param contents File contents as bytes
+     * @return LineEndingInfo indicating which line ending types are present
+     */
+    private static LineEndingInfo detectLineEndings(byte[] contents) {
+        // Check for CRLF (Windows line endings)
+        boolean hasCrlf = containsSequence(contents, new byte[]{'\r', '\n'});
+
+        // Remove all CRLF sequences to check for standalone LF and CR
+        byte[] contentWithoutCrlf = replaceSequence(contents, new byte[]{'\r', '\n'}, new byte[]{});
+
+        // Check for standalone LF (not part of CRLF)
+        boolean hasStandaloneLf = containsSequence(contentWithoutCrlf, new byte[]{'\n'});
+
+        // Check for standalone CR (not part of CRLF)
+        boolean hasStandaloneCr = containsSequence(contentWithoutCrlf, new byte[]{'\r'});
+
+        return new LineEndingInfo(hasCrlf, hasStandaloneLf, hasStandaloneCr);
+    }
+
+    /**
+     * Check if a byte array contains a specific sequence of bytes.
+     *
+     * @param data     The byte array to search in
+     * @param sequence The sequence to search for
+     * @return true if the sequence is found, false otherwise
+     */
+    private static boolean containsSequence(byte[] data, byte[] sequence) {
+        if (sequence.length == 0 || data.length < sequence.length) {
+            return false;
+        }
+
+        for (int i = 0; i <= data.length - sequence.length; i++) {
+            boolean found = true;
+            for (int j = 0; j < sequence.length; j++) {
+                if (data[i + j] != sequence[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Replace all occurrences of a byte sequence with another sequence.
+     * Uses ByteArrayOutputStream for better performance compared to List<Byte>.
+     *
+     * @param data        The original byte array
+     * @param search      The sequence to search for
+     * @param replacement The sequence to replace with
+     * @return A new byte array with replacements made
+     */
+    private static byte[] replaceSequence(byte[] data, byte[] search, byte[] replacement) {
+        if (search.length == 0) {
+            return data;
+        }
+
+        ByteArrayOutputStream result = new ByteArrayOutputStream(data.length);
+        int i = 0;
+
+        while (i < data.length) {
+            boolean found = false;
+
+            // Check if we have a match at current position
+            if (i <= data.length - search.length) {
+                found = true;
+                for (int j = 0; j < search.length; j++) {
+                    if (data[i + j] != search[j]) {
+                        found = false;
+                        break;
+                    }
+                }
+            }
+
+            if (found) {
+                // Add replacement bytes
+                result.write(replacement, 0, replacement.length);
+                i += search.length;
+            } else {
+                // Add current byte
+                result.write(data[i]);
+                i++;
+            }
+        }
+
+        return result.toByteArray();
     }
 }
