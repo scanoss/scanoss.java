@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Upcoming changes...
+### Added
+- `calculateOppositeLineEndingHash()` method in `WinnowingUtils` to compute hash with opposite line endings (Unix ↔ Windows)
+- FH2 hash included in WFP output format as `fh2=<hash>`
+- Support for detecting CRLF (Windows), LF (Unix), and CR (legacy Mac) line endings
 
 ## [0.11.0] - 2025-05-26
 ### Added

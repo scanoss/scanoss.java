@@ -84,4 +84,110 @@ public class WinnowingUtilsTest {
         assertTrue(result.contains("/path/to/file2"));
         assertTrue(result.contains("/path/to/file3"));
     }
+
+    // Tests for calculateOppositeLineEndingHash
+    @Test
+    public void testCalculateOppositeLineEndingHash_UnixToWindows_ReturnsWindowsHash() {
+        // Unix file with LF line endings
+        String unixContent = "line1\nline2\nline3\n";
+        byte[] unixBytes = unixContent.getBytes();
+
+        // Expected: Windows content with CRLF
+        String windowsContent = "line1\r\nline2\r\nline3\r\n";
+        byte[] windowsBytes = windowsContent.getBytes();
+        String expectedHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(windowsBytes);
+
+        String result = WinnowingUtils.calculateOppositeLineEndingHash(unixBytes);
+        assertEquals(expectedHash, result);
+    }
+
+    @Test
+    public void testCalculateOppositeLineEndingHash_WindowsToUnix_ReturnsUnixHash() {
+        // Windows file with CRLF line endings
+        String windowsContent = "line1\r\nline2\r\nline3\r\n";
+        byte[] windowsBytes = windowsContent.getBytes();
+
+        // Expected: Unix content with LF
+        String unixContent = "line1\nline2\nline3\n";
+        byte[] unixBytes = unixContent.getBytes();
+        String expectedHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(unixBytes);
+
+        String result = WinnowingUtils.calculateOppositeLineEndingHash(windowsBytes);
+        assertEquals(expectedHash, result);
+    }
+
+    @Test
+    public void testCalculateOppositeLineEndingHash_NoLineEndings_ReturnsNull() {
+        // Content without any line endings
+        String content = "single line with no line endings";
+        byte[] bytes = content.getBytes();
+
+        String result = WinnowingUtils.calculateOppositeLineEndingHash(bytes);
+        assertNull(result);
+    }
+
+    @Test
+    public void testCalculateOppositeLineEndingHash_EmptyContent_ReturnsNull() {
+        byte[] emptyBytes = new byte[0];
+
+        String result = WinnowingUtils.calculateOppositeLineEndingHash(emptyBytes);
+        assertNull(result);
+    }
+
+    @Test
+    public void testCalculateOppositeLineEndingHash_MixedLineEndings_ReturnsWindowsHash() {
+        // Mixed line endings (LF and CRLF) - should produce Windows hash
+        String mixedContent = "line1\nline2\r\nline3\n";
+        byte[] mixedBytes = mixedContent.getBytes();
+
+        // Expected: all normalized to Windows CRLF
+        String windowsContent = "line1\r\nline2\r\nline3\r\n";
+        byte[] windowsBytes = windowsContent.getBytes();
+        String expectedHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(windowsBytes);
+
+        String result = WinnowingUtils.calculateOppositeLineEndingHash(mixedBytes);
+        assertEquals(expectedHash, result);
+    }
+
+    @Test
+    public void testCalculateOppositeLineEndingHash_OnlyCarriageReturn_ReturnsWindowsHash() {
+        // Old Mac-style CR line endings
+        String crContent = "line1\rline2\rline3\r";
+        byte[] crBytes = crContent.getBytes();
+
+        // Expected: Windows CRLF
+        String windowsContent = "line1\r\nline2\r\nline3\r\n";
+        byte[] windowsBytes = windowsContent.getBytes();
+        String expectedHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(windowsBytes);
+
+        String result = WinnowingUtils.calculateOppositeLineEndingHash(crBytes);
+        assertEquals(expectedHash, result);
+    }
+
+    @Test
+    public void testCalculateOppositeLineEndingHash_SingleLineWithLF_ReturnsWindowsHash() {
+        String unixContent = "single line\n";
+        byte[] unixBytes = unixContent.getBytes();
+
+        String windowsContent = "single line\r\n";
+        byte[] windowsBytes = windowsContent.getBytes();
+        String expectedHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(windowsBytes);
+
+        String result = WinnowingUtils.calculateOppositeLineEndingHash(unixBytes);
+        assertEquals(expectedHash, result);
+    }
+
+    @Test
+    public void testCalculateOppositeLineEndingHash_MultipleConsecutiveLineEndings_HandlesCorrectly() {
+        // Multiple consecutive line endings (blank lines)
+        String unixContent = "line1\n\n\nline2\n";
+        byte[] unixBytes = unixContent.getBytes();
+
+        String windowsContent = "line1\r\n\r\n\r\nline2\r\n";
+        byte[] windowsBytes = windowsContent.getBytes();
+        String expectedHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(windowsBytes);
+
+        String result = WinnowingUtils.calculateOppositeLineEndingHash(unixBytes);
+        assertEquals(expectedHash, result);
+    }
 }
