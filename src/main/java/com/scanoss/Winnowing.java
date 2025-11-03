@@ -154,13 +154,14 @@ public class Winnowing {
         }
 
         wfpBuilder.append(String.format("file=%s,%d,%s\n", fileMD5, contents.length, filename));
-        if (binFile || this.skipSnippets || this.skipSnippets(filename, fileContents)) {
-            return wfpBuilder.toString();
-        }
 
         String fh2 = WinnowingUtils.calculateOppositeLineEndingHash(contents);
         if (fh2 != null){
             wfpBuilder.append(String.format("fh2=%s\n",fh2));
+        }
+
+        if (binFile || this.skipSnippets || this.skipSnippets(filename, fileContents)) {
+            return wfpBuilder.toString();
         }
 
         if(this.isHpsm()){
@@ -194,11 +195,7 @@ public class Winnowing {
                             if (lastLine != line) {
                                 int obLength = outputBuilder.length();
                                 if (obLength > 0) {
-                                    if (snippetLimit > 0 && obLength > snippetLimit) {
-                                        log.debug("Skipping snippet line as it's too big ({}): {}", filename, outputBuilder);
-                                    } else {
-                                        wfpBuilder.append(outputBuilder).append("\n");
-                                    }
+                                    wfpBuilder.append(outputBuilder).append("\n");
                                 }
                                 outputBuilder.delete(0, obLength);
                                 outputBuilder.append(String.format("%d=%s", line, minHashHex));
@@ -216,11 +213,7 @@ public class Winnowing {
         }
         int obLength = outputBuilder.length();
         if (obLength > 0) {
-            if (snippetLimit > 0 && obLength > snippetLimit) {
-                log.debug("Skipping snippet line as it's too big ({}) {} - {}: {}", filename, snippetLimit, obLength, outputBuilder);
-            } else {
-                wfpBuilder.append(outputBuilder).append("\n");
-            }
+            wfpBuilder.append(outputBuilder).append("\n");
         }
         return wfpBuilder.toString();
     }
@@ -287,6 +280,21 @@ public class Winnowing {
                     return true;
                 }
             }
+        }
+        // Check if first line is too long (matches Python implementation)
+        int firstLineEnd = 0;
+        for (int i = 0; i < contents.length; i++) {
+            if (contents[i] == '\n') {
+                firstLineEnd = i;
+                break;
+            }
+        }
+        if (firstLineEnd == 0) {
+            firstLineEnd = contents.length;  // No newline found, use entire content length
+        }
+        if (snippetLimit > 0 && firstLineEnd > snippetLimit) {
+            log.trace("Skipping snippets due to first line being too long: {} - {} chars", filename, firstLineEnd);
+            return true;
         }
         return false;
     }

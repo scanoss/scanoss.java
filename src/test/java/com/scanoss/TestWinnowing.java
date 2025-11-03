@@ -165,13 +165,13 @@ public class TestWinnowing {
         String wfp = winnowing.wfpForFile(file, file);
         log.info("WFP for Json: {}", wfp);
         assertNotNull("Expected a result from WFP", wfp);
-        assertEquals("file=f8d52217f24ea77ff80a6b1f421d0959,229084,testing/data/non-source.json", wfp.trim());
+        assertEquals("file=f8d52217f24ea77ff80a6b1f421d0959,229084,testing/data/non-source.json\nfh2=dcae9929f4436808df739f19804cb4d2", wfp.trim());
 
         file = "testing/data/test-file.txt";
         wfp = winnowing.wfpForFile(file, file);
         log.info("WFP for Json: {}", wfp);
         assertNotNull("Expected a result from WFP", wfp);
-        assertEquals("file=e3dd1a7915d51c8cd1498585e6cea41e,183,testing/data/test-file.txt", wfp.trim());
+        assertEquals("file=e3dd1a7915d51c8cd1498585e6cea41e,183,testing/data/test-file.txt\nfh2=7de74202074d60759e60f408391e70c4", wfp.trim());
 
         file = "testing/data/too-small.c";
         wfp = winnowing.wfpForFile(file, file);
@@ -183,7 +183,7 @@ public class TestWinnowing {
         wfp = winnowing.wfpForFile(file, file);
         log.info("WFP for Json: {}", wfp);
         assertNotNull("Expected a result from WFP", wfp);
-        assertEquals("file=d7cfce9cff6d109c6b0249233ee26368,345,testing/data/json-file.c", wfp.trim());
+        assertEquals("file=d7cfce9cff6d109c6b0249233ee26368,345,testing/data/json-file.c\nfh2=56c80b467d3bcc13da74943a82c69724", wfp.trim());
 
         file = "testing/data/source-file-with-long-line.c";
         wfp = winnowing.wfpForFile(file, file);
