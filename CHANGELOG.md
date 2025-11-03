@@ -10,10 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Upcoming changes...
+
+## [0.12.0] - 2025-11-04
 ### Added
 - `calculateOppositeLineEndingHash()` method in `WinnowingUtils` to compute hash with opposite line endings (Unix ↔ Windows)
 - FH2 hash included in WFP output format as `fh2=<hash>`
 - Support for detecting CRLF (Windows), LF (Unix), and CR (legacy Mac) line endings
+### Fixed
+- Fixed WFP parsing issue
 
 ## [0.11.0] - 2025-05-26
 ### Added
@@ -127,3 +131,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.10.0]: https://github.com/scanoss/scanoss.java/compare/v0.9.0...v0.10.0
 [0.10.1]: https://github.com/scanoss/scanoss.java/compare/v0.10.0...v0.10.1
 [0.11.0]: https://github.com/scanoss/scanoss.java/compare/v0.10.1...v0.11.0
+[0.12.0]: https://github.com/scanoss/scanoss.java/compare/v0.11.0...v0.12.0
