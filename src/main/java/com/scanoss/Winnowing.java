@@ -268,8 +268,21 @@ public class Winnowing {
             log.trace("Skipping snippets as the file is too small: {} - {}", filename, contents.length);
             return true;
         }
-        if (contents[0] == '{' || contents[0] == '<') {
-            log.trace("Skipping snippets as the file appears to be JSON/XML/HTML: {}", filename);
+        //See https://github.com/scanoss/scanoss.py/blob/ede0477f3ea1b13a0147154b565b1bf6a72a6843/src/scanoss/winnowing.py#L248-L260
+        //for python implementation reference
+
+        // Create prefix from first MIN_FILE_SIZE-1 characters, lowercase and trimmed
+        String prefix = new String(contents, 0, ScanossConstants.MIN_FILE_SIZE - 1).toLowerCase().strip();
+
+        // Check for JSON files (starts with { or [)
+        if (prefix.charAt(0) == '{' || prefix.charAt(0) == '[') {
+            log.trace("Skipping snippets as the file appears to be JSON: {}", filename);
+            return true;
+        }
+        // Check for XML/HTML/AC3D files with explicit prefix matching
+        if (prefix.startsWith("<?xml") || prefix.startsWith("<html") ||
+            prefix.startsWith("<ac3d") || prefix.startsWith("<!doc")) {
+            log.trace("Skipping snippets as the file appears to be xml/html/binary: {}", filename);
             return true;
         }
         if (!filename.isEmpty()) {
@@ -290,7 +303,7 @@ public class Winnowing {
             }
         }
         if (firstLineEnd == 0) {
-            firstLineEnd = contents.length;  // No newline found, use entire content length
+            firstLineEnd = contents.length - 1;  // No newline found, use length-1 (matching Python)
         }
         if (snippetLimit > 0 && firstLineEnd > snippetLimit) {
             log.trace("Skipping snippets due to first line being too long: {} - {} chars", filename, firstLineEnd);
