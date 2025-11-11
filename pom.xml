@@ -235,6 +235,7 @@
                             <goal>sign</goal>
                         </goals>
                         <configuration>
+                            <passphraseServerId>gpg.passphrase</passphraseServerId>
                             <!-- Prevent gpg from using pinentry programs -->
                             <gpgArguments>
                                 <arg>--pinentry-mode</arg>
