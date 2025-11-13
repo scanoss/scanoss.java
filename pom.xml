@@ -235,7 +235,7 @@
                             <goal>sign</goal>
                         </goals>
                         <configuration>
-                            <passphraseServerId>gpg.passphrase</passphraseServerId>
+                            <passphraseServerId>${env.MAVEN_GPG_PASSPHRASE}</passphraseServerId>
                             <!-- Prevent gpg from using pinentry programs -->
                             <gpgArguments>
                                 <arg>--pinentry-mode</arg>
