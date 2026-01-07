@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Upcoming changes...
+## [0.12.1] - 2026-01-08
+### Changed
+- Updated slf4j from 2.0.16 to 2.0.17
+- Updated commons-codec from 1.17.1 to 1.20.0
+- Updated tika-core from 2.9.2 to 3.2.2
+- Updated gson from 2.11.0 to 2.13.2
+- Updated picocli from 4.7.6 to 4.7.7
+- Updated lombok from 1.18.36 to 1.18.42
+- Updated jgit from 6.10.0 to 6.10.1
 
 ## [0.12.0] - 2025-11-04
 ### Added
@@ -132,3 +141,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.10.1]: https://github.com/scanoss/scanoss.java/compare/v0.10.0...v0.10.1
 [0.11.0]: https://github.com/scanoss/scanoss.java/compare/v0.10.1...v0.11.0
 [0.12.0]: https://github.com/scanoss/scanoss.java/compare/v0.11.0...v0.12.0
+[0.12.1]: https://github.com/scanoss/scanoss.java/compare/v0.12.0...v0.12.1
