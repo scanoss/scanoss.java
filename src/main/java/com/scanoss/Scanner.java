@@ -31,6 +31,7 @@ import com.scanoss.filters.factories.FolderFilterFactory;
 import com.scanoss.processor.*;
 import com.scanoss.rest.ScanApi;
 import com.scanoss.settings.Bom;
+import com.scanoss.settings.FileSnippet;
 import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import lombok.*;
@@ -116,7 +117,8 @@ public class Scanner {
                     Integer snippetLimit, String customCert, Proxy proxy,
                     Winnowing winnowing, ScanApi scanApi,
                     ScanFileProcessor scanFileProcessor, WfpFileProcessor wfpFileProcessor,
-                    ScanossSettings settings, ScannerPostProcessor postProcessor, FilterConfig filterConfig,
+                    ScanossSettings settings,
+                    ScannerPostProcessor postProcessor, FilterConfig filterConfig,
                     Predicate<Path> fileFilter,
                     Predicate<Path> folderFilter
     ) {
@@ -137,20 +139,24 @@ public class Scanner {
         this.snippetLimit = snippetLimit;
         this.customCert = customCert;
         this.proxy = proxy;
+        this.settings = Objects.requireNonNullElseGet(settings, () -> ScanossSettings.builder().build());
+
+        FileSnippet resolvedSnippet = this.settings.getSettings().getFileSnippet();
         this.winnowing = Objects.requireNonNullElseGet(winnowing, () ->
                 Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate)
                         .hpsm(hpsm).snippetLimit(snippetLimit)
+                        .skipHeaders(resolvedSnippet != null && Boolean.TRUE.equals(resolvedSnippet.getSkipHeaders()))
+                        .skipHeadersLimit(resolvedSnippet != null && resolvedSnippet.getSkipHeadersLimit() != null ? resolvedSnippet.getSkipHeadersLimit() : 0)
                         .build());
         this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
                 ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
-                        .sbomType(sbomType).sbom(sbom).customCert(customCert).proxy(proxy).settings(settings)
+                        .sbomType(sbomType).sbom(sbom).customCert(customCert).proxy(proxy).settings(this.settings)
                         .build());
         this.scanFileProcessor = Objects.requireNonNullElseGet(scanFileProcessor, () ->
                 ScanFileProcessor.builder().winnowing(this.winnowing).scanApi(this.scanApi).build());
         this.wfpFileProcessor = Objects.requireNonNullElseGet(wfpFileProcessor, () -> WfpFileProcessor.builder()
                 .winnowing(this.winnowing)
                 .build());
-        this.settings = Objects.requireNonNullElseGet(settings, () -> ScanossSettings.builder().build());
         this.postProcessor = Objects.requireNonNullElseGet(postProcessor, () ->
                 ScannerPostProcessor.builder().build());
 

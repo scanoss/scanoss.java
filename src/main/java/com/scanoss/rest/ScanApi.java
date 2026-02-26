@@ -25,6 +25,7 @@ package com.scanoss.rest;
 import com.scanoss.dto.SbomLegacy;
 import com.scanoss.exceptions.ScanApiException;
 import com.scanoss.settings.Rule;
+import com.scanoss.settings.FileSnippet;
 import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.PackageDetails;
@@ -36,6 +37,7 @@ import okhttp3.tls.Certificates;
 import okhttp3.tls.HandshakeCertificates;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.io.InterruptedIOException;
 import java.net.Proxy;
 import java.time.Duration;
@@ -178,6 +180,7 @@ public class ScanApi {
             data.put("type", "identify");
         }
 
+        this.addScanSettingsHeader(headers);
 
         Request request;  // Create multipart request
         try {
@@ -232,6 +235,40 @@ public class ScanApi {
             retry++;
         } while (retry <= retryLimit);
         throw new ScanApiException(String.format("Something went wrong scanning request %s against %s.", uuid, url));
+    }
+
+    /**
+     * Add scan configuration parameters as a base64-encoded JSON header.
+     *
+     * @param headers map to add the scanoss-settings header to
+     */
+    private void addScanSettingsHeader(Map<String, String> headers) {
+        if (this.settings == null || this.settings.getSettings().getFileSnippet() == null) {
+            return;
+        }
+        FileSnippet fileSnippet = this.settings.getSettings().getFileSnippet();
+        Map<String, Object> settingsMap = new LinkedHashMap<>();
+        if (fileSnippet.isMinSnippetHitsSet()) {
+            settingsMap.put("min_snippet_hits", fileSnippet.getMinSnippetHits());
+        }
+        if (fileSnippet.isMinSnippetLinesSet()) {
+            settingsMap.put("min_snippet_lines", fileSnippet.getMinSnippetLines());
+        }
+        if (fileSnippet.isHonourFileExtsSet()) {
+            settingsMap.put("honour_file_exts", fileSnippet.getHonourFileExts());
+        }
+        if (fileSnippet.isRankingEnabledSet()) {
+            settingsMap.put("ranking_enabled", fileSnippet.getRankingEnabled());
+        }
+        if (fileSnippet.isRankingThresholdSet()) {
+            settingsMap.put("ranking_threshold", fileSnippet.getRankingThreshold());
+        }
+        if (!settingsMap.isEmpty()) {
+            String json = JsonUtils.toJson(settingsMap);
+            log.debug("scanoss settings: {}", json);
+            String encoded = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+            headers.put("scanoss-settings", encoded);
+        }
     }
 
     /**

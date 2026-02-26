@@ -23,6 +23,7 @@
 package com.scanoss.settings;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.scanoss.dto.SbomLegacy;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,9 @@ public class ScanossSettings {
     @AllArgsConstructor
     public static class Settings {
         private final @Builder.Default Skip skip = Skip.builder().build();
+
+        @SerializedName("file_snippet")
+        private FileSnippet fileSnippet;
     }
 
     @Data
@@ -147,5 +151,21 @@ public class ScanossSettings {
         return this.settings.getSkip().getPatterns().getScanning();
     }
 
+    /**
+     * Resolves scan configuration by merging CLI arguments with settings from scanoss.json.
+     * Priority (highest to lowest):
+     * <ol>
+     *   <li>settings.file_snippet section in scanoss.json</li>
+     *   <li>settings section in scanoss.json</li>
+     *   <li>CLI arguments (fallback)</li>
+     * </ol>
+     *
+     * @param cliConfig Configuration from CLI arguments
+     * @return Resolved ScanConfig with highest-priority non-unset values
+     */
+    public FileSnippet getResolvedScanConfig(FileSnippet cliConfig) {
+        FileSnippet fileSnippet = (settings != null) ? settings.getFileSnippet() : null;
+        return FileSnippet.resolve(cliConfig, fileSnippet);
+    }
 }
 
