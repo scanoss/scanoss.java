@@ -25,6 +25,7 @@ package com.scanoss.cli;
 import com.scanoss.Scanner;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.settings.FileSnippet;
 import com.scanoss.settings.ScanossSettings;
 import com.scanoss.utils.JsonUtils;
 import com.scanoss.utils.ProxyUtils;
@@ -105,6 +106,27 @@ class ScanCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"-H", "--hpsm"}, description = "Use High Precision Snippet Matching algorithm")
     private boolean enableHpsm = false;
 
+    @picocli.CommandLine.Option(names = {"--min-snippet-hits"}, description = "Minimum snippet hits required (0 = unset, uses server config)")
+    private int minSnippetHits = 0;
+
+    @picocli.CommandLine.Option(names = {"--min-snippet-lines"}, description = "Minimum snippet lines required (0 = unset, uses server config)")
+    private int minSnippetLines = 0;
+
+    @picocli.CommandLine.Option(names = {"--honour-file-exts"}, description = "Honour file extensions (true|false|unset)", arity = "1")
+    private String honourFileExts = null;
+
+    @picocli.CommandLine.Option(names = {"--ranking"}, description = "Enable/disable ranking (true|false|unset)", arity = "1")
+    private String ranking = null;
+
+    @picocli.CommandLine.Option(names = {"--ranking-threshold"}, description = "Ranking threshold value (-1 = unset, uses server config)")
+    private int rankingThreshold = -1;
+
+    @picocli.CommandLine.Option(names = {"--skip-headers"}, description = "Skip license headers, comments and imports at the beginning of files (applies locally)")
+    private boolean skipHeaders = false;
+
+    @picocli.CommandLine.Option(names = {"--skip-headers-limit"}, description = "Skip limit for license headers (0 = unset, applies locally)")
+    private int skipHeadersLimit = 0;
+
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to scan")
     private String fileFolder;
 
@@ -133,11 +155,25 @@ class ScanCommandLine implements Runnable {
             }
         }
 
+        // Load settings from scanoss.json if provided, otherwise use defaults
+        ScanossSettings settings = new ScanossSettings();
         if(settingsPath != null && !settingsPath.isEmpty()) {
             settings = ScanossSettings.createFromPath(Paths.get(settingsPath));
             if (settings == null) throw new RuntimeException("Error: Failed to read settings file");
             printMsg(err, String.format("Settings file read %s", settings));
         }
+        // Build file_snippet config from CLI arguments (lowest priority)
+        FileSnippet fileSnippetCLI =  FileSnippet.builder()
+                .minSnippetHits(minSnippetHits)
+                .minSnippetLines(minSnippetLines)
+                .rankingThreshold(rankingThreshold)
+                .skipHeaders(skipHeaders)
+                .skipHeadersLimit(skipHeadersLimit)
+                .rankingEnabled(parseTriStateBoolean(ranking))
+                .honourFileExts(parseTriStateBoolean(honourFileExts))
+                .build();
+        // Resolve: file_snippet from scanoss.json (highest priority) overrides CLI values
+        settings.getSettings().setFileSnippet(FileSnippet.resolve(fileSnippetCLI, settings.getSettings().getFileSnippet()));
 
 
         if (com.scanoss.cli.CommandLine.debug) {
@@ -166,7 +202,6 @@ class ScanCommandLine implements Runnable {
                 .snippetLimit(snippetLimit).customCert(caCertPem).proxy(proxy).hpsm(enableHpsm)
                 .settings(settings).obfuscate(obfuscate)
                 .build();
-
         File f = new File(fileFolder);
         if (!f.exists()) {
             throw new RuntimeException(String.format("Error: File or folder does not exist: %s\n", fileFolder));
@@ -196,6 +231,19 @@ class ScanCommandLine implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Parse a tri-state boolean string value.
+     *
+     * @param value the string value ("true", "false", "unset", or null)
+     * @return Boolean.TRUE, Boolean.FALSE, or null for unset
+     */
+    private static Boolean parseTriStateBoolean(String value) {
+        if (value == null || value.equalsIgnoreCase("unset")) {
+            return null;
+        }
+        return Boolean.parseBoolean(value);
     }
 
     /**
@@ -245,7 +293,7 @@ class ScanCommandLine implements Runnable {
             if (CommandLine.debug) {
                 e.printStackTrace(err);
             }
-            throw new RuntimeException(String.format("Something went wrong while scanning %s.", folder));
+            throw new RuntimeException(String.format("Something went wrong while scanning %s.", folder), e);
         }
     }
 }

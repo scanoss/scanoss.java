@@ -9,6 +9,15 @@
     ]
   },
   "settings": {
+    "file_snippet": {
+      "min_snippet_hits": 3,
+      "min_snippet_lines": 10,
+      "honour_file_exts": true,
+      "ranking_enabled": true,
+      "ranking_threshold": 5,
+      "skip_headers": false,
+      "skip_headers_limit": 0
+    },
     "skip": {
       "patterns": {
         "scanning": [

@@ -334,5 +334,91 @@ public class TestWinnowing {
 
         log.info("Finished {} -->", methodName);
     }
+
+    @Test
+    public void TestDetectHeaderLines() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        Winnowing winnowing = Winnowing.builder().build();
+
+        // Test with a typical Java file header
+        String javaHeader = "// SPDX-License-Identifier: MIT\n" +
+                "/*\n" +
+                " * Copyright (c) 2024, SCANOSS\n" +
+                " */\n" +
+                "package com.scanoss;\n" +
+                "\n" +
+                "import java.util.List;\n" +
+                "import java.io.File;\n" +
+                "\n" +
+                "public class MyClass {\n" +
+                "    int x = 1;\n" +
+                "}\n";
+        char[] contents = javaHeader.toCharArray();
+        int headerLines = winnowing.detectHeaderLines(contents, 0);
+        assertEquals("Should detect 9 header lines", 9, headerLines);
+
+        // Test with limit
+        int limitedHeaderLines = winnowing.detectHeaderLines(contents, 5);
+        assertEquals("Should detect at most 5 header lines with limit", 5, limitedHeaderLines);
+
+        // Test with no header
+        String noHeader = "public class MyClass {\n    int x = 1;\n}\n";
+        int noHeaderLines = winnowing.detectHeaderLines(noHeader.toCharArray(), 0);
+        assertEquals("Should detect 0 header lines", 0, noHeaderLines);
+
+        // Test with block comment
+        String blockComment = "/*\n * License block\n * More license\n */\n\nclass Foo {}\n";
+        int blockLines = winnowing.detectHeaderLines(blockComment.toCharArray(), 0);
+        assertEquals("Should detect 5 header lines (block comment + blank)", 5, blockLines);
+
+        log.info("Finished {} -->", methodName);
+    }
+
+    @Test
+    public void TestWinnowingSkipHeaders() {
+        String methodName = new Object() {
+        }.getClass().getEnclosingMethod().getName();
+        log.info("<-- Starting {}", methodName);
+
+        // Build content with a license header + code
+        String content = "// License header line 1\n" +
+                "// License header line 2\n" +
+                "\n" +
+                "import java.util.List;\n" +
+                "\n" +
+                "sample c code with lots of code that we should analyse\n" +
+                "And even more code to get connected.\n" +
+                "And we need to get this as long as possible, in order to trigger snippet matching.\n" +
+                "Here comes more code to help get this working.\n" +
+                "Please help get this across the line. We need all the help we can get.\n";
+
+        // Without skip headers - should generate snippet hashes
+        Winnowing winnowingNoSkip = Winnowing.builder().skipHeaders(false).build();
+        String wfpNoSkip = winnowingNoSkip.wfpForContents("test.c", false, content.getBytes());
+        assertNotNull(wfpNoSkip);
+        assertTrue("Should have snippets", snippetPat.matcher(wfpNoSkip).find());
+
+        // With skip headers - should still generate snippet hashes (just starting later)
+        Winnowing winnowingSkip = Winnowing.builder().skipHeaders(true).build();
+        String wfpSkip = winnowingSkip.wfpForContents("test.c", false, content.getBytes());
+        assertNotNull(wfpSkip);
+
+        // The file= line should be the same (full file hash)
+        assertTrue("Both should start with file= line", wfpNoSkip.startsWith("file="));
+        assertTrue("Both should start with file= line", wfpSkip.startsWith("file="));
+
+        // The file hash should be identical (skip_headers doesn't affect the file hash)
+        String noSkipFirstLine = wfpNoSkip.split("\n")[0];
+        String skipFirstLine = wfpSkip.split("\n")[0];
+        assertEquals("File hash should be the same regardless of skip_headers", noSkipFirstLine, skipFirstLine);
+
+        log.info("WFP without skip: {}", wfpNoSkip);
+        log.info("WFP with skip: {}", wfpSkip);
+
+        log.info("Finished {} -->", methodName);
+    }
 }
 
