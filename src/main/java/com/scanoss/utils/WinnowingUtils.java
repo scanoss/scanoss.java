@@ -41,6 +41,10 @@ import java.util.regex.Pattern;
  */
 public class WinnowingUtils {
 
+    /** Private constructor to prevent instantiation. */
+    private WinnowingUtils() {
+    }
+
     /**
      * Inner class to hold line ending detection results.
      */

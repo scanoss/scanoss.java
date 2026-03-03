@@ -32,9 +32,13 @@ import java.util.function.Predicate;
  */
 @Slf4j
 public abstract class BaseFilter {
+    /** The filter configuration. */
     protected final FilterConfig config;
+    /** The Git ignore pattern filter. */
     protected final GitIgnoreFilter gitIgnoreFilter;
+    /** The Ant pattern filter. */
     protected final AntFilter antFilter;
+    /** The combined base skip filter predicate. */
     protected final Predicate<Path> baseSkipFilter;
 
     /**

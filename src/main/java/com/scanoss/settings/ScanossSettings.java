@@ -43,9 +43,15 @@ import java.util.List;
 @Slf4j
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class ScanossSettings {
+
+    /** Default constructor. */
+    public ScanossSettings() {
+        this.bom = Bom.builder().build();
+        this.settings = Settings.builder().build();
+    }
+
     /**
      * The Bill of Materials (BOM) configuration containing rules for component handling.
      * Includes rules for including, ignoring, removing, and replacing components
@@ -54,49 +60,80 @@ public class ScanossSettings {
     private final @Builder.Default Bom bom = Bom.builder().build();
     private final @Builder.Default Settings settings = Settings.builder().build();
 
+    /** General scan settings including skip patterns and file snippet configuration. */
     @Data
     @Builder
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Settings {
+
+        /** Default constructor. */
+        public Settings() {
+            this.skip = Skip.builder().build();
+        }
+
         private final @Builder.Default Skip skip = Skip.builder().build();
 
         @SerializedName("file_snippet")
         private FileSnippet fileSnippet;
     }
 
+    /** Configuration for skipping files during scanning based on patterns and sizes. */
     @Data
     @Builder
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Skip {
+
+        /** Default constructor. */
+        public Skip() {
+            this.patterns = Patterns.builder().build();
+            this.sizes = Sizes.builder().build();
+        }
+
         private final @Builder.Default Patterns patterns = Patterns.builder().build();
         private final @Builder.Default Sizes sizes = Sizes.builder().build();
     }
 
+    /** Glob patterns for skipping files during scanning and fingerprinting. */
     @Data
     @Builder
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Patterns {
+
+        /** Default constructor. */
+        public Patterns() {
+            this.scanning = new ArrayList<>();
+            this.fingerprinting = new ArrayList<>();
+        }
+
         private final @Builder.Default List<String> scanning = new ArrayList<>();
         private final @Builder.Default List<String> fingerprinting = new ArrayList<>();
     }
 
+    /** Size-based rules for skipping files during scanning and fingerprinting. */
     @Data
     @Builder
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Sizes {
+
+        /** Default constructor. */
+        public Sizes() {
+            this.scanning = new ArrayList<>();
+            this.fingerprinting = new ArrayList<>();
+        }
+
         private final @Builder.Default List<SizeRule> scanning = new ArrayList<>();
         private final @Builder.Default List<SizeRule> fingerprinting = new ArrayList<>();
     }
 
+    /** A size rule matching file patterns with minimum and maximum byte thresholds. */
     @Data
     @Builder
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class SizeRule {
+
+        /** Default constructor. */
+        public SizeRule() {}
+
         private List<String> patterns;
         private long min;
         private long max;
@@ -147,6 +184,11 @@ public class ScanossSettings {
     }
 
 
+    /**
+     * Returns the list of scanning ignore patterns from the skip settings.
+     *
+     * @return list of scanning ignore patterns
+     */
     public List<String> getScanningIgnorePattern()  {
         return this.settings.getSkip().getPatterns().getScanning();
     }

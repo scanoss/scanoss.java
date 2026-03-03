@@ -36,6 +36,11 @@ import static com.scanoss.ScanossConstants.FILTERED_DIR_EXT;
  */
 public class FolderFilter extends BaseFilter {
 
+    /**
+     * Constructs a FolderFilter with the specified configuration.
+     *
+     * @param filterConfig the filter configuration
+     */
     public FolderFilter(FilterConfig filterConfig) {
         super(filterConfig);
     }

@@ -35,6 +35,10 @@ import org.jetbrains.annotations.Nullable;
 @Slf4j
 public class Purl2Url {
 
+    /** Private constructor to prevent instantiation. */
+    private Purl2Url() {
+    }
+
     /**
      * PURL type to URL enum
      */

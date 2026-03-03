@@ -31,6 +31,9 @@ import java.util.function.Predicate;
  A factory class that provides a static method for creating folder filtering predicates.
  */
 public class FolderFilterFactory {
+    /** Private constructor to prevent instantiation. */
+    private FolderFilterFactory() {
+    }
     /**
      * Creates a folder filtering predicate based on the provided configuration.
      *

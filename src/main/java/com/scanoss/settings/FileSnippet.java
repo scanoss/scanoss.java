@@ -39,9 +39,12 @@ import lombok.*;
  */
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class FileSnippet {
+
+    /** Default constructor. */
+    public FileSnippet() {}
+
 
     @Builder.Default
     @SerializedName("min_snippet_hits")
@@ -69,26 +72,56 @@ public class FileSnippet {
     @SerializedName("skip_headers_limit")
     private Integer skipHeadersLimit = 0;
 
+    /**
+     * Returns {@code true} if minSnippetHits has been explicitly set to a positive value.
+     *
+     * @return whether minSnippetHits is set
+     */
     public boolean isMinSnippetHitsSet() {
         return minSnippetHits != null && minSnippetHits > 0;
     }
 
+    /**
+     * Returns {@code true} if minSnippetLines has been explicitly set to a positive value.
+     *
+     * @return whether minSnippetLines is set
+     */
     public boolean isMinSnippetLinesSet() {
         return minSnippetLines != null && minSnippetLines > 0;
     }
 
+    /**
+     * Returns {@code true} if honourFileExts has been explicitly set.
+     *
+     * @return whether honourFileExts is set
+     */
     public boolean isHonourFileExtsSet() {
         return honourFileExts != null;
     }
 
+    /**
+     * Returns {@code true} if rankingEnabled has been explicitly set.
+     *
+     * @return whether rankingEnabled is set
+     */
     public boolean isRankingEnabledSet() {
         return rankingEnabled != null;
     }
 
+    /**
+     * Returns {@code true} if rankingThreshold has been explicitly set to a non-negative value.
+     *
+     * @return whether rankingThreshold is set
+     */
     public boolean isRankingThresholdSet() {
         return rankingThreshold != null && rankingThreshold >= 0;
     }
 
+    /**
+     * Returns {@code true} if skipHeadersLimit has been explicitly set to a positive value.
+     *
+     * @return whether skipHeadersLimit is set
+     */
     public boolean isSkipHeadersLimitSet() {
         return skipHeadersLimit != null && skipHeadersLimit > 0;
     }

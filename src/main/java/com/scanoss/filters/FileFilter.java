@@ -39,7 +39,11 @@ public class FileFilter extends BaseFilter {
     @Builder.Default  // Tells Lombok this field has a default initialization
     private final FilterConfig filterConfig = FilterConfig.builder().build();
 
-    // Use @Builder constructor annotation to tell Lombok to use this constructor
+    /**
+     * Constructs a FileFilter with the specified configuration.
+     *
+     * @param filterConfig the filter configuration
+     */
     protected FileFilter(FilterConfig filterConfig) {
         super(filterConfig);
         this.filterConfig = filterConfig;

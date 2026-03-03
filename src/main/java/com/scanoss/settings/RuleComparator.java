@@ -47,6 +47,9 @@ import java.util.Comparator;
  */
 public class RuleComparator implements Comparator<Rule> {
 
+    /** Default constructor. */
+    public RuleComparator() {}
+
     /**
      * Compares two Rule objects based on their priority scores and path lengths.
      *

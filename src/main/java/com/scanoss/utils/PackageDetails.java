@@ -30,6 +30,11 @@ import java.util.Properties;
  * Lookup information about the current package
  */
 public class PackageDetails {
+
+    /** Private constructor to prevent instantiation. */
+    private PackageDetails() {
+    }
+
     private static String version;  // Package version if we can
 
     /**

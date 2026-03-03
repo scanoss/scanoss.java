@@ -38,4 +38,11 @@ public class RemoveRule extends Rule {
     private final Integer startLine;
     @SerializedName("end_line")
     private final Integer endLine;
+
+    /** Default constructor. */
+    protected RemoveRule() {
+        super();
+        this.startLine = null;
+        this.endLine = null;
+    }
 }

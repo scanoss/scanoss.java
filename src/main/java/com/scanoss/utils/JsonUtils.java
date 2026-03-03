@@ -47,6 +47,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JsonUtils {
 
+    /** Private constructor to prevent instantiation. */
+    private JsonUtils() {
+    }
+
     // Custom list type for decoding Scan Results
     private static final Type scanDetailslistType = new TypeToken<List<ScanFileDetails>>() {
     }.getType();
