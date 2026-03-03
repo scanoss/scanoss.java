@@ -34,6 +34,10 @@ import java.util.List;
  */
 public class Hpsm {
 
+    /** Private constructor to prevent instantiation. */
+    private Hpsm() {
+    }
+
     // CRC8 table, Polynomial, initial CRC and post CRC XOR value.
     private static final int CRC8_MAXIM_DOW_TABLE_SIZE = 0x100;
     private static final int CRC8_MAXIM_DOW_POLYNOMIAL = 0x8C; // 0x31 reflected

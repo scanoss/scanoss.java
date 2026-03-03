@@ -37,4 +37,11 @@ public class ReplaceRule extends Rule {
     @SerializedName("replace_with")
     private final String replaceWith;
     private final String license;
+
+    /** Default constructor. */
+    protected ReplaceRule() {
+        super();
+        this.replaceWith = null;
+        this.license = null;
+    }
 }

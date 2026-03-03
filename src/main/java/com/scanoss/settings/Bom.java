@@ -36,8 +36,17 @@ import java.util.List;
 @Data
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 public class Bom {
+
+    /** Default constructor. */
+    public Bom() {
+        this.include = new ArrayList<>();
+        this.ignore = new ArrayList<>();
+        this.remove = new ArrayList<>();
+        this.replace = new ArrayList<>();
+        this.sortedReplace = new ArrayList<>();
+    }
+
 
     /**
      * List of include rules for adding context when scanning.

@@ -44,6 +44,11 @@ public class GitIgnoreFilter {
     @Setter(AccessLevel.PRIVATE)
     private List<FastIgnoreRule> rules;
 
+    /**
+     * Constructs a GitIgnoreFilter with the specified patterns.
+     *
+     * @param patterns the list of Git ignore patterns
+     */
     @Builder
     public GitIgnoreFilter(@NonNull List<String> patterns) {
         this.rules = new ArrayList<>();

@@ -36,6 +36,10 @@ import java.net.*;
 @Slf4j
 public class ProxyUtils {
 
+    /** Private constructor to prevent instantiation. */
+    private ProxyUtils() {
+    }
+
     /**
      * Create basic proxy from the supplied HTTP Proxy strting
      *

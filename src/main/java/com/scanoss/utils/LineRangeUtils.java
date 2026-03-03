@@ -34,6 +34,11 @@ import java.util.List;
  */
 @Slf4j
 public class LineRangeUtils {
+
+    /** Private constructor to prevent instantiation. */
+    private LineRangeUtils() {
+    }
+
     /**
      * Parses a line range string into a list of intervals
      *

@@ -41,4 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 public class Rule {
     private final String path;
     private final String purl;
+
+    /** Default constructor. */
+    protected Rule() {
+        this.path = null;
+        this.purl = null;
+    }
 }

@@ -31,6 +31,9 @@ import java.util.function.Predicate;
 A factory class that provides a static method for creating file filtering predicates.
 */
  public class FileFilterFactory {
+    /** Private constructor to prevent instantiation. */
+    private FileFilterFactory() {
+    }
     /**
      * Creates a file filtering predicate based on the provided configuration.
      *

@@ -33,6 +33,11 @@ import java.util.List;
  */
 @SuppressWarnings("SpellCheckingInspection")
 public class ScanossConstants {
+
+    /** Private constructor to prevent instantiation. */
+    private ScanossConstants() {
+    }
+
     /**
      * Default timeout for HTTP communication
      */
@@ -52,7 +57,7 @@ public class ScanossConstants {
     static final int MIN_FILE_SIZE = 256; // Minimum size for a file to be considered for snippet generation
     static final int MAX_LONG_LINE_CHARS = 1000; // Maximum length of a single source line to be considered source code
 
-    // File extensions to ignore snippets for
+    /** File extensions to ignore snippets for. */
     public static final List<String> SKIP_SNIPPET_EXT = Arrays.asList(
             ".exe", ".zip", ".tar", ".tgz", ".gz", ".7z", ".rar", ".jar", ".war", ".ear", ".class", ".pyc",
             ".o", ".a", ".so", ".obj", ".dll", ".lib", ".out", ".app", ".bin",
@@ -61,17 +66,17 @@ public class ScanossConstants {
             ".pdf", ".min.js", ".mf", ".sum", ".woff", ".woff2", ".xsd", ".pom", ".whl"
     );
 
-    // Folders to skip
+    /** Folders to skip during scanning. */
     public static final List<String> FILTERED_DIRS = Arrays.asList(
             "nbproject", "nbbuild", "nbdist", "__pycache__", "venv", "_yardoc", "eggs", "wheels", "htmlcov",
             "__pypackages__", "target"
     );
 
-    // Folder endings to skip
+    /** Folder suffixes to skip during scanning. */
     public static final List<String> FILTERED_DIR_EXT = List.of(".egg-info");
 
 
-    // File extensions to skip
+    /** File extensions to skip during scanning. */
     public static final List<String> FILTERED_EXTENSIONS = Arrays.asList(
             ".1", ".2", ".3", ".4", ".5", ".6", ".7", ".8", ".9", ".ac", ".adoc", ".am",
             ".asciidoc", ".bmp", ".build", ".cfg", ".chm", ".class", ".cmake", ".cnf",
@@ -94,7 +99,7 @@ public class ScanossConstants {
             "readme", "swiftdoc", "texidoc", "todo", "version", "ignore", "manifest", "sqlite", "sqlite3"
     );
 
-    // Files to skip
+    /** Files to skip during scanning. */
     public static final List<String> FILTERED_FILES = Arrays.asList(
             "gradlew", "gradlew.bat", "mvnw", "mvnw.cmd", "gradle-wrapper.jar", "maven-wrapper.jar",
             "thumbs.db", "babel.config.js", "license.txt", "license.md", "copying.lib", "makefile"
