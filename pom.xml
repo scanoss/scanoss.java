@@ -222,6 +222,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <additionalJOptions>
+                        <additionalJOption>-Xdoclint:all</additionalJOption>
+                    </additionalJOptions>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
