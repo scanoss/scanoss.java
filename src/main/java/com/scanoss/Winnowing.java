@@ -174,8 +174,13 @@ public class Winnowing {
 
         int skipLines = 0;
         if (this.skipHeaders) {
-            skipLines = detectHeaderLines(fileContents, this.skipHeadersLimit);
+            String fileString = new String(fileContents);
+            HeaderFilter filter = new HeaderFilter(this.skipHeadersLimit > 0 ? this.skipHeadersLimit : null);
+            skipLines = filter.filter(filename, fileString);
             log.trace("Skipping {} header lines for snippet generation: {}", skipLines, filename);
+            if (skipLines > 0) {
+                wfpBuilder.append(String.format("start_line=%d\n", skipLines));
+            }
         }
 
         String gram = "";
@@ -320,69 +325,6 @@ public class Winnowing {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Detect the number of header lines at the beginning of a file.
-     * Header lines include license comment blocks, single-line comments,
-     * blank lines, and import/package statements.
-     *
-     * @param contents  file contents as char array
-     * @param maxLines  maximum number of header lines to detect (0 = no limit)
-     * @return number of header lines detected
-     */
-    int detectHeaderLines(char[] contents, int maxLines) {
-        int headerLines = 0;
-        boolean inBlockComment = false;
-        int lineStart = 0;
-
-        for (int i = 0; i <= contents.length; i++) {
-            if (i == contents.length || contents[i] == '\n') {
-                String line = new String(contents, lineStart, i - lineStart).trim();
-
-                if (inBlockComment) {
-                    headerLines++;
-                    if (line.contains("*/")) {
-                        inBlockComment = false;
-                    }
-                } else if (line.isEmpty()) {
-                    headerLines++;
-                } else if (line.startsWith("//") || line.startsWith("#!") || line.startsWith("# ")) {
-                    headerLines++;
-                } else if (line.startsWith("/*")) {
-                    headerLines++;
-                    if (!line.contains("*/")) {
-                        inBlockComment = true;
-                    }
-                } else if (line.startsWith("*") || line.startsWith("* ")) {
-                    headerLines++;
-                } else if (isImportOrPackageLine(line)) {
-                    headerLines++;
-                } else {
-                    break; // Non-header line found
-                }
-
-                if (maxLines > 0 && headerLines >= maxLines) {
-                    break;
-                }
-
-                lineStart = i + 1;
-            }
-        }
-
-        return headerLines;
-    }
-
-    /**
-     * Check if a line is an import or package declaration.
-     *
-     * @param line trimmed source line
-     * @return true if the line is an import/package/include statement
-     */
-    private boolean isImportOrPackageLine(String line) {
-        return line.startsWith("import ") || line.startsWith("package ") ||
-                line.startsWith("from ") || line.startsWith("#include ") ||
-                line.startsWith("using ") || line.startsWith("require ");
     }
 
     /**

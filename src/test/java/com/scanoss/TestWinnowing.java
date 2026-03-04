@@ -341,7 +341,7 @@ public class TestWinnowing {
         }.getClass().getEnclosingMethod().getName();
         log.info("<-- Starting {}", methodName);
 
-        Winnowing winnowing = Winnowing.builder().build();
+        HeaderFilter headerFilter = new HeaderFilter();
 
         // Test with a typical Java file header
         String javaHeader = "// SPDX-License-Identifier: MIT\n" +
@@ -356,22 +356,22 @@ public class TestWinnowing {
                 "public class MyClass {\n" +
                 "    int x = 1;\n" +
                 "}\n";
-        char[] contents = javaHeader.toCharArray();
-        int headerLines = winnowing.detectHeaderLines(contents, 0);
+        int headerLines = headerFilter.filter("test.java", javaHeader);
         assertEquals("Should detect 9 header lines", 9, headerLines);
 
         // Test with limit
-        int limitedHeaderLines = winnowing.detectHeaderLines(contents, 5);
+        HeaderFilter limitedFilter = new HeaderFilter(5);
+        int limitedHeaderLines = limitedFilter.filter("test.java", javaHeader);
         assertEquals("Should detect at most 5 header lines with limit", 5, limitedHeaderLines);
 
         // Test with no header
         String noHeader = "public class MyClass {\n    int x = 1;\n}\n";
-        int noHeaderLines = winnowing.detectHeaderLines(noHeader.toCharArray(), 0);
+        int noHeaderLines = headerFilter.filter("test.java", noHeader);
         assertEquals("Should detect 0 header lines", 0, noHeaderLines);
 
-        // Test with block comment
+        // Test with block comment containing license keywords
         String blockComment = "/*\n * License block\n * More license\n */\n\nclass Foo {}\n";
-        int blockLines = winnowing.detectHeaderLines(blockComment.toCharArray(), 0);
+        int blockLines = headerFilter.filter("test.java", blockComment);
         assertEquals("Should detect 5 header lines (block comment + blank)", 5, blockLines);
 
         log.info("Finished {} -->", methodName);
