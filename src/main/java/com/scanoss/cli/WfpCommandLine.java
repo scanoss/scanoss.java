@@ -25,6 +25,8 @@ package com.scanoss.cli;
 import com.scanoss.Scanner;
 import com.scanoss.exceptions.ScannerException;
 import com.scanoss.exceptions.WinnowingException;
+import com.scanoss.settings.FileSnippet;
+import com.scanoss.settings.ScanossSettings;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -66,6 +68,12 @@ public class WfpCommandLine implements Runnable {
     @picocli.CommandLine.Option(names = {"--snippet-limit"}, description = "Length of single line snippet limit (0 for unlimited, default 1000)")
     private int snippetLimit = 1000;
 
+    @picocli.CommandLine.Option(names = {"--skip-headers"}, description = "Skip license headers, comments and imports at the beginning of files (applies locally)")
+    private boolean skipHeaders = false;
+
+    @picocli.CommandLine.Option(names = {"--skip-headers-limit"}, description = "Skip limit for license headers (0 = unset, applies locally)")
+    private int skipHeadersLimit = 0;
+
     @picocli.CommandLine.Parameters(arity = "1", description = "file/folder to fingerprint")
     private String fileFolder;
 
@@ -89,8 +97,23 @@ public class WfpCommandLine implements Runnable {
                 printMsg(err, String.format("Running with %d threads.", numThreads));
             }
         }
-        scanner = Scanner.builder().skipSnippets(skipSnippets).allFolders(allFolders).allExtensions(allExtensions)
-                .hiddenFilesFolders(allHidden).numThreads(numThreads).snippetLimit(snippetLimit).build();
+
+        // Create settings file with skip headers and skip headersLimit
+        ScanossSettings settings = new ScanossSettings();
+        FileSnippet fileSnippet = FileSnippet.builder()
+                .skipHeaders(skipHeaders)
+                .skipHeadersLimit(skipHeadersLimit)
+                .build();
+        settings.getSettings().setFileSnippet(fileSnippet);
+        scanner = Scanner.builder()
+                .skipSnippets(skipSnippets)
+                .allFolders(allFolders)
+                .allExtensions(allExtensions)
+                .hiddenFilesFolders(allHidden)
+                .numThreads(numThreads).snippetLimit(snippetLimit)
+                .settings(settings)
+                .build();
+
         if (f.isFile()) {
             wfpFile(fileFolder);
         } else if (f.isDirectory()) {

@@ -7,12 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.13.0] - 2026-02-03
+## [0.13.0] - 2026-02-04
 ### Added
 - Added `file_snippet` scan configuration support in `scanoss.json` for engine tuning parameters (`min_snippet_hits`, `min_snippet_lines`, `honour_file_exts`, `ranking_enabled`, `ranking_threshold`, `skip_headers`, `skip_headers_limit`)
 - Added CLI scan configuration options with resolution priority (file_snippet > CLI)
 - Added `FileSnippet` class for scan configuration management and resolution
 - Scan configuration parameters are now sent as base64-encoded JSON in the `scanoss-settings` HTTP header
+- Included `start_line` into wfp file when `skip_header`limit is enabled
 ### Fixed
 - Fixed Javadoc warnings across the codebase
 

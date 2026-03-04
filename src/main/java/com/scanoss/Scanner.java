@@ -141,12 +141,12 @@ public class Scanner {
         this.proxy = proxy;
         this.settings = Objects.requireNonNullElseGet(settings, () -> ScanossSettings.builder().build());
 
-        FileSnippet resolvedSnippet = this.settings.getSettings().getFileSnippet();
+        FileSnippet fileSnippetConfig = this.settings.getSettings().getFileSnippet();
         this.winnowing = Objects.requireNonNullElseGet(winnowing, () ->
                 Winnowing.builder().skipSnippets(skipSnippets).allExtensions(allExtensions).obfuscate(obfuscate)
                         .hpsm(hpsm).snippetLimit(snippetLimit)
-                        .skipHeaders(resolvedSnippet != null && Boolean.TRUE.equals(resolvedSnippet.getSkipHeaders()))
-                        .skipHeadersLimit(resolvedSnippet != null && resolvedSnippet.getSkipHeadersLimit() != null ? resolvedSnippet.getSkipHeadersLimit() : 0)
+                        .skipHeaders(fileSnippetConfig != null && Boolean.TRUE.equals(fileSnippetConfig.getSkipHeaders()))
+                        .skipHeadersLimit(fileSnippetConfig != null && fileSnippetConfig.getSkipHeadersLimit() != null ? fileSnippetConfig.getSkipHeadersLimit() : 0)
                         .build());
         this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
                 ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
