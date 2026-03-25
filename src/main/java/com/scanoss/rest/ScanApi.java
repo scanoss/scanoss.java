@@ -84,7 +84,7 @@ public class ScanApi {
         this.timeout = timeout;
         this.retryLimit = retryLimit;
         this.url = url;
-        this.apiKey = apiKey;
+        this.apiKey = resolveApiKey(apiKey);
         this.flags = flags;
         this.sbomType = sbomType;
         this.sbom = sbom;
@@ -128,6 +128,28 @@ public class ScanApi {
         if (!this.headers.containsKey("x-api-key") && this.apiKey != null && !this.apiKey.isEmpty()) {
             this.headers.put("x-api-key", this.apiKey);
         }
+    }
+
+    /**
+     * Resolve the API key for Scanoss API
+     *
+     * @param apiKey The API key provided by the user
+     * @return The resolved API key, either from the user-provided value or environment variable
+     */
+    private static String resolveApiKey(String apiKey) {
+        if (apiKey != null && !apiKey.isBlank()) {
+            return apiKey;
+        }
+        try {
+            String envApiKey = System.getenv("SCANOSS_API_KEY");
+            if (envApiKey != null && !envApiKey.isBlank()) {
+                log.debug( "Using SCANOSS_API_KEY env value");
+                return envApiKey;
+            }
+        } catch (RuntimeException e) {
+            log.warn("Unable to read SCANOSS_API_KEY from environment: {}", e.getMessage());
+        }
+        return apiKey;
     }
 
     /**
