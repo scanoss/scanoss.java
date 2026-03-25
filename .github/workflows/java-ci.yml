@@ -11,6 +11,8 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+    env:
+      SCANOSS_API_KEY: ${{ secrets.SC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
