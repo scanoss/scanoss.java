@@ -149,7 +149,7 @@ public class Scanner {
                         .skipHeadersLimit(fileSnippetConfig != null && fileSnippetConfig.getSkipHeadersLimit() != null ? fileSnippetConfig.getSkipHeadersLimit() : 0)
                         .build());
         this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
-                ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
+                ScanApi.builder().url(url).apiKey(this.apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
                         .sbomType(sbomType).sbom(sbom).customCert(customCert).proxy(proxy).settings(this.settings)
                         .build());
         this.scanFileProcessor = Objects.requireNonNullElseGet(scanFileProcessor, () ->

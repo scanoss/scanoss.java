@@ -133,7 +133,7 @@ public class TestCli {
         assertEquals("command should not fail", 0, exitCode);
 
         String[] args2 = new String[]{"-d", "scan", "src/test/java/com", "-T", "2", "--all-hidden",
-                "--skip-snippets", "--all-extensions", "-F", "256"
+                "--skip-snippets", "--all-extensions", "-F", "2048"
         };
         exitCode = new picocli.CommandLine(new CommandLine()).execute(args2);
         assertEquals("command should not fail", 0, exitCode);

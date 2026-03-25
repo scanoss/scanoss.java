@@ -14,6 +14,8 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+    env:
+      SCANOSS_API_KEY: ${{ secrets.SC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -33,6 +35,8 @@ jobs:
     needs: [ build_and_test ]
     name: Build native on ${{ github.event.inputs.build_env }}
     runs-on: ${{ github.event.inputs.build_env }}
+    env:
+      SCANOSS_API_KEY: ${{ secrets.SC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: graalvm/setup-graalvm@v1

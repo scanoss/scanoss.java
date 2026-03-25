@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-03-25
+### Added
+- Added support to load a SCANOSS API key from an environment variable (`SCANOSS_API_KEY`) if available.
+
 ## [0.13.0] - 2026-02-04
 ### Added
 - Added `file_snippet` scan configuration support in `scanoss.json` for engine tuning parameters (`min_snippet_hits`, `min_snippet_lines`, `honour_file_exts`, `ranking_enabled`, `ranking_threshold`, `skip_headers`, `skip_headers_limit`)
@@ -150,3 +154,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.12.0]: https://github.com/scanoss/scanoss.java/compare/v0.11.0...v0.12.0
 [0.12.1]: https://github.com/scanoss/scanoss.java/compare/v0.12.0...v0.12.1
 [0.13.0]: https://github.com/scanoss/scanoss.java/compare/v0.12.1...v0.13.0
+[0.13.1]: https://github.com/scanoss/scanoss.java/compare/v0.13.0...v0.13.1
