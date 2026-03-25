@@ -132,7 +132,7 @@ public class Scanner {
         this.timeout = timeout;
         this.retryLimit = retryLimit;
         this.url = url;
-        this.apiKey = apiKey;
+        this.apiKey = resolveApiKey(apiKey);
         this.scanFlags = scanFlags;
         this.sbomType = sbomType;
         this.sbom = sbom;
@@ -149,7 +149,7 @@ public class Scanner {
                         .skipHeadersLimit(fileSnippetConfig != null && fileSnippetConfig.getSkipHeadersLimit() != null ? fileSnippetConfig.getSkipHeadersLimit() : 0)
                         .build());
         this.scanApi = Objects.requireNonNullElseGet(scanApi, () ->
-                ScanApi.builder().url(url).apiKey(apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
+                ScanApi.builder().url(url).apiKey(this.apiKey).timeout(timeout).retryLimit(retryLimit).flags(scanFlags)
                         .sbomType(sbomType).sbom(sbom).customCert(customCert).proxy(proxy).settings(this.settings)
                         .build());
         this.scanFileProcessor = Objects.requireNonNullElseGet(scanFileProcessor, () ->
@@ -169,6 +169,28 @@ public class Scanner {
 
         this.fileFilter = Objects.requireNonNullElseGet(fileFilter , () -> FileFilterFactory.build(this.filterConfig));
         this.folderFilter = Objects.requireNonNullElseGet(folderFilter, () -> FolderFilterFactory.build(this.filterConfig));
+    }
+
+    /**
+     * Resolve the API key for Scanoss API
+     *
+     * @param apiKey The API key provided by the user
+     * @return The resolved API key, either from the user-provided value or environment variable
+     */
+    private static String resolveApiKey(String apiKey) {
+        if (apiKey != null && !apiKey.isBlank()) {
+            return apiKey;
+        }
+        try {
+            String envApiKey = System.getenv("SCANOSS_API_KEY");
+            if (envApiKey != null && !envApiKey.isBlank()) {
+                log.debug( "Using SCANOSS_API_KEY env value");
+                return envApiKey;
+            }
+        } catch (RuntimeException e) {
+            log.warn("Unable to read SCANOSS_API_KEY from environment: {}", e.getMessage());
+        }
+        return apiKey;
     }
 
     /**
