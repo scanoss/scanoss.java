@@ -100,6 +100,7 @@ public class ScanApi {
         if (okHttpClient == null) {
             OkHttpClient.Builder okBuilder = new OkHttpClient.Builder();
             okBuilder.callTimeout(this.timeout);  // Set default timeout
+            okBuilder.readTimeout(Duration.ZERO);  // No read timeout; overall request is bounded by callTimeout
             // Build the HTTP client with a custom certificate (ignoring hostname verification)
             if (customCert != null && ! customCert.isEmpty()) {
                 HandshakeCertificates certificates = new HandshakeCertificates.Builder()
