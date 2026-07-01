@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-07-01
+### Fixed
+- Disabled OkHttp's default read timeout so long-running scans are bounded only by the overall call timeout, preventing premature failures on large payloads.
+
 ## [0.13.1] - 2026-03-25
 ### Added
 - Added support to load a SCANOSS API key from an environment variable (`SCANOSS_API_KEY`) if available.
