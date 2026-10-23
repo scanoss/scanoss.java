@@ -163,6 +163,8 @@ jobs:
     needs: [ build_jars, build_native ]
     name: Create Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
